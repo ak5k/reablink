@@ -1,0 +1,12 @@
+[submodule "vendor/WDL"]
+	path = vendor/WDL
+	url = https://github.com/justinfrankel/WDL
+    ignore = all
+[submodule "vendor/reaper-sdk"]
+	path = vendor/reaper-sdk
+	url = https://github.com/justinfrankel/reaper-sdk
+    ignore = all
+[submodule "vendor/link"]
+	path = vendor/link
+	url = https://github.com/Ableton/link
+    ignore = all
