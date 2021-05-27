@@ -18,29 +18,25 @@
 
 #include "reablink/ReaBlink.hpp"
 
-
 REAPER_PLUGIN_HINSTANCE g_hInst; // to api extern
 
-extern "C"
+extern "C" {
+REAPER_PLUGIN_DLL_EXPORT int
+ReaperPluginEntry(REAPER_PLUGIN_HINSTANCE hInstance, reaper_plugin_info_t* rec)
 {
-    REAPER_PLUGIN_DLL_EXPORT int ReaperPluginEntry(
-        REAPER_PLUGIN_HINSTANCE hInstance, reaper_plugin_info_t* rec)
-    {
-        g_hInst = hInstance;
-        if (rec && REAPERAPI_LoadAPI(rec->GetFunc) == 0)
-        {
-            registerReaBlink();
-            // blinkEngine = new BlinkEngine();
-            return 1;
-        }
-        else
-        {
-            // delete blinkEngine;
-            unregisterReaBlink();
-#if defined(_WIN32) && !defined(NDEBUG)
-            _CrtDumpMemoryLeaks();
-#endif
-            return 0;
-        }
+    g_hInst = hInstance;
+    if (rec && REAPERAPI_LoadAPI(rec->GetFunc) == 0) {
+        registerReaBlink();
+        // blinkEngine = new BlinkEngine();
+        return 1;
     }
+    else {
+        // delete blinkEngine;
+        unregisterReaBlink();
+#if defined(_WIN32) && !defined(NDEBUG)
+        _CrtDumpMemoryLeaks();
+#endif
+        return 0;
+    }
+}
 }

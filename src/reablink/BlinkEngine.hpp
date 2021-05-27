@@ -34,8 +34,7 @@
 
 #ifdef ASIO_NO_EXCEPTIONS
 template <typename Exception>
-void asio::detail::throw_exception(const Exception& e)
-{
+void asio::detail::throw_exception(const Exception& e) {
     // try
     // {
     //     throw e;
@@ -51,9 +50,8 @@ void asio::detail::throw_exception(const Exception& e)
 
 #include <reaper_plugin_functions.h>
 
-class BlinkEngine
-{
-public:
+class BlinkEngine {
+  public:
     BlinkEngine(BlinkEngine const&) = delete;
     BlinkEngine& operator=(BlinkEngine&&) = delete;
     BlinkEngine& operator=(BlinkEngine const&) = delete;
@@ -76,10 +74,9 @@ public:
     void StartPlaying();
     void StopPlaying();
 
-private:
+  private:
     BlinkEngine();
-    struct EngineData
-    {
+    struct EngineData {
         double requestedTempo;
         bool requestStart;
         bool requestStop;
@@ -90,8 +87,8 @@ private:
     };
 
     EngineData PullEngineData();
-    static void OnAudioBuffer(
-        bool isPost, int len, double srate, audio_hook_register_t* reg);
+    static void OnAudioBuffer(bool isPost, int len, double srate,
+                              audio_hook_register_t* reg);
     static void TempoCallback(double bpm);
 
     EngineData lockfreeEngineData;
