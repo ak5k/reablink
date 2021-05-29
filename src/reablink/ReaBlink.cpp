@@ -464,10 +464,10 @@ bool runCommand(int command, int flag)
 void SetCaptureTransportCommands(bool enable)
 {
     if (enable) {
-        plugin_register("hookcommand", runCommand);
+        plugin_register("hookcommand", (void*)runCommand);
     }
     else {
-        plugin_register("-hookcommand", runCommand);
+        plugin_register("-hookcommand", (void*)runCommand);
     }
     return;
 }
@@ -857,7 +857,7 @@ void unregisterReaBlink()
         reinterpret_cast<void*>(
             &InvokeReaScriptAPI<&SetBeatAtStartPlayingTimeRequest>));
 
-    plugin_register("-hookcommand", runCommand);
+    plugin_register("-hookcommand", (void*)runCommand);
 
     blinkEngine.GetLink().enable(false); // !!!
 }
