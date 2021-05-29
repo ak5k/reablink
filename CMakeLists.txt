@@ -25,7 +25,6 @@ include_directories(reaper_interface INTERFACE
 include_directories(reaper_interface INTERFACE
     ${CMAKE_CURRENT_LIST_DIR}/include)
 
-
 #reablink sources
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/src)
 

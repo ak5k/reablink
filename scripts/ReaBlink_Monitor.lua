@@ -5,8 +5,9 @@ if not reaper.Blink_GetEnabled() then
   reaper.Blink_SetEnabled(true)
 end
 
---reaper.Blink_SetStartStopSyncEnabled(true)
---reaper.Blink_SetPuppet(true)
+reaper.Blink_SetStartStopSyncEnabled(true)
+reaper.Blink_SetPuppet(true)
+reaper.Blink_SetCaptureTransportCommands(true)
 
 local function main()    
     if reaper.GetPlayState() & 1 == 1 or reaper.GetPlayState() & 4 == 4 then
@@ -67,6 +68,19 @@ local function main()
   reaper.defer(main)
 end
 
+is_new_value, filename, sectionID, cmdID, mode, resolution, val = reaper.get_action_context()
+reaper.SetToggleCommandState(sectionID, cmdID, 1)
+reaper.RefreshToolbar2(sectionID, cmdID)
+
 main()
 
-reaper.atexit()
+local function shutdown()
+  reaper.Blink_SetStartStopSyncEnabled(false)
+  reaper.Blink_SetMaster(false)
+  reaper.Blink_SetPuppet(false)
+  reaper.Blink_SetCaptureTransportCommands(false)
+  reaper.SetToggleCommandState(sectionID, cmdID, 0)
+  reaper.RefreshToolbar2(sectionID, cmdID)
+end
+
+reaper.atexit(shutdown)
