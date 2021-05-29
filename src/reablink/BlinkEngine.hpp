@@ -72,7 +72,6 @@ class BlinkEngine {
 
     EngineData lockfreeEngineData;
     EngineData sharedEngineData;
-    ableton::Link* link;
     audio_hook_register_t audioHook;
     bool isFrameCountDown;
     bool isPlaying;
