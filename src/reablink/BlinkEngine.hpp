@@ -11,19 +11,46 @@
 #include <ableton/link/HostTimeFilter.hpp>
 #include <cmath>
 #include <mutex>
+
+#ifndef NDEBUG
+#define REAPERAPI_MINIMAL
+#define REAPERAPI_WANT_Audio_RegHardwareHook
+#define REAPERAPI_WANT_FindTempoTimeSigMarker
+#define REAPERAPI_WANT_GetCursorPosition
+#define REAPERAPI_WANT_GetOutputLatency
+#define REAPERAPI_WANT_GetPlayPosition
+#define REAPERAPI_WANT_GetPlayPosition2
+#define REAPERAPI_WANT_GetPlayState
+#define REAPERAPI_WANT_GetTempoTimeSigMarker
+#define REAPERAPI_WANT_Main_OnCommand
+#define REAPERAPI_WANT_Master_GetTempo
+#define REAPERAPI_WANT_OnPlayButton
+#define REAPERAPI_WANT_OnStopButton
+#define REAPERAPI_WANT_SetEditCurPos
+#define REAPERAPI_WANT_SetTempoTimeSigMarker
+#define REAPERAPI_WANT_TimeMap2_beatsToTime
+#define REAPERAPI_WANT_TimeMap2_timeToBeats
+#define REAPERAPI_WANT_TimeMap_GetTimeSigAtTime
+#define REAPERAPI_WANT_TimeMap_timeToQN_abs
+#define REAPERAPI_WANT_Undo_BeginBlock
+#define REAPERAPI_WANT_Undo_EndBlock
+#define REAPERAPI_WANT_UpdateTimeline
+#define REAPERAPI_WANT_plugin_register
+#endif
+
 #include <reaper_plugin_functions.h>
 
 #ifdef ASIO_NO_EXCEPTIONS
 template <typename Exception>
 void asio::detail::throw_exception(const Exception& e)
 {
-    // try {
-    //     throw e;
-    // }
-    // catch (const std::exception& e) {
-    //     std::cerr << e.what() << '\n';
-    // }
-    (void)e;
+    try {
+        throw e;
+    }
+    catch (const std::exception& e) {
+        std::cerr << e.what() << '\n';
+    }
+    // (void)e;
     return;
 }
 #endif

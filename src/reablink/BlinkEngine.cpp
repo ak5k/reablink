@@ -1,4 +1,3 @@
-
 #include "BlinkEngine.hpp"
 
 BlinkEngine::BlinkEngine()

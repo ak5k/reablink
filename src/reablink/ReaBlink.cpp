@@ -1,6 +1,5 @@
 #include "ReaBlink.hpp"
 #include "BlinkEngine.hpp"
-#include <reaper_plugin_functions.h>
 #include <reascript_vararg.hpp>
 
 BlinkEngine& blinkEngine = BlinkEngine::GetInstance();
