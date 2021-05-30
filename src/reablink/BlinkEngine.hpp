@@ -12,7 +12,7 @@
 #include <cmath>
 #include <mutex>
 
-#ifndef NDEBUG
+#ifdef NDEBUG
 #define REAPERAPI_MINIMAL
 #define REAPERAPI_WANT_Audio_RegHardwareHook
 #define REAPERAPI_WANT_FindTempoTimeSigMarker
@@ -44,13 +44,13 @@
 template <typename Exception>
 void asio::detail::throw_exception(const Exception& e)
 {
-    try {
-        throw e;
-    }
-    catch (const std::exception& e) {
-        std::cerr << e.what() << '\n';
-    }
-    // (void)e;
+    // try {
+    //     throw e;
+    // }
+    // catch (const std::exception& e) {
+    //     std::cerr << e.what() << '\n';
+    // }
+    (void)e;
     return;
 }
 #endif
