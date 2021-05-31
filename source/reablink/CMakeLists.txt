@@ -1,4 +1,5 @@
-add_library(reablink 
+add_library(
+    reablink
     ReaBlink.cpp
     BlinkEngine.cpp
 )
