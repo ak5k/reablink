@@ -52,10 +52,12 @@ jobs:
       # fail-fast: false
       matrix:
         config:
-        - { os: ubuntu-latest, os_name: Linux, ext: so, compress: zip, arg1: -j, arg2: -r, arg3: " ", arg4: "", arg5: "" }
-        # - { os: windows-latest, os_name: Windows, ext: dll, compress: Compress-archive, arg1: -DestinationPath, arg2: -Path, arg3: ",", arg4: "", arg5: "" }
-        # - { os: windows-latest, os_name: Win32, ext: dll, compress: Compress-archive, arg1: -DestinationPath, arg2: -Path, arg3: ",", arg4: "-A", arg5: "Win32" }
-        # - { os: macos-latest, os_name: macOS-Intel, ext: dylib, compress: zip, arg1: -j, arg2: -r, arg3: " ", arg4: "", arg5: "" }
+        - { os: ubuntu-latest, arg4: "", arg5: "" }
+        - { os: windows-latest, arg4: "", arg5: "" }
+        - { os: windows-latest, arg4: "-A", arg5: "Win32" }
+        - { os: macos-latest, arg4: "", arg5: "" }
+        - { os: macos-latest, arg4: "-A", arg5: "arm64" }
+
           
     steps:
       # checkout of cource
@@ -78,7 +80,7 @@ jobs:
       - name: build
         # Build your program with the given configuration
         run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
-      - name: zip
+      - name: cpack
         # run: ${{matrix.config.compress}} ${{matrix.config.arg1}} ${{github.event.repository.name}}-${{needs.create_release.outputs.archive_tag}}-${{matrix.config.os_name}}.zip ${{matrix.config.arg2}} ${{github.workspace}}/reaper_${{github.event.repository.name}}.${{matrix.config.ext}}${{matrix.config.arg3}}${{github.workspace}}/scripts 
         run: cpack --config ${{github.workspace}}/build/CPackConfig.cmake
         
@@ -95,14 +97,3 @@ jobs:
           hub release edit "${assets[@]}" -m "" "$tag_name"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        
-        #env:
-        #GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        #env:
-        #  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        #with:
-        #  upload_url: ${{ needs.create_release.outputs.upload_url }}
-        #  asset_path: ${{github.workspace}}/package/*
-        #  # asset_path: ${{github.event.repository.name}}-${{needs.create_release.outputs.archive_tag}}-${{matrix.config.os_name}}.zip
-        #  asset_name: ${{github.event.repository.name}}-${{needs.create_release.outputs.archive_tag}}-${{matrix.config.os_name}}.zip
-        #  asset_content_type: application/zip
