@@ -1,0 +1,2 @@
+/usr/bin/ar qc libreablink.a  CMakeFiles/reablink.dir/ReaBlink.cpp.o CMakeFiles/reablink.dir/BlinkEngine.cpp.o
+/usr/bin/ranlib libreablink.a

@@ -55,6 +55,13 @@ install(
 )
 
 install(
+    TARGETS reaper_plugin
+    CONFIGURATIONS Release
+    LIBRARY 
+    DESTINATION "."
+)
+
+install(
     DIRECTORY "scripts"
     CONFIGURATIONS Release
     DESTINATION "."
