@@ -9,9 +9,12 @@ project(
 
 if (MSVC)
     add_compile_options(/W3 /wd5208 /wd4996)
-elseif(UNIX AND NOT APPLE)
+endif()
+
+if(UNIX AND NOT APPLE)
     set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 endif()
+
 
 # set up reaper-sdk and WDL
 if(NOT EXISTS ${CMAKE_CURRENT_LIST_DIR}/vendor/reaper-sdk/WDL)
@@ -64,15 +67,15 @@ STRING(TOLOWER "${ARCH_NAME}" ARCH_NAME)
 set_target_properties(reaper_plugin PROPERTIES PREFIX "")
 set_target_properties(reaper_plugin PROPERTIES OUTPUT_NAME "reaper_reablink-${ARCH_NAME}")
 
-if (MSVC)
-    install(
-        TARGETS reaper_plugin
-        CONFIGURATIONS Release
-        RUNTIME 
-        DESTINATION "."
-        COMPONENT Runtime
-    )
-else()
+# if (MSVC)
+#     install(
+#         TARGETS reaper_plugin
+#         CONFIGURATIONS Release
+#         RUNTIME 
+#         DESTINATION "."
+#         COMPONENT Runtime
+#     )
+# else()
     install(
         TARGETS reaper_plugin
         CONFIGURATIONS Release
@@ -80,7 +83,7 @@ else()
         DESTINATION "."
         COMPONENT Runtime
     )
-endif()
+# endif()
 
 install(
     DIRECTORY "scripts"

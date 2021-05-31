@@ -1,7 +1,7 @@
 add_library(
-    reablink
-    ReaBlink.cpp
-    BlinkEngine.cpp
+        reablink
+        ReaBlink.cpp
+        BlinkEngine.cpp
 )
 
 target_link_libraries(
