@@ -5,10 +5,14 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 project(
     reablink
     VERSION 0.3.0
-    )
+)
 
 if (MSVC)
     add_compile_options(/W3 /wd5208 /wd4996)
+endif()
+
+if(APPLE)
+    set(CMAKE_SHARED_MODULE_SUFFIX ".dylib")
 endif()
 
 if(UNIX AND NOT APPLE)
@@ -67,23 +71,13 @@ STRING(TOLOWER "${ARCH_NAME}" ARCH_NAME)
 set_target_properties(reaper_plugin PROPERTIES PREFIX "")
 set_target_properties(reaper_plugin PROPERTIES OUTPUT_NAME "reaper_reablink-${ARCH_NAME}")
 
-# if (MSVC)
-#     install(
-#         TARGETS reaper_plugin
-#         CONFIGURATIONS Release
-#         RUNTIME 
-#         DESTINATION "."
-#         COMPONENT Runtime
-#     )
-# else()
-    install(
-        TARGETS reaper_plugin
-        CONFIGURATIONS Release
-        LIBRARY 
-        DESTINATION "."
-        COMPONENT Runtime
-    )
-# endif()
+install(
+    TARGETS reaper_plugin
+    CONFIGURATIONS Release
+    LIBRARY 
+    DESTINATION "."
+    COMPONENT Plugin
+)
 
 install(
     DIRECTORY "scripts"
