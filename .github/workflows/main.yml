@@ -55,7 +55,8 @@ jobs:
         - { os: ubuntu-latest, arg2: "", arg3: "", arg4: "", arg5: "" }
         - { os: windows-latest, arg2: "", arg3: "", arg4: "", arg5: "" }
         - { os: windows-latest, arg2: "", arg3: "", arg4: "-A", arg5: "Win32" }
-        - { os: macos-latest, arg2: "-G", arg3: "Xcode", arg4: "", arg5: "" }
+        #- { os: macos-latest, arg2: "-G", arg3: "Xcode", arg4: "", arg5: "" }
+        - { os: macos-latest, arg2: "-G", arg3: "Xcode", arg4: "-DCMAKE_OSX_ARCHITECTURES=\"arm64;x86_64\"", arg5: "" }
           
     steps:
       # checkout of cource
