@@ -83,13 +83,26 @@ jobs:
         run: cpack --config ${{github.workspace}}/build/CPackConfig.cmake
         
       - name: Upload release assets
-        uses: actions/upload-release-asset@v1
+        #uses: actions/upload-release-asset@v1
+        run: |
+          set -x
+          assets=()
+          for asset in ./package/ReaBlink*; do
+            assets+=("-a" "$asset")
+          done
+          tag_name="${GITHUB_REF##*/}"
+          hub release create "${assets[@]}" -m "$tag_name" "$tag_name"
+          shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.create_release.outputs.upload_url }}
-          asset_path: ${{github.workspace}}/package/*
-          # asset_path: ${{github.event.repository.name}}-${{needs.create_release.outputs.archive_tag}}-${{matrix.config.os_name}}.zip
-          asset_name: ${{github.event.repository.name}}-${{needs.create_release.outputs.archive_tag}}-${{matrix.config.os_name}}.zip
-          asset_content_type: application/zip
-
+        
+        #env:
+        #GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        #env:
+        #  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        #with:
+        #  upload_url: ${{ needs.create_release.outputs.upload_url }}
+        #  asset_path: ${{github.workspace}}/package/*
+        #  # asset_path: ${{github.event.repository.name}}-${{needs.create_release.outputs.archive_tag}}-${{matrix.config.os_name}}.zip
+        #  asset_name: ${{github.event.repository.name}}-${{needs.create_release.outputs.archive_tag}}-${{matrix.config.os_name}}.zip
+        #  asset_content_type: application/zip
