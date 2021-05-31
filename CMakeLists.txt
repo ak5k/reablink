@@ -47,19 +47,21 @@ endif()
 include(CTest)
 enable_testing()
 
-install(
-    TARGETS reaper_plugin
-    CONFIGURATIONS Release
-    RUNTIME 
-    DESTINATION "."
-)
-
-install(
-    TARGETS reaper_plugin
-    CONFIGURATIONS Release
-    LIBRARY 
-    DESTINATION "."
-)
+if (MSVC)
+    install(
+        TARGETS reaper_plugin
+        CONFIGURATIONS Release
+        RUNTIME 
+        DESTINATION "."
+    )
+else()
+    install(
+        TARGETS reaper_plugin
+        CONFIGURATIONS Release
+        LIBRARY 
+        DESTINATION "."
+    )
+endif()
 
 install(
     DIRECTORY "scripts"
