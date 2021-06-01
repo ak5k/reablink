@@ -76,7 +76,7 @@ jobs:
       - if: ${{ runner.os == 'Linux' && matrix.config.linux_cross != '' }}
         name: linux cross
         run: |
-          apt install -y g++-$ARCH-linux-gnu binutils-$ARCH-linux-gnu
+          sudo apt install -y g++-$ARCH-linux-gnu binutils-$ARCH-linux-gnu
           run: echo "::set-env name=COMPILER::CXX=$ARCH-linux-gnu-g++"
         env:
           ARCH: ${{matrix.config.linux_cross}}
