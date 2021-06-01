@@ -53,15 +53,15 @@ jobs:
       # fail-fast: false
       matrix:
         config:
-        - { os: windows-latest, arg2: "", arg3: "", arg4: "", arg5: ""}
-        - { os: windows-latest, arg2: "", arg3: "", arg4: "-A", arg5: "Win32" }
-        - { os: macos-latest, arg2: "-G", arg3: "Xcode", arg4: "-DCMAKE_OSX_ARCHITECTURES=\"arm64\"", arg5: "" }
-        - { os: macos-latest, arg2: "-G", arg3: "Xcode", arg4: "-DCMAKE_OSX_ARCHITECTURES=\"x86_64\"", arg5: "" }
-        - { os: macos-latest, arg2: "-G", arg3: "Xcode", arg4: "-DCMAKE_OSX_ARCHITECTURES=\"i386\"", arg5: "" }
-        - { os: ubuntu-latest, arg2: "", arg3: "", arg4: "", arg5: "", linux_cross: ""}
-        - { os: ubuntu-latest, arg2: "", arg3: "", arg4: "", arg5: "-D LINUX_CROSS=\"aarch64\"", linux_cross: "aarch64" }
-        - { os: ubuntu-latest, arg2: "", arg3: "", arg4: "", arg5: "-D LINUX_CROSS=\"armv7l\"", linux_cross: "arm" }
-        - { os: ubuntu-latest, arg2: "", arg3: "", arg4: "", arg5: "-D LINUX_CROSS=\"i686\"", linux_cross: "i686" }
+        - { os: windows-latest, arg1: '', arg2: "", arg3: "", arg4: "", arg5: ""}
+        - { os: windows-latest, arg1: '', arg2: "", arg3: "", arg4: "-A", arg5: "Win32" }
+        - { os: macos-latest, arg1: '', arg2: "-G", arg3: "Xcode", arg4: "-DCMAKE_OSX_ARCHITECTURES=\"arm64\"", arg5: "" }
+        - { os: macos-latest, arg1: '', arg2: "-G", arg3: "Xcode", arg4: "-DCMAKE_OSX_ARCHITECTURES=\"x86_64\"", arg5: "" }
+        - { os: macos-latest, arg1: '', arg2: "-G", arg3: "Xcode", arg4: "-DCMAKE_OSX_ARCHITECTURES=\"i386\"", arg5: "" }
+        - { os: ubuntu-latest, arg1: '', arg2: "", arg3: "", arg4: "", arg5: "", linux_cross: ""}
+        - { os: ubuntu-latest, arg1: '', arg2: "", arg3: "", arg4: "", arg5: "-D LINUX_CROSS=\"aarch64\"", linux_cross: "aarch64" }
+        - { os: ubuntu-latest, arg1: '', arg2: "", arg3: "", arg4: "", arg5: "-D LINUX_CROSS=\"i686\"", linux_cross: "i686" }
+        - { os: ubuntu-latest, arg1: 'eabi', arg2: "", arg3: "", arg4: "", arg5: "-D LINUX_CROSS=\"armv7l\"", linux_cross: "arm" }
           
     steps:
       # checkout of cource
@@ -76,10 +76,11 @@ jobs:
       - if: ${{ runner.os == 'Linux' && matrix.config.linux_cross != '' }}
         name: linux cross
         run: |
-          sudo apt install -y g++-$ARCH-linux-gnu* binutils-$ARCH-linux-gnu*
-          echo "COMPILER=CXX=$ARCH-linux-gnu-g++" >> $GITHUB_ENV
+          sudo apt install -y g++-$ARCH-linux-gnu$ARG1 binutils-$ARCH-linux-gnu$ARG1
+          echo "COMPILER=CXX=$ARCH-linux-gnu$ARG1-g++" >> $GITHUB_ENV
         env:
           ARCH: ${{matrix.config.linux_cross}}
+          ARG1: ${{matrix.config.arg1}}
         
       - name: move wdl
         run: mv ./vendor/WDL/WDL ./vendor/reaper-sdk/
