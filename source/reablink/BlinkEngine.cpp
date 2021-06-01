@@ -244,7 +244,7 @@ void BlinkEngine::AudioCallback(const std::chrono::microseconds& hostTime)
                 GetTempoTimeSigMarker(
                     0, ptidx, &timepos, &measurepos, &beatpos, 0, &timesig_num,
                     &timesig_denom, &lineartempo);
-                timepos = timepos;
+                // timepos = timepos;
             }
             sessionState.requestBeatAtStartPlayingTime(0, engineData.quantum);
             frameCountDown =
