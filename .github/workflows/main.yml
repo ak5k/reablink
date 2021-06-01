@@ -77,7 +77,7 @@ jobs:
         name: linux cross
         run: |
           sudo apt install -y g++-$ARCH-linux-gnu binutils-$ARCH-linux-gnu
-          echo "::set-env name=COMPILER::CXX=$ARCH-linux-gnu-g++"
+          echo "COMPILER=CXX=$ARCH-linux-gnu-g++" >> $GITHUB_ENV
         env:
           ARCH: ${{matrix.config.linux_cross}}
         
