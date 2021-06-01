@@ -99,18 +99,18 @@ class BlinkEngine {
     static void TempoCallback(double bpm);
 
     audio_hook_register_t audioHook;
-    double beatOffset;
+    // double beatOffset;
     int64_t frameCountDown;
     int frameSize;
     std::chrono::microseconds frameTime;
-    bool isFrameCountDown;
+    // bool isFrameCountDown;
     bool isPlaying;
     std::chrono::microseconds outputLatency;
     size_t playbackFrameCount;
     double qnAbs;
     double qnJumpOffset;
     double qnLandOffset;
-    double quantum;
+    // double quantum;
     double samplePosition;
     double sampleRate;
     bool syncCorrection;

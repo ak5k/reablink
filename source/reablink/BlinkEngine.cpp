@@ -2,11 +2,11 @@
 
 BlinkEngine::BlinkEngine()
     : audioHook {OnAudioBuffer, 0, 0, 0, 0,0}
-    , beatOffset {0}
+    // , beatOffset {0}
     , frameCountDown {0}
     , frameSize {0}
     , frameTime(std::chrono::microseconds {0})
-    , isFrameCountDown {false}
+    // , isFrameCountDown {false}
     , isPlaying {false}
     , outputLatency {std::chrono::microseconds {0}}
     , playbackFrameCount {0}
