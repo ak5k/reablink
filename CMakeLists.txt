@@ -8,14 +8,6 @@ project(
     LANGUAGES CXX
 )
 
-if (CMAKE_SYSTEM_NAME MATCHES Windows)
-    add_compile_options(/W3 /wd5208 /wd4996)
-endif()
-
-if(CMAKE_SYSTEM_NAME MATCHES Darwin)
-    set(CMAKE_SHARED_MODULE_SUFFIX ".dylib")
-endif()
-
 # set up reaper-sdk and WDL
 if(NOT EXISTS ${CMAKE_CURRENT_LIST_DIR}/vendor/reaper-sdk/WDL)
     find_package(Git QUIET)
@@ -27,16 +19,32 @@ if(NOT EXISTS ${CMAKE_CURRENT_LIST_DIR}/vendor/reaper-sdk/WDL)
         SYMBOLIC)
 endif()
 
-# reaper_plugin
+# reaper interface
 add_library(reaper_interface INTERFACE)
 target_include_directories(
     reaper_interface SYSTEM INTERFACE
     ${PROJECT_SOURCE_DIR}/vendor/reaper-sdk/sdk
     ${PROJECT_SOURCE_DIR}/include
 )
-link_libraries(
-    reaper_interface
-)
+link_libraries(reaper_interface)
+
+if (CMAKE_SYSTEM_NAME MATCHES Windows)
+    add_compile_options(/W3 /wd5208 /wd4996)
+endif()
+
+if(CMAKE_SYSTEM_NAME MATCHES Darwin)
+    set(CMAKE_SHARED_MODULE_SUFFIX ".dylib")
+endif()
+
+if (UNIX)
+    add_compile_options(-Wall -Werror -Wpedantic -Wextra)
+    if (NOT APPLE)
+        add_compile_options(-shared -fPIC)
+        set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+        set(BUILD_SHARED_LIBS ON)
+    endif()
+endif()
+
 # reablink sources
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/source)
 

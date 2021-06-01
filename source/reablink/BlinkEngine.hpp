@@ -75,7 +75,7 @@ class BlinkEngine {
     void Initialize(bool enable);
     void SetMaster(bool enable);
     void SetPuppet(bool enable);
-    void SetQuantum(double quantum);
+    void SetQuantum(double setQuantum);
     void SetStartStopSyncEnabled(bool enabled);
     void SetTempo(double tempo);
     void StartPlaying();
@@ -98,27 +98,29 @@ class BlinkEngine {
         bool isPost, int len, double srate, audio_hook_register_t* reg);
     static void TempoCallback(double bpm);
 
-    EngineData lockfreeEngineData;
-    EngineData sharedEngineData;
     audio_hook_register_t audioHook;
+    double beatOffset;
+    int64_t frameCountDown;
+    int frameSize;
+    std::chrono::microseconds frameTime;
     bool isFrameCountDown;
     bool isPlaying;
-    bool syncCorrection;
-    double beatOffset;
+    std::chrono::microseconds outputLatency;
+    size_t playbackFrameCount;
     double qnAbs;
     double qnJumpOffset;
     double qnLandOffset;
     double quantum;
     double samplePosition;
     double sampleRate;
-    int64_t frameCountDown;
-    size_t frameSize;
-    size_t playbackFrameCount;
+    bool syncCorrection;
+    EngineData sharedEngineData;
+    EngineData lockfreeEngineData;
+
     static constexpr auto beatTolerance = 0.01;
     static constexpr auto playbackFrameSafe = 16;
     static constexpr auto tempoTolerance = 0.005;
-    std::chrono::microseconds frameTime;
-    std::chrono::microseconds outputLatency;
+
     std::mutex m;
 
 #ifdef _WIN32

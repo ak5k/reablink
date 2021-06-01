@@ -1,7 +1,7 @@
 #include "BlinkEngine.hpp"
 
 BlinkEngine::BlinkEngine()
-    : audioHook {OnAudioBuffer, 0, 0, 0, 0}
+    : audioHook {OnAudioBuffer, 0, 0, 0, 0,0}
     , beatOffset {0}
     , frameCountDown {0}
     , frameSize {0}
@@ -66,10 +66,10 @@ double BlinkEngine::GetQuantum() const
     return sharedEngineData.quantum;
 }
 
-void BlinkEngine::SetQuantum(double quantum)
+void BlinkEngine::SetQuantum(double setQuantum)
 {
     std::scoped_lock<std::mutex> lock(m);
-    sharedEngineData.quantum = quantum;
+    sharedEngineData.quantum = setQuantum;
 }
 
 void BlinkEngine::SetMaster(bool enable)
@@ -183,7 +183,7 @@ void BlinkEngine::AudioCallback(const std::chrono::microseconds& hostTime)
 
     // reaper timeline positions
     const auto cpos = GetCursorPosition();
-    auto pos = GetPlayPosition();                               // = now
+    // auto pos = GetPlayPosition();                               // = now
     auto pos2 = GetPlayPosition2() + frameTime.count() / 1.0e6; // = hosttime
 
     // set undo if playing
@@ -198,14 +198,14 @@ void BlinkEngine::AudioCallback(const std::chrono::microseconds& hostTime)
         if (playbackFrameCount > 0) {
             std::thread(Undo_EndBlock, "ReaBlink", -1).detach();
         }
-        pos = cpos;
+        // pos = cpos;
         pos2 = cpos;
     }
 
     // find current tempo and time sig
     // and active time sig marker
     bool lineartempo {0};
-    double beatpos {0}, quantumNorm {0}, timepos {0}, hostBpm {0};
+    double beatpos {0}, timepos {0}, hostBpm {0};
     int measurepos {0}, timesig_num {0}, timesig_denom {0};
     TimeMap_GetTimeSigAtTime(0, pos2, &timesig_num, &timesig_denom, &hostBpm);
     auto ptidx = FindTempoTimeSigMarker(0, pos2);
