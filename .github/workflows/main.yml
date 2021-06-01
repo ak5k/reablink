@@ -11,6 +11,7 @@ env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
   ARCHIVE_NAME: ${{ github.event.repository.name }}
+  COMPILER: ""
 
 jobs:
   create_release:
@@ -52,11 +53,15 @@ jobs:
       # fail-fast: false
       matrix:
         config:
-        - { os: ubuntu-latest, arg2: "", arg3: "", arg4: "", arg5: "" }
-        - { os: windows-latest, arg2: "", arg3: "", arg4: "", arg5: "" }
-        - { os: windows-latest, arg2: "", arg3: "", arg4: "-A", arg5: "Win32" }
-        - { os: macos-latest, arg2: "-G", arg3: "Xcode", arg4: "-DCMAKE_OSX_ARCHITECTURES=\"arm64\"", arg5: "" }
-        - { os: macos-latest, arg2: "-G", arg3: "Xcode", arg4: "-DCMAKE_OSX_ARCHITECTURES=\"x86_64\"", arg5: "" }
+        #- { os: windows-latest, arg2: "", arg3: "", arg4: "", arg5: ""}
+        #- { os: windows-latest, arg2: "", arg3: "", arg4: "-A", arg5: "Win32" }
+        #- { os: macos-latest, arg2: "-G", arg3: "Xcode", arg4: "-DCMAKE_OSX_ARCHITECTURES=\"arm64\"", arg5: "" }
+        #- { os: macos-latest, arg2: "-G", arg3: "Xcode", arg4: "-DCMAKE_OSX_ARCHITECTURES=\"x86_64\"", arg5: "" }
+        #- { os: macos-latest, arg2: "-G", arg3: "Xcode", arg4: "-DCMAKE_OSX_ARCHITECTURES=\"i386\"", arg5: "" }
+        #- { os: ubuntu-latest, arg2: "", arg3: "", arg4: "", arg5: "", linux_cross: ""}
+        - { os: ubuntu-latest, arg1: "", arg2: "", arg3: "", arg4: "", arg5: "-D LINUX_CROSS=\"aarch64\"", linux_cross: "aarch64" }
+        #- { os: ubuntu-latest, arg2: "", arg3: "", arg4: "", "-D LINUX_CROSS=\"aarch64\"", linux_cross: "aarch64" }
+        #- { os: ubuntu-latest, arg2: "", arg3: "", arg4: "", "-D LINUX_CROSS=\"aarch64\"", linux_cross: "aarch64" }
           
     steps:
       # checkout of cource
@@ -68,17 +73,25 @@ jobs:
         with: 
           submodules: recursive
         
+      - if: ${{ matrix.config.os == ubuntu-latest && matrix.config.linux_cross != "" }}
+        name: linux cross
+        run: |
+          apt install -y g++-$ARCH-linux-gnu binutils-$ARCH-linux-gnu
+          run: echo "::set-env name=COMPILER::CXX=$ARCH-linux-gnu-g++"
+        env:
+          ARCH: ${{matrix.config.linux_cross}}
+        
       - name: move wdl
         run: mv ./vendor/WDL/WDL ./vendor/reaper-sdk/
 
       - name: configure cmake
         # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
         # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-        run: cmake ${{matrix.config.arg2}} ${{matrix.config.arg3}} -B ${{github.workspace}}/build ${{matrix.config.arg4}} ${{matrix.config.arg5}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+        run: ${{env.COMPILER}} cmake ${{matrix.config.arg2}} ${{matrix.config.arg3}} -B ${{github.workspace}}/build ${{matrix.config.arg4}} ${{matrix.config.arg5}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
       - name: build
         # Build your program with the given configuration
-        run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+        run: ${{env.COMPILER}} cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
       - name: cpack
         # run: ${{matrix.config.compress}} ${{matrix.config.arg1}} ${{github.event.repository.name}}-${{needs.create_release.outputs.archive_tag}}-${{matrix.config.os_name}}.zip ${{matrix.config.arg2}} ${{github.workspace}}/reaper_${{github.event.repository.name}}.${{matrix.config.ext}}${{matrix.config.arg3}}${{github.workspace}}/scripts 
         run: cpack --config ${{github.workspace}}/build/CPackConfig.cmake
