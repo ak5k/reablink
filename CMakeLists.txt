@@ -4,7 +4,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 project(
     reablink
-    VERSION 0.3.0
+    VERSION 0.3.2
     LANGUAGES CXX
 )
 
