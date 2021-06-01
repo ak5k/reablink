@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.0.0)
+cmake_policy(SET CMP0091 NEW)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -19,16 +20,8 @@ if(NOT EXISTS ${CMAKE_CURRENT_LIST_DIR}/vendor/reaper-sdk/WDL)
         SYMBOLIC)
 endif()
 
-# reaper interface
-add_library(reaper_interface INTERFACE)
-target_include_directories(
-    reaper_interface SYSTEM INTERFACE
-    ${PROJECT_SOURCE_DIR}/vendor/reaper-sdk/sdk
-    ${PROJECT_SOURCE_DIR}/include
-)
-link_libraries(reaper_interface)
-
 if (CMAKE_SYSTEM_NAME MATCHES Windows)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
     add_compile_options(/W3 /wd5208 /wd4996)
 endif()
 
@@ -44,10 +37,21 @@ if (UNIX)
     endif()
 endif()
 
+# reaper interface
+add_library(reaper_interface INTERFACE)
+target_include_directories(
+    reaper_interface SYSTEM INTERFACE
+    ${PROJECT_SOURCE_DIR}/vendor/reaper-sdk/sdk
+    ${PROJECT_SOURCE_DIR}/include
+)
+link_libraries(reaper_interface)
+
+
 # reablink sources
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/source)
 
 # building and packaging etc
+
 if (CMAKE_BUILD_TYPE MATCHES "Debug")
     if(CMAKE_SYSTEM_NAME MATCHES Windows)
         set_target_properties(reaper_plugin PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG $ENV{APPDATA}/REAPER/UserPlugins)
