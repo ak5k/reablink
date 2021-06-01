@@ -38,11 +38,7 @@ endif()
 
 if (UNIX)
     add_compile_options(-Wall -Werror -Wpedantic -Wextra)
-    if (NOT APPLE)
-        add_compile_options(-shared -fPIC)
-        set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-        set(BUILD_SHARED_LIBS ON)
-    endif()
+    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 endif()
 
 # reablink sources
