@@ -86,7 +86,7 @@ jobs:
         name: macos-i386
         run: |
           brew install llvm
-          echo "COMPILER= CPPFLAGS += -I/usr/local/opt/llvm/include -I/usr/local/opt/llvm/include/c++/v1/ LDFLAGS += -L/usr/local/opt/llvm/lib -Wl,-rpath,/usr/local/opt/llvm/lib CXX=/usr/local/opt/llvm/bin/clang++" >> $GITHUB_ENV
+          echo "COMPILER=CPPFLAGS+='-I/usr/local/opt/llvm/include -I/usr/local/opt/llvm/include/c++/v1/' LDFLAGS+='-L/usr/local/opt/llvm/lib -Wl,-rpath,/usr/local/opt/llvm/lib' CXX=/usr/local/opt/llvm/bin/clang++" >> $GITHUB_ENV
         env:
           ARCH: ${{matrix.config.linux_cross}}
           ARG: ${{matrix.config.armarg}}
