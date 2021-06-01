@@ -57,7 +57,7 @@ jobs:
         - { os: windows-latest, arg1: '', arg2: "", arg3: "", arg4: "-A", arg5: "Win32" }
         - { os: macos-latest, arg1: '', arg2: "-G", arg3: "Xcode", arg4: "-DCMAKE_OSX_ARCHITECTURES=\"arm64\"", arg5: "" }
         - { os: macos-latest, arg1: '', arg2: "-G", arg3: "Xcode", arg4: "-DCMAKE_OSX_ARCHITECTURES=\"x86_64\"", arg5: "" }
-        - { os: macos-latest, arg1: '', arg2: "-G", arg3: "Xcode", arg4: "-DCMAKE_OSX_ARCHITECTURES=\"i386\"", arg5: "" }
+        #- { os: macos-latest, arg1: '', arg2: "-G", arg3: "Xcode", arg4: "-DCMAKE_OSX_ARCHITECTURES=\"i386\"", arg5: "" }
         - { os: ubuntu-latest, arg1: '', arg2: "", arg3: "", arg4: "", arg5: "", linux_cross: ""}
         - { os: ubuntu-latest, arg1: '', arg2: "", arg3: "", arg4: "", arg5: "-D LINUX_CROSS=\"aarch64\"", linux_cross: "aarch64" }
         - { os: ubuntu-latest, arg1: '', arg2: "", arg3: "", arg4: "", arg5: "-D LINUX_CROSS=\"i686\"", linux_cross: "i686" }
