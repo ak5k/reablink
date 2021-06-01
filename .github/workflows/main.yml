@@ -73,7 +73,7 @@ jobs:
         with: 
           submodules: recursive
         
-      - if: ${{ matrix.config.os == ubuntu-latest && matrix.config.linux_cross != "" }}
+      - if: ${{ runner.os == 'Linux' && matrix.config.linux_cross != "" }}
         name: linux cross
         run: |
           apt install -y g++-$ARCH-linux-gnu binutils-$ARCH-linux-gnu
