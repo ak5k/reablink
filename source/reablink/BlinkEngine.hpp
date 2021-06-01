@@ -1,4 +1,5 @@
-#pragma once
+#ifndef BLINKENGINE_HPP
+#define BLINKENGINE_HPP
 
 #ifdef _WIN32
 // Make sure to define this before <cmath> is included for Windows
@@ -128,3 +129,5 @@ class BlinkEngine {
         mHostTimeFilter;
 #endif
 };
+
+#endif

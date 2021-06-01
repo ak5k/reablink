@@ -5,20 +5,16 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 project(
     reablink
     VERSION 0.3.0
+    LANGUAGES CXX
 )
 
-if (MSVC)
+if (CMAKE_SYSTEM_NAME MATCHES Windows)
     add_compile_options(/W3 /wd5208 /wd4996)
 endif()
 
-if(APPLE)
+if(CMAKE_SYSTEM_NAME MATCHES Darwin)
     set(CMAKE_SHARED_MODULE_SUFFIX ".dylib")
 endif()
-
-if(UNIX AND NOT APPLE)
-    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-endif()
-
 
 # set up reaper-sdk and WDL
 if(NOT EXISTS ${CMAKE_CURRENT_LIST_DIR}/vendor/reaper-sdk/WDL)
@@ -38,17 +34,20 @@ target_include_directories(
     ${PROJECT_SOURCE_DIR}/vendor/reaper-sdk/sdk
     ${PROJECT_SOURCE_DIR}/include
 )
+link_libraries(
+    reaper_interface
+)
 # reablink sources
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/source)
 
 # building and packaging etc
 if (CMAKE_BUILD_TYPE MATCHES "Debug")
-    if(MSVC)
+    if(CMAKE_SYSTEM_NAME MATCHES Windows)
         set_target_properties(reaper_plugin PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG $ENV{APPDATA}/REAPER/UserPlugins)
         set_target_properties(reaper_plugin PROPERTIES LIBRARY_OUTPUT_DIRECTORY_DEBUG $ENV{APPDATA}/REAPER/UserPlugins)
         set_target_properties(reaper_plugin PROPERTIES RUNTIME_OUTPUT_DIRECTORY $ENV{APPDATA}/REAPER/UserPlugins)
         set_target_properties(reaper_plugin PROPERTIES LIBRARY_OUTPUT_DIRECTORY $ENV{APPDATA}/REAPER/UserPlugins)
-    elseif(APPLE)
+    elseif(CMAKE_SYSTEM_NAME MATCHES Darwin)
         set_target_properties(reaper_plugin PROPERTIES LIBRARY_OUTPUT_DIRECTORY ~/Library/Application\ Support/REAPER/UserPlugins)
     elseif(UNIX)        
         set_target_properties(reaper_plugin PROPERTIES LIBRARY_OUTPUT_DIRECTORY ~/.config/REAPER/UserPlugins)
@@ -64,6 +63,10 @@ elseif(MSVC_CXX_ARCHITECTURE_ID)
     set(ARCH_NAME ${MSVC_CXX_ARCHITECTURE_ID})
 else()
     set(ARCH_NAME ${CMAKE_SYSTEM_PROCESSOR})
+endif()
+
+if(LINUX_CROSS)
+    set(ARCH_NAME ${LINUX_CROSS})
 endif()
 
 STRING(TOLOWER "${ARCH_NAME}" ARCH_NAME)
@@ -96,13 +99,17 @@ set(CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
 set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
 set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY OFF)
 set(CPACK_OUTPUT_FILE_PREFIX package)
+
 set(CPACK_GENERATOR ZIP)
 
 if (UNIX AND NOT APPLE)
     set(CPACK_GENERATOR TGZ)
+    unset(CPACK_PACKAGE_VERSION)
+    set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH})
+    set(CPACK_PACKAGE_FILE_NAME ${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CMAKE_SYSTEM_NAME}-${ARCH_NAME})
 endif()
 
-if (APPLE)
+if (CMAKE_SYSTEM_NAME MATCHES Darwin)
     unset(CPACK_PACKAGE_VERSION)
     set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH})
     set(CPACK_PACKAGE_FILE_NAME ${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-macOS-${CMAKE_OSX_ARCHITECTURES})
