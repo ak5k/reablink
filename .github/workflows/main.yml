@@ -60,7 +60,7 @@ jobs:
         - { os: macos-latest, arg2: "-G", arg3: "Xcode", arg4: "-DCMAKE_OSX_ARCHITECTURES=\"i386\"", arg5: "" }
         - { os: ubuntu-latest, arg2: "", arg3: "", arg4: "", arg5: "", linux_cross: ""}
         - { os: ubuntu-latest, arg2: "", arg3: "", arg4: "", arg5: "-D LINUX_CROSS=\"aarch64\"", linux_cross: "aarch64" }
-        - { os: ubuntu-latest, arg2: "", arg3: "", arg4: "", arg5: "-D LINUX_CROSS=\"armv7l\"", linux_cross: "gnueabi" }
+        - { os: ubuntu-latest, arg2: "", arg3: "", arg4: "", arg5: "-D LINUX_CROSS=\"armv7l\"", linux_cross: "arm" }
         - { os: ubuntu-latest, arg2: "", arg3: "", arg4: "", arg5: "-D LINUX_CROSS=\"i686\"", linux_cross: "i686" }
           
     steps:
@@ -76,7 +76,7 @@ jobs:
       - if: ${{ runner.os == 'Linux' && matrix.config.linux_cross != '' }}
         name: linux cross
         run: |
-          sudo apt install -y g++-$ARCH-linux-gnu binutils-$ARCH-linux-gnu
+          sudo apt install -y g++-$ARCH-linux-gnu* binutils-$ARCH-linux-gnu*
           echo "COMPILER=CXX=$ARCH-linux-gnu-g++" >> $GITHUB_ENV
         env:
           ARCH: ${{matrix.config.linux_cross}}
