@@ -30,9 +30,6 @@ link_libraries(reaper_interface)
 
 if (CMAKE_SYSTEM_NAME MATCHES Windows)
     add_compile_options(/W3 /wd5208 /wd4996)
-    if (CMAKE_BUILD_TYPE MATCHES "Release")
-        add_compile_options(/O2)
-    endif()
 endif()
 
 if(CMAKE_SYSTEM_NAME MATCHES Darwin)
