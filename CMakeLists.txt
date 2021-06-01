@@ -30,6 +30,9 @@ link_libraries(reaper_interface)
 
 if (CMAKE_SYSTEM_NAME MATCHES Windows)
     add_compile_options(/W3 /wd5208 /wd4996)
+    if (CMAKE_BUILD_TYPE MATCHES "Release")
+        add_compile_options(/O2)
+    endif()
 endif()
 
 if(CMAKE_SYSTEM_NAME MATCHES Darwin)
@@ -39,6 +42,9 @@ endif()
 if (UNIX)
     add_compile_options(-Wall -Werror -Wpedantic -Wextra)
     set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+    if (CMAKE_BUILD_TYPE MATCHES "Release")
+        add_compile_options(-O3)
+    endif()
 endif()
 
 # reablink sources
