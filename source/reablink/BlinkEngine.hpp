@@ -17,6 +17,7 @@
 #define REAPERAPI_MINIMAL
 #define REAPERAPI_WANT_Audio_RegHardwareHook
 #define REAPERAPI_WANT_FindTempoTimeSigMarker
+#define REAPERAPI_WANT_GetAudioDeviceInfo
 #define REAPERAPI_WANT_GetCursorPosition
 #define REAPERAPI_WANT_GetOutputLatency
 #define REAPERAPI_WANT_GetPlayPosition
@@ -73,6 +74,8 @@ class BlinkEngine {
     double GetQuantum() const;
     void AudioCallback(const std::chrono::microseconds& hostTime);
     void Initialize(bool enable);
+    static void OnAudioBuffer(
+        bool isPost, int len, double srate, audio_hook_register_t* reg);
     void SetMaster(bool enable);
     void SetPuppet(bool enable);
     void SetQuantum(double setQuantum);
@@ -94,8 +97,6 @@ class BlinkEngine {
     };
 
     EngineData PullEngineData();
-    static void OnAudioBuffer(
-        bool isPost, int len, double srate, audio_hook_register_t* reg);
     static void TempoCallback(double bpm);
 
     audio_hook_register_t audioHook;
@@ -117,15 +118,16 @@ class BlinkEngine {
     EngineData sharedEngineData;
     EngineData lockfreeEngineData;
 
-    static constexpr auto beatTolerance = 0.01;
+    static constexpr auto beatTolerance = 0.02;
     static constexpr auto playbackFrameSafe = 16;
+    static constexpr auto syncTolerance = 3.0;
     static constexpr auto tempoTolerance = 0.005;
 
     std::mutex m;
 
 #ifdef _WIN32
     ableton::link::HostTimeFilter<ableton::platforms::windows::Clock>
-        mHostTimeFilter;
+        hostTimeFilter;
 #else
     ableton::link::HostTimeFilter<ableton::link::platform::Clock>
         mHostTimeFilter;

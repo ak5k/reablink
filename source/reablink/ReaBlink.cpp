@@ -37,12 +37,15 @@ void SetEnabled(bool enable)
 {
     if (enable && !blinkEngine.GetLink().isEnabled()) {
         blinkEngine.GetLink().enable(true);
+        blinkEngine.Initialize(true);
     }
     else if (!enable && blinkEngine.GetLink().isEnabled()) {
         blinkEngine.GetLink().enable(false);
+        blinkEngine.Initialize(false);
     }
     else {
         blinkEngine.GetLink().enable(false);
+        blinkEngine.Initialize(false);
     }
     return;
 }
@@ -337,15 +340,13 @@ const char* defstring_SetPlayingAndBeatAtTimeRequest =
 
 void startStop()
 {
-    auto sessionState = blinkEngine.GetLink().captureAppSessionState();
+    const auto sessionState = blinkEngine.GetLink().captureAppSessionState();
     if (sessionState.isPlaying()) {
-        sessionState.setIsPlaying(
-            false, blinkEngine.GetLink().clock().micros());
+        blinkEngine.StopPlaying();
     }
     else {
-        sessionState.setIsPlaying(true, blinkEngine.GetLink().clock().micros());
+        blinkEngine.StartPlaying();
     }
-    blinkEngine.GetLink().commitAppSessionState(sessionState);
     return;
 }
 const char* defstring_startStop =
@@ -391,7 +392,7 @@ const char* defstring_GetMaster =
 
 void SetPuppet(bool enable)
 {
-    blinkEngine.Initialize(enable);
+    // blinkEngine.Initialize(enable);
     return blinkEngine.SetPuppet(enable);
 }
 const char* defstring_SetPuppet =
@@ -418,43 +419,17 @@ bool runCommand(int command, int flag)
     if (GetEnabled()) {
         if (command == 40044) {
             res = true;
-            if (GetPuppet()) {
-                if (blinkEngine.GetPlaying()) {
-                    blinkEngine.StopPlaying();
-                }
-                else {
-                    blinkEngine.StartPlaying();
-                }
-            }
-            else {
-                if (GetPlaying()) {
-                    SetPlaying(false, GetClockNow());
-                }
-                else {
-                    SetPlayingAndBeatAtTimeRequest(
-                        true, GetClockNow(), 0, GetQuantum());
-                }
-            }
+            startStop();
         }
         if (command == 41130) {
             res = true;
             const auto tempo = GetTempo();
-            if (GetPuppet()) {
-                blinkEngine.SetTempo(tempo - 1);
-            }
-            else {
-                SetTempo(tempo - 1);
-            }
+            blinkEngine.SetTempo(tempo - 1);
         }
         if (command == 41129) {
             res = true;
             const auto tempo = GetTempo();
-            if (GetPuppet()) {
-                blinkEngine.SetTempo(tempo + 1);
-            }
-            else {
-                SetTempo(tempo + 1);
-            }
+            blinkEngine.SetTempo(tempo + 1);
         }
     }
     return res;
@@ -477,8 +452,50 @@ const char* defstring_SetCaptureTransportCommands =
     "session. When used with Master or Puppet mode enabled, provides better "
     "integration between REAPER and Link session transport and tempos.";
 
+void SetEngine()
+{
+    SetMaster(false);
+    SetPuppet(false);
+    blinkEngine.Initialize(false);
+}
+const char* defstring_SetEngine =
+    "void\0\0\0 "
+    "Prepares Blink for running \"virtual audio engine\", i.e. calling "
+    "Blink_SetEngineState() periodically. To restore default operation, call "
+    "Blink_SetEnabled(true).";
+
+void SetEngineState()
+{
+    if (GetPuppet()) {
+        SetPuppet(false);
+    }
+    char bsize[8], srate[8];
+    if (GetAudioDeviceInfo("BSIZE", bsize, 8) &&
+        GetAudioDeviceInfo("SRATE", srate, 8)) {
+        blinkEngine.OnAudioBuffer(false, atoi(bsize), 1.0 * atoi(srate), NULL);
+    }
+}
+const char* defstring_SetEngineState =
+    "void\0\0\0"
+    "Commits current Blink engine state into Link session. Provides ability to "
+    "emulate audio engine type behavior when called periodically, i.e. at end "
+    "of defer/runloop cycle. Initialize by calling Blink_SetEngine().";
+
 void registerReaBlink()
 {
+    plugin_register("API_Blink_SetEngine", (void*)SetEngine);
+    plugin_register("APIdef_Blink_SetEngine", (void*)defstring_SetEngine);
+    plugin_register(
+        "APIvararg_Blink_SetEngine",
+        reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetEngine>));
+
+    plugin_register("API_Blink_SetEngineState", (void*)SetEngineState);
+    plugin_register(
+        "APIdef_Blink_SetEngineState", (void*)defstring_SetEngineState);
+    plugin_register(
+        "APIvararg_Blink_SetEngineState",
+        reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetEngineState>));
+
     plugin_register("API_Blink_SetEnabled", (void*)SetEnabled);
     plugin_register("APIdef_Blink_SetEnabled", (void*)defstring_SetEnabled);
     plugin_register(
@@ -856,7 +873,21 @@ void unregisterReaBlink()
         reinterpret_cast<void*>(
             &InvokeReaScriptAPI<&SetBeatAtStartPlayingTimeRequest>));
 
+    plugin_register("-API_Blink_SetEngine", (void*)SetEngine);
+    plugin_register("-APIdef_Blink_SetEngine", (void*)defstring_SetEngine);
+    plugin_register(
+        "-APIvararg_Blink_SetEngine",
+        reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetEngine>));
+
+    plugin_register("-API_Blink_SetEngineState", (void*)SetEngineState);
+    plugin_register(
+        "-APIdef_Blink_SetEngineState", (void*)defstring_SetEngineState);
+    plugin_register(
+        "-APIvararg_Blink_SetEngineState",
+        reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetEngineState>));
+
     plugin_register("-hookcommand", (void*)runCommand);
 
     blinkEngine.GetLink().enable(false); // !!!
+    blinkEngine.Initialize(false);
 }

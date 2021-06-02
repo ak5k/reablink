@@ -1,12 +1,11 @@
 #include "BlinkEngine.hpp"
+#include <memory>
 
 BlinkEngine::BlinkEngine()
-    : audioHook {OnAudioBuffer, 0, 0, 0, 0,0}
-    // , beatOffset {0}
+    : audioHook {OnAudioBuffer, 0, 0, 0, 0, 0} // , beatOffset {0}
     , frameCountDown {0}
     , frameSize {0}
     , frameTime(std::chrono::microseconds {0})
-    // , isFrameCountDown {false}
     , isPlaying {false}
     , outputLatency {std::chrono::microseconds {0}}
     , playbackFrameCount {0}
@@ -29,6 +28,7 @@ BlinkEngine& BlinkEngine::GetInstance()
 
 void BlinkEngine::Initialize(bool enable)
 {
+    hostTimeFilter.reset();
     Audio_RegHardwareHook(enable, &audioHook);
 }
 
@@ -154,7 +154,7 @@ void BlinkEngine::OnAudioBuffer(
         blinkEngine.frameSize = len;
         blinkEngine.frameTime =
             std::chrono::microseconds(llround((len / srate) * 1.0e6));
-        blinkEngine.mHostTimeFilter.reset();
+        blinkEngine.hostTimeFilter.reset();
         blinkEngine.outputLatency =
             std::chrono::microseconds(llround(GetOutputLatency() * 1.0e6));
         blinkEngine.samplePosition = len;
@@ -163,7 +163,7 @@ void BlinkEngine::OnAudioBuffer(
     if (!isPost) {
         // does linear regression to generate timestamp based on sample position
         // advancement and current system time
-        const auto hostTime = blinkEngine.mHostTimeFilter.sampleTimeToHostTime(
+        const auto hostTime = blinkEngine.hostTimeFilter.sampleTimeToHostTime(
                                   blinkEngine.samplePosition) +
                               blinkEngine.outputLatency + blinkEngine.frameTime;
 
@@ -183,7 +183,7 @@ void BlinkEngine::AudioCallback(const std::chrono::microseconds& hostTime)
 
     // reaper timeline positions
     const auto cpos = GetCursorPosition();
-    // auto pos = GetPlayPosition();                               // = now
+    //  auto pos2 = GetPlayPosition();                               // = now
     auto pos2 = GetPlayPosition2() + frameTime.count() / 1.0e6; // = hosttime
 
     // set undo if playing
@@ -223,9 +223,9 @@ void BlinkEngine::AudioCallback(const std::chrono::microseconds& hostTime)
         // Reset the timeline so that beat 0 corresponds to the time
         // when transport starts
         frameCountDown = 1;
-        std::thread(OnStopButton).detach();
         if (GetLink().numPeers() > 0 && engineData.isPuppet) {
             // 'quantized launch' madness
+            std::thread(OnStopButton).detach();
             int ms {0}, ms_len {0};
             (void)TimeMap2_timeToBeats(0, cpos, &ms, &ms_len, 0, 0);
             timepos = TimeMap2_beatsToTime(0, ms_len, &ms);
@@ -345,7 +345,7 @@ void BlinkEngine::AudioCallback(const std::chrono::microseconds& hostTime)
         // try to improve sync if difference greater than 3 ms by forcing
         // local timeline upon peers
         if (sessionState.isPlaying() &&
-            playbackFrameCount > playbackFrameSafe && diff > 3.0 &&
+            playbackFrameCount > playbackFrameSafe && diff > syncTolerance &&
             diff < qLen - ceil((frameTime.count() / 1.0e3) * 2)) {
             double pushBeat {0};
             pushBeat = fmod(
@@ -382,7 +382,7 @@ void BlinkEngine::AudioCallback(const std::chrono::microseconds& hostTime)
         // greater than 3 ms
         else if (
             !engineData.isMaster && sessionState.isPlaying() &&
-            playbackFrameCount > playbackFrameSafe && diff > 3.0 &&
+            playbackFrameCount > playbackFrameSafe && diff > syncTolerance &&
             diff < qLen - ceil((frameTime.count() / 1.0e3) * 2)) {
             syncCorrection = true;
             if (hostBeat - sessionBeat > 0) {

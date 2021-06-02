@@ -52,7 +52,7 @@ add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/source)
 
 # building and packaging etc
 
-if (CMAKE_BUILD_TYPE MATCHES "Debug")
+if (NOT CMAKE_BUILD_TYPE MATCHES Release)
     if(CMAKE_SYSTEM_NAME MATCHES Windows)
         set_target_properties(reaper_plugin PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG $ENV{APPDATA}/REAPER/UserPlugins)
         set_target_properties(reaper_plugin PROPERTIES LIBRARY_OUTPUT_DIRECTORY_DEBUG $ENV{APPDATA}/REAPER/UserPlugins)

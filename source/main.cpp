@@ -19,6 +19,7 @@
 #define REAPERAPI_MINIMAL
 #define REAPERAPI_WANT_Audio_RegHardwareHook
 #define REAPERAPI_WANT_FindTempoTimeSigMarker
+#define REAPERAPI_WANT_GetAudioDeviceInfo
 #define REAPERAPI_WANT_GetCursorPosition
 #define REAPERAPI_WANT_GetOutputLatency
 #define REAPERAPI_WANT_GetPlayPosition

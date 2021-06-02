@@ -1,13 +1,15 @@
 header = "enabled | num peers | quantum | start stop sync | tempo   | beats(QN) | metro\n"
 gfx.init("ReaBlink Monitor", 640, 32)
 
-if not reaper.Blink_GetEnabled() then
+if not reaper.Blink_GetEnabled() then 
   reaper.Blink_SetEnabled(true)
 end
 
 reaper.Blink_SetStartStopSyncEnabled(true)
 reaper.Blink_SetPuppet(true)
 reaper.Blink_SetCaptureTransportCommands(true)
+
+--reaper.Blink_SetEngine()
 
 local function main()    
     if reaper.GetPlayState() & 1 == 1 or reaper.GetPlayState() & 4 == 4 then
@@ -20,7 +22,7 @@ local function main()
   bpmRate = bpmDiv / bpm
   str = ""
   phaseStr = ""
-  time = reaper.Blink_GetClockNow()
+  time = time2 or 0 
   time2 = reaper.time_precise()
   time_diff = math.abs(time2-time)
   linkEnabled = reaper.Blink_GetEnabled()
@@ -62,6 +64,9 @@ local function main()
   str = str .. string.format("%9.2f | ", beats)
   str = str .. phaseStr .. "\n"
   end
+  
+  --reaper.Blink_SetEngineState()
+  
   gfx.x, gfx.y = 0, 0
   gfx.drawstr(header .. str)
   gfx.update()
