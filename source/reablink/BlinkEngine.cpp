@@ -163,9 +163,10 @@ void BlinkEngine::OnAudioBuffer(
     if (!isPost) {
         // does linear regression to generate timestamp based on sample position
         // advancement and current system time
-        const auto hostTime = blinkEngine.hostTimeFilter.sampleTimeToHostTime(
-                                  blinkEngine.samplePosition) +
-                              blinkEngine.outputLatency + blinkEngine.frameTime;
+        const auto hostTime =
+            blinkEngine.hostTimeFilter.sampleTimeToHostTime(
+                blinkEngine.samplePosition) +
+            blinkEngine.outputLatency + blinkEngine.frameTime;
 
         blinkEngine.samplePosition += len; // advance sample position
         if (blinkEngine.GetLink().isEnabled()) {
@@ -264,7 +265,6 @@ void BlinkEngine::AudioCallback(const std::chrono::microseconds& hostTime)
         }
         else if (GetLink().numPeers() == 0 && engineData.isPuppet) {
             const auto startBeat = fmod(TimeMap_timeToQN_abs(0, cpos), 1.);
-            // sessionState.forceBeatAtTime(startBeat, hostTime, 1.);
             sessionState.requestBeatAtStartPlayingTime(
                 startBeat, engineData.quantum);
         }

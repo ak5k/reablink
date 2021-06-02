@@ -5,7 +5,6 @@ add_library(
 )
 
 include(${CMAKE_SOURCE_DIR}/vendor/link/AbletonLinkConfig.cmake)
-
 target_link_libraries(
     reablink PRIVATE
     Ableton::Link

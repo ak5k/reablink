@@ -4,11 +4,12 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 project(
-    reablink
+    ReaBlink
     VERSION 0.3.2
     LANGUAGES CXX
 )
 
+# add_definitions(-DASIO_DYN_LINK)
 # set up reaper-sdk and WDL
 if(NOT EXISTS ${CMAKE_CURRENT_LIST_DIR}/vendor/reaper-sdk/WDL)
     find_package(Git QUIET)
@@ -21,7 +22,6 @@ if(NOT EXISTS ${CMAKE_CURRENT_LIST_DIR}/vendor/reaper-sdk/WDL)
 endif()
 
 if (CMAKE_SYSTEM_NAME MATCHES Windows)
-    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
     add_compile_options(/W3 /wd5208 /wd4996)
 endif()
 
@@ -43,6 +43,8 @@ target_include_directories(
     reaper_interface SYSTEM INTERFACE
     ${PROJECT_SOURCE_DIR}/vendor/reaper-sdk/sdk
     ${PROJECT_SOURCE_DIR}/include
+    # ${PROJECT_SOURCE_DIR}/vendor/link/include
+    # ${PROJECT_SOURCE_DIR}/vendor/link/modules/asio-standalone/asio/include
 )
 link_libraries(reaper_interface)
 
@@ -54,6 +56,7 @@ add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/source)
 
 if (NOT CMAKE_BUILD_TYPE MATCHES Release)
     if(CMAKE_SYSTEM_NAME MATCHES Windows)
+        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
         set_target_properties(reaper_plugin PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG $ENV{APPDATA}/REAPER/UserPlugins)
         set_target_properties(reaper_plugin PROPERTIES LIBRARY_OUTPUT_DIRECTORY_DEBUG $ENV{APPDATA}/REAPER/UserPlugins)
         set_target_properties(reaper_plugin PROPERTIES RUNTIME_OUTPUT_DIRECTORY $ENV{APPDATA}/REAPER/UserPlugins)

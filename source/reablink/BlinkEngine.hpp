@@ -1,10 +1,9 @@
 #ifndef BLINKENGINE_HPP
 #define BLINKENGINE_HPP
 
-#ifdef _WIN32
+#ifdef WIN32
 // Make sure to define this before <cmath> is included for Windows
 #define _USE_MATH_DEFINES
-#define WIN32_MEAN_AND_LEAN
 #define ASIO_NO_EXCEPTIONS
 #endif
 
@@ -17,7 +16,6 @@
 #define REAPERAPI_MINIMAL
 #define REAPERAPI_WANT_Audio_RegHardwareHook
 #define REAPERAPI_WANT_FindTempoTimeSigMarker
-#define REAPERAPI_WANT_GetAudioDeviceInfo
 #define REAPERAPI_WANT_GetCursorPosition
 #define REAPERAPI_WANT_GetOutputLatency
 #define REAPERAPI_WANT_GetPlayPosition
@@ -38,6 +36,7 @@
 #define REAPERAPI_WANT_Undo_EndBlock
 #define REAPERAPI_WANT_UpdateTimeline
 #define REAPERAPI_WANT_plugin_register
+#define REAPERAPI_WANT_time_precise
 #endif
 
 #include <reaper_plugin_functions.h>
@@ -46,14 +45,14 @@
 template <typename Exception>
 void asio::detail::throw_exception(const Exception& e)
 {
-    // try {
-    //     throw e;
-    // }
-    // catch (const std::exception& e) {
-    //     std::cerr << e.what() << '\n';
-    // }
-    (void)e;
-    return;
+    try {
+        throw e;
+    }
+    catch (const std::exception& e) {
+        std::cerr << e.what() << '\n';
+    }
+    // (void)e;
+    // return;
 }
 #endif
 
@@ -120,7 +119,7 @@ class BlinkEngine {
 
     static constexpr auto beatTolerance = 0.02;
     static constexpr auto playbackFrameSafe = 16;
-    static constexpr auto syncTolerance = 3.0;
+    static constexpr auto syncTolerance = 3;
     static constexpr auto tempoTolerance = 0.005;
 
     std::mutex m;
@@ -130,7 +129,7 @@ class BlinkEngine {
         hostTimeFilter;
 #else
     ableton::link::HostTimeFilter<ableton::link::platform::Clock>
-        mHostTimeFilter;
+        hostTimeFilter;
 #endif
 };
 
