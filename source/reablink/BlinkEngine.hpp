@@ -5,8 +5,9 @@
 // Make sure to define this before <cmath> is included for Windows
 #include <WinSock2.h>
 #define _USE_MATH_DEFINES
+#ifndef NDEBUG
 #define ASIO_NO_EXCEPTIONS
-#define ASIO_NO_DEFAULT_LINKED_LIBS
+#endif
 #endif
 
 #include <ableton/Link.hpp>

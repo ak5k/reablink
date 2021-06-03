@@ -163,8 +163,11 @@ void BlinkEngine::OnAudioBuffer(
     if (!isPost) {
         // does linear regression to generate timestamp based on sample position
         // advancement and current system time
-        const auto hostTime = blinkEngine.hostTimeFilter.sampleTimeToHostTime(
-                                  blinkEngine.samplePosition) +
+        // const auto hostTime = blinkEngine.hostTimeFilter.sampleTimeToHostTime(
+        //                           blinkEngine.samplePosition) +
+        //                       blinkEngine.outputLatency + blinkEngine.frameTime;
+
+        const auto hostTime = blinkEngine.GetLink().clock().micros() + 
                               blinkEngine.outputLatency + blinkEngine.frameTime;
 
         blinkEngine.samplePosition += len; // advance sample position
@@ -228,7 +231,7 @@ void BlinkEngine::AudioCallback(const std::chrono::microseconds& hostTime)
             int ms {0}, ms_len {0};
             (void)TimeMap2_timeToBeats(0, cpos, &ms, &ms_len, 0, 0);
             timepos = TimeMap2_beatsToTime(0, ms_len, &ms);
-            SetEditCurPos(timepos, false, false);
+            // SetEditCurPos(timepos, false, false);
             TimeMap_GetTimeSigAtTime(
                 0, timepos, &timesig_num, &timesig_denom, &hostBpm);
             sessionState.setTempo(hostBpm, hostTime);

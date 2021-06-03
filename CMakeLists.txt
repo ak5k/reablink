@@ -45,7 +45,6 @@ add_library(reaper_interface INTERFACE)
 target_include_directories(
     reaper_interface SYSTEM INTERFACE
     ${PROJECT_SOURCE_DIR}/vendor/reaper-sdk/sdk
-    ${PROJECT_SOURCE_DIR}/include
 )
 link_libraries(reaper_interface)
 
