@@ -91,7 +91,7 @@ jobs:
           # chmod -R 777 ./build
         run: |
           CXX=g++
-          if [[ ! -z ${{matrix.config.linux_cross}} ]]
+          if [ ! -z ${{matrix.config.linux_cross}} ]
           then
             sudo apt install -y g++-$ARCH-linux-gnu$ARG binutils-$ARCH-linux-gnu$ARG
             CXX=$ARCH-linux-gnu$ARG-$CXX
