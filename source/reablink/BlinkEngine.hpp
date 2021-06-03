@@ -13,6 +13,7 @@
 #include <ableton/link/HostTimeFilter.hpp>
 #include <cmath>
 #include <mutex>
+#include <thread>
 
 #ifdef NDEBUG
 #define REAPERAPI_MINIMAL
