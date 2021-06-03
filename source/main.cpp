@@ -13,7 +13,6 @@
 // #endif
 // #endif
 
-// #include <WinSock2.h>
 #ifdef NDEBUG
 #define REAPERAPI_MINIMAL
 #define REAPERAPI_WANT_Audio_RegHardwareHook
@@ -41,9 +40,9 @@
 #define REAPERAPI_WANT_time_precise
 #endif
 
+#include "reablink/ReaBlink.hpp"
 #define REAPERAPI_IMPLEMENT
 #include <reaper_plugin_functions.h>
-#include "reablink/ReaBlink.hpp"
 
 REAPER_PLUGIN_HINSTANCE g_hInst; // to api extern
 
