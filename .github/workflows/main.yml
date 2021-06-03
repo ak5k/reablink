@@ -94,7 +94,6 @@ jobs:
           [ ! -z ${{matrix.config.linux_cross}} ] && sudo apt install -y g++-$ARCH-linux-gnu$ARG binutils-$ARCH-linux-gnu$ARG && CXX=$ARCH-linux-gnu$ARG-$CXX
           CXX=$CXX cmake -B ./build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           CXX=$CXX cmake --build ./build --config ${{env.BUILD_TYPE}}
-          
         env:
           ARCH: ${{matrix.config.linux_cross}}
           ARG: ${{matrix.config.armarg}}
