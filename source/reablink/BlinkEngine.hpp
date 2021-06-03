@@ -45,14 +45,14 @@
 template <typename Exception>
 void asio::detail::throw_exception(const Exception& e)
 {
-    try {
-        throw e;
-    }
-    catch (const std::exception& e) {
-        std::cerr << e.what() << '\n';
-    }
-    // (void)e;
-    // return;
+    // try {
+    //     throw e;
+    // }
+    // catch (const std::exception& e) {
+    //     std::cerr << e.what() << '\n';
+    // }
+    (void)e;
+    return;
 }
 #endif
 

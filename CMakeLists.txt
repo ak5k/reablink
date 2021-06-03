@@ -12,6 +12,9 @@ project(
 # add_definitions(-DASIO_DYN_LINK)
 # set up reaper-sdk and WDL
 if(NOT EXISTS ${CMAKE_CURRENT_LIST_DIR}/vendor/reaper-sdk/WDL)
+    file(REMOVE 
+        ${CMAKE_CURRENT_LIST_DIR}/vendor/reaper-sdk/WDL
+    )
     find_package(Git QUIET)
     execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
         WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
