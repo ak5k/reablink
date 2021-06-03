@@ -41,15 +41,15 @@ jobs:
       # fail-fast: false
       matrix:
         config:
-        - { os: windows-latest, arg1: '', arg2: "", arg3: "", arg4: "", arg5: ""}
-        - { os: windows-latest, arg1: '', arg2: "", arg3: "", arg4: "-A", arg5: "Win32" }
-        - { os: macos-latest, arg1: '', arg2: "-G", arg3: "Xcode", arg4: "-DCMAKE_OSX_ARCHITECTURES=\"arm64\"", arg5: '' }
-        - { os: macos-latest, arg1: '', arg2: "-G", arg3: "Xcode", arg4: "-DCMAKE_OSX_ARCHITECTURES=\"x86_64\"", arg5: '' }
+        #- { os: windows-latest, arg1: '', arg2: "", arg3: "", arg4: "", arg5: ""}
+        #- { os: windows-latest, arg1: '', arg2: "", arg3: "", arg4: "-A", arg5: "Win32" }
+        #- { os: macos-latest, arg1: '', arg2: "-G", arg3: "Xcode", arg4: "-DCMAKE_OSX_ARCHITECTURES=\"arm64\"", arg5: '' }
+        #- { os: macos-latest, arg1: '', arg2: "-G", arg3: "Xcode", arg4: "-DCMAKE_OSX_ARCHITECTURES=\"x86_64\"", arg5: '' }
         # - { os: macos-latest, arg1: '', arg2: "", arg3: "-DCMAKE_CXX_COMPILER=/usr/local/bin/g++-11", arg4: "-DCMAKE_CXX_COMPILER_ARG1=-m32", arg5: "-D LINUX_CROSS=\"i386\"" }
         - { os: ubuntu-latest, arg1: '', arg2: "", arg3: "", arg4: "", arg5: "", linux_cross: '' }
-        - { os: ubuntu-latest, arg1: '', arg2: "", arg3: "", arg4: "", arg5: "-D LINUX_CROSS=\"aarch64\"", linux_cross: "aarch64" }
-        - { os: ubuntu-latest, arg1: '', arg2: "", arg3: "", arg4: "", arg5: "-D LINUX_CROSS=\"i686\"", linux_cross: "i686" }
-        - { os: ubuntu-latest, arg1: '', arg2: "", arg3: "", arg4: "", arg5: "-D LINUX_CROSS=\"armv7l\"", linux_cross: "arm", armarg: 'eabi' }
+        #- { os: ubuntu-latest, arg1: '', arg2: "", arg3: "", arg4: "", arg5: "-D LINUX_CROSS=\"aarch64\"", linux_cross: "aarch64" }
+        #- { os: ubuntu-latest, arg1: '', arg2: "", arg3: "", arg4: "", arg5: "-D LINUX_CROSS=\"i686\"", linux_cross: "i686" }
+        #- { os: ubuntu-latest, arg1: '', arg2: "", arg3: "", arg4: "", arg5: "-D LINUX_CROSS=\"armv7l\"", linux_cross: "arm", armarg: 'eabi' }
           
     steps:
       # checkout of cource
@@ -83,11 +83,11 @@ jobs:
           sudo apt install -y debootstrap
           sudo debootstrap stable ./
           sudo chroot ./
-          apt install -y --allow-unauthenticated cmake build-essential git lsb-release
+          sudo apt install -y --allow-unauthenticated cmake build-essential git lsb-release
           codename=$(lsb_release -c -s)
-          echo "deb http://ftp.debian.org/debian $codename-backports main" | tee /etc/apt/sources.list.d/backports.list
-          apt update -y
-          apt -t $codename-backports install -y --allow-unauthenticated cmake
+          echo "deb http://ftp.debian.org/debian $codename-backports main" | sudo tee /etc/apt/sources.list.d/backports.list
+          sudo apt update -y
+          sudo apt -t $codename-backports install -y --allow-unauthenticated cmake
           CXX=g++
           if [[ ! -z ${{matrix.config.linux_cross}} ]]
           then
@@ -96,7 +96,7 @@ jobs:
           fi
           CXX=$CXX cmake -B ./build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           CXX=$CXX cmake --build ./build --config ${{env.BUILD_TYPE}}
-          chmod -R 777 ./build
+          sudo chmod -R 777 ./build
           
         env:
           ARCH: ${{matrix.config.linux_cross}}
