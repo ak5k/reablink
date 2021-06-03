@@ -79,7 +79,7 @@ jobs:
       - name: checkout latest tags
         shell: bash
         run: |
-          cd ${{github.workspace}}/vendor/link
+          cd ./vendor/link
           git fetch --tags
           tag=$(git describe --tags `git rev-list --tags --max-count=1`)
           git checkout $tag -b latest
@@ -87,7 +87,7 @@ jobs:
           git fetch --tags
           tag=$(git describe --tags `git rev-list --tags --max-count=1`)
           git checkout $tag -b latest
-          cd ${{github.workspace}}
+ 
         
       - if: ${{ runner.os == 'Linux' && matrix.config.linux_cross != '' }}
         name: linux cross
