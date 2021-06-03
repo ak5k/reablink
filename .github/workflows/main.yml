@@ -79,6 +79,7 @@ jobs:
         
       - if: ${{ runner.os == 'Linux' }}
         name: linux builds
+        shell: bash
         run: |
           sudo apt install -y debootstrap fakechroot
           sudo debootstrap stable ./
