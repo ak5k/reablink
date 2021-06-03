@@ -163,10 +163,9 @@ void BlinkEngine::OnAudioBuffer(
     if (!isPost) {
         // does linear regression to generate timestamp based on sample position
         // advancement and current system time
-        const auto hostTime =
-            blinkEngine.hostTimeFilter.sampleTimeToHostTime(
-                blinkEngine.samplePosition) +
-            blinkEngine.outputLatency + blinkEngine.frameTime;
+        const auto hostTime = blinkEngine.hostTimeFilter.sampleTimeToHostTime(
+                                  blinkEngine.samplePosition) +
+                              blinkEngine.outputLatency + blinkEngine.frameTime;
 
         blinkEngine.samplePosition += len; // advance sample position
         if (blinkEngine.GetLink().isEnabled()) {
@@ -226,7 +225,6 @@ void BlinkEngine::AudioCallback(const std::chrono::microseconds& hostTime)
         frameCountDown = 1;
         if (GetLink().numPeers() > 0 && engineData.isPuppet) {
             // 'quantized launch' madness
-            std::thread(OnStopButton).detach();
             int ms {0}, ms_len {0};
             (void)TimeMap2_timeToBeats(0, cpos, &ms, &ms_len, 0, 0);
             timepos = TimeMap2_beatsToTime(0, ms_len, &ms);
@@ -261,7 +259,10 @@ void BlinkEngine::AudioCallback(const std::chrono::microseconds& hostTime)
                 (host_start_time.count() - session_start_time.count()) / 1.0e6;
             frameCountDown++;
             timepos += startOffset;
-            std::thread(SetEditCurPos, timepos, false, true).detach();
+            std::thread([timepos]() {
+                OnStopButton();
+                SetEditCurPos(timepos, false, true);
+            }).detach();
         }
         else if (GetLink().numPeers() == 0 && engineData.isPuppet) {
             const auto startBeat = fmod(TimeMap_timeToQN_abs(0, cpos), 1.);
