@@ -10,6 +10,8 @@ on:
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
+  ARCHIVE_NAME: ${{ github.event.repository.name }}
+  COMPILER: ""
 
 jobs:
   create_release:
@@ -18,8 +20,18 @@ jobs:
     # Note this. We are going to use that in further jobs.
     outputs:
       upload_url: ${{ steps.create_release.outputs.upload_url }}
-
-    steps: 
+      archive_tag: ${{ steps.vars.outputs.archive_tag }}
+    steps:
+      - name: set archive tag
+        id: vars
+        run: echo ::set-output name=archive_tag::${GITHUB_REF#refs/*/}
+      - name: check archive tag
+        env:
+          ARCHIVE_TAG: ${{ steps.vars.outputs.archive_tag }}
+        run: |
+          echo $ARCHIVE_TAG
+          echo ${{ steps.vars.outputs.archive_tag }}
+      
       - name: Create release
         id: create_release
         uses: actions/create-release@v1
@@ -33,7 +45,7 @@ jobs:
     
     # ...
   release_assets:
-    name: Release builds and assets
+    name: Release assets
     needs: create_release # we need to know the upload URL
     runs-on: ${{ matrix.config.os }} # we run many different builds
     strategy:
@@ -45,8 +57,8 @@ jobs:
         - { os: windows-latest, arg1: '', arg2: "", arg3: "", arg4: "-A", arg5: "Win32" }
         - { os: macos-latest, arg1: '', arg2: "-G", arg3: "Xcode", arg4: "-DCMAKE_OSX_ARCHITECTURES=\"arm64\"", arg5: '' }
         - { os: macos-latest, arg1: '', arg2: "-G", arg3: "Xcode", arg4: "-DCMAKE_OSX_ARCHITECTURES=\"x86_64\"", arg5: '' }
-        # - { os: macos-latest, arg1: '', arg2: "", arg3: "-DCMAKE_CXX_COMPILER=/usr/local/bin/g++-11", arg4: "-DCMAKE_CXX_COMPILER_ARG1=-m32", arg5: "-D LINUX_CROSS=\"i386\"" }
-        - { os: ubuntu-latest, arg1: '', arg2: "", arg3: "", arg4: "", arg5: "", linux_cross: '' }
+        #- { os: macos-latest, arg1: '', arg2: "", arg3: "-DCMAKE_CXX_COMPILER=/usr/local/bin/g++-11", arg4: "-DCMAKE_CXX_COMPILER_ARG1=-m32", arg5: "-D LINUX_CROSS=\"i386\"" }
+        - { os: ubuntu-latest, arg1: '', arg2: "", arg3: "", arg4: "", arg5: "", linux_cross: ""}
         - { os: ubuntu-latest, arg1: '', arg2: "", arg3: "", arg4: "", arg5: "-D LINUX_CROSS=\"aarch64\"", linux_cross: "aarch64" }
         - { os: ubuntu-latest, arg1: '', arg2: "", arg3: "", arg4: "", arg5: "-D LINUX_CROSS=\"i686\"", linux_cross: "i686" }
         - { os: ubuntu-latest, arg1: '', arg2: "", arg3: "", arg4: "", arg5: "-D LINUX_CROSS=\"armv7l\"", linux_cross: "arm", armarg: 'eabi' }
@@ -60,54 +72,29 @@ jobs:
       - uses: actions/checkout@v2
         with: 
           submodules: recursive
-      
-      - name: checkout latest tags
-        shell: bash
-        run: |
-          cd ./vendor/link
-          git fetch --tags
-          tag=$(git describe --tags `git rev-list --tags --max-count=1`)
-          git checkout $tag -b latest
-          cd modules/asio-standalone
-          git fetch --tags
-          tag=$(git describe --tags `git rev-list --tags --max-count=1`)
-          git checkout $tag -b latest
- 
-      - name: move wdl
-        run: mv ./vendor/WDL/WDL ./vendor/reaper-sdk/
- 
         
-      - if: ${{ runner.os == 'Linux' }}
-        name: linux builds
-        shell: bash
-          # sudo apt install -y debootstrap fakechroot
-          # sudo debootstrap stable ./
-          # chroot ./
-          # apt install -y --allow-unauthenticated cmake build-essential git lsb-release
-          # codename=$(lsb_release -c -s)
-          # echo "deb http://ftp.debian.org/debian $codename-backports main" | tee /etc/apt/sources.list.d/backports.list
-          # apt update -y
-          # apt -t $codename-backports install -y --allow-unauthenticated cmake
-          # chmod -R 777 ./build
+      - if: ${{ runner.os == 'Linux' && matrix.config.linux_cross != '' }}
+        name: linux cross
         run: |
-          CXX=g++
-          [ ! -z ${{matrix.config.linux_cross}} ] && sudo apt install -y g++-$ARCH-linux-gnu$ARG binutils-$ARCH-linux-gnu$ARG && CXX=$ARCH-linux-gnu$ARG-$CXX
-          CXX=$CXX cmake -B ./build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-          CXX=$CXX cmake --build ./build --config ${{env.BUILD_TYPE}}
+          sudo apt install -y g++-$ARCH-linux-gnu$ARG binutils-$ARCH-linux-gnu$ARG
+          echo "COMPILER=CXX=$ARCH-linux-gnu$ARG-g++" >> $GITHUB_ENV
         env:
           ARCH: ${{matrix.config.linux_cross}}
           ARG: ${{matrix.config.armarg}}
         
+      - name: move wdl
+        run: mv ./vendor/WDL/WDL ./vendor/reaper-sdk/
 
-      - if: ${{ runner.os != 'Linux' }}
-        name: macos and windows builds
+      - name: configure cmake
         # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
         # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-        run: |
-          cmake ${{matrix.config.arg2}} ${{matrix.config.arg3}} -B ${{github.workspace}}/build ${{matrix.config.arg4}} ${{matrix.config.arg5}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-          cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
-          
+        run: ${{env.COMPILER}} cmake ${{matrix.config.arg2}} ${{matrix.config.arg3}} -B ${{github.workspace}}/build ${{matrix.config.arg4}} ${{matrix.config.arg5}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+
+      - name: build
+        # Build your program with the given configuration
+        run: ${{env.COMPILER}} cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
       - name: cpack
+        # run: ${{matrix.config.compress}} ${{matrix.config.arg1}} ${{github.event.repository.name}}-${{needs.create_release.outputs.archive_tag}}-${{matrix.config.os_name}}.zip ${{matrix.config.arg2}} ${{github.workspace}}/reaper_${{github.event.repository.name}}.${{matrix.config.ext}}${{matrix.config.arg3}}${{github.workspace}}/scripts 
         run: cpack --config ${{github.workspace}}/build/CPackConfig.cmake
         
       - name: Upload release assets
