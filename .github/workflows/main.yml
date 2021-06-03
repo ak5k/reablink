@@ -81,22 +81,22 @@ jobs:
         name: linux builds
         run: |
           sudo apt install -y debootstrap
-          sudo debootstrap stable ./
-          sudo chroot ./
-          sudo apt install -y --allow-unauthenticated cmake build-essential git lsb-release
-          codename=$(lsb_release -c -s)
-          echo "deb http://ftp.debian.org/debian $codename-backports main" | sudo tee /etc/apt/sources.list.d/backports.list
-          sudo apt update -y
-          sudo apt -t $codename-backports install -y --allow-unauthenticated cmake
-          CXX=g++
+          fakechroot fakeroot debootstrap stable ./
+          fakechroot fakeroot chroot ./
+          fakechroot fakeroot chroot ./ apt install -y --allow-unauthenticated cmake build-essential git lsb-release
+          fakechroot fakeroot chroot ./ codename=$(lsb_release -c -s)
+          fakechroot fakeroot chroot ./ echo "deb http://ftp.debian.org/debian $codename-backports main" | tee /etc/apt/sources.list.d/backports.list
+          fakechroot fakeroot chroot ./ apt update -y
+          fakechroot fakeroot chroot ./ apt -t $codename-backports install -y --allow-unauthenticated cmake
+          fakechroot fakeroot chroot ./ CXX=g++
           if [[ ! -z ${{matrix.config.linux_cross}} ]]
           then
-            sudo apt install -y g++-$ARCH-linux-gnu$ARG binutils-$ARCH-linux-gnu$ARG
-            CXX=$ARCH-linux-gnu$ARG-$CXX
+            fakechroot fakeroot chroot ./ apt install -y g++-$ARCH-linux-gnu$ARG binutils-$ARCH-linux-gnu$ARG
+            fakechroot fakeroot chroot ./ CXX=$ARCH-linux-gnu$ARG-$CXX
           fi
-          CXX=$CXX cmake -B ./build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-          CXX=$CXX cmake --build ./build --config ${{env.BUILD_TYPE}}
-          sudo chmod -R 777 ./build
+          fakechroot fakeroot chroot ./ CXX=$CXX cmake -B ./build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+          fakechroot fakeroot chroot ./ CXX=$CXX cmake --build ./build --config ${{env.BUILD_TYPE}}
+          fakechroot fakeroot chroot ./ chmod -R 777 ./build
           
         env:
           ARCH: ${{matrix.config.linux_cross}}
