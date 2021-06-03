@@ -129,7 +129,7 @@ jobs:
   release_assets2:
     name: Linux builds and release assets
     needs: create_release # we need to know the upload URL
-    runs-on: ${{ matrix.config.os }}-${{ env.UBUNTU_VERSION }}.04 # we run many different builds
+    runs-on: ${{ matrix.config.os }}-${{ UBUNTU_VERSION }}.04 # we run many different builds
     strategy:
       # just an example matrix
       # fail-fast: false
