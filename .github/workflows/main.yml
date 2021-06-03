@@ -48,7 +48,7 @@ jobs:
     
     # ...
   release_assets:
-    name: Windows and macOS builds and release assets
+    name: Release builds and assets
     needs: create_release # we need to know the upload URL
     runs-on: ${{ matrix.config.os }} # we run many different builds
     strategy:
