@@ -80,7 +80,7 @@ jobs:
       - if: ${{ runner.os == 'Linux' }}
         name: linux builds
         run: |
-          sudo apt install -y debootstrap
+          sudo apt install -y debootstrap fakechroot
           fakechroot fakeroot debootstrap stable ./
           fakechroot fakeroot chroot ./
           fakechroot fakeroot chroot ./ apt install -y --allow-unauthenticated cmake build-essential git lsb-release
