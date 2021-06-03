@@ -38,9 +38,6 @@ endif()
 if (UNIX)
     add_compile_options(-Wall -Werror -Wpedantic -Wextra)
     set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-    if (CMAKE_BUILD_TYPE MATCHES Release)
-        add_compile_options(-O3)
-    endif()
 endif()
 
 # reaper interface
@@ -49,8 +46,6 @@ target_include_directories(
     reaper_interface SYSTEM INTERFACE
     ${PROJECT_SOURCE_DIR}/vendor/reaper-sdk/sdk
     ${PROJECT_SOURCE_DIR}/include
-    # ${PROJECT_SOURCE_DIR}/vendor/link/include
-    # ${PROJECT_SOURCE_DIR}/vendor/link/modules/asio-standalone/asio/include
 )
 link_libraries(reaper_interface)
 
@@ -59,7 +54,6 @@ link_libraries(reaper_interface)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/source)
 
 # building and packaging etc
-
 if (NOT CMAKE_BUILD_TYPE MATCHES Release)
     if(CMAKE_SYSTEM_NAME MATCHES Windows)
         set_target_properties(reaper_plugin PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG $ENV{APPDATA}/REAPER/UserPlugins)
