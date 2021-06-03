@@ -91,11 +91,7 @@ jobs:
           # chmod -R 777 ./build
         run: |
           CXX=g++
-          if [ ! -z ${{matrix.config.linux_cross}} ]
-          then
-            sudo apt install -y g++-$ARCH-linux-gnu$ARG binutils-$ARCH-linux-gnu$ARG
-            CXX=$ARCH-linux-gnu$ARG-$CXX
-          fi
+          [ ! -z ${{matrix.config.linux_cross}} ] && sudo apt install -y g++-$ARCH-linux-gnu$ARG binutils-$ARCH-linux-gnu$ARG && CXX=$ARCH-linux-gnu$ARG-$CXX
           CXX=$CXX cmake -B ./build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           CXX=$CXX cmake --build ./build --config ${{env.BUILD_TYPE}}
           
