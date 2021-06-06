@@ -68,7 +68,6 @@ void asio::detail::throw_exception(const Exception& e)
 #define REAPERAPI_WANT_Undo_EndBlock
 #define REAPERAPI_WANT_UpdateTimeline
 #define REAPERAPI_WANT_plugin_register
-#define REAPERAPI_WANT_time_precise
 #endif
 
 #include <reaper_plugin_functions.h>
@@ -91,7 +90,10 @@ class BlinkEngine {
     void AudioCallback(const std::chrono::microseconds& hostTime);
     void Initialize(bool enable);
     static void OnAudioBuffer(
-        bool isPost, int len, double srate, audio_hook_register_t* reg);
+        bool isPost,
+        int len,
+        double srate,
+        audio_hook_register_t* reg);
     void SetMaster(bool enable);
     void SetPuppet(bool enable);
     void SetQuantum(double setQuantum);

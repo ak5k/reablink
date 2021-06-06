@@ -146,7 +146,10 @@ BlinkEngine::EngineData BlinkEngine::PullEngineData()
 }
 
 void BlinkEngine::OnAudioBuffer(
-    bool isPost, int len, double srate, audio_hook_register_t* reg)
+    bool isPost,
+    int len,
+    double srate,
+    audio_hook_register_t* reg)
 {
     (void)reg;
     auto& blinkEngine = GetInstance();
@@ -235,19 +238,44 @@ void BlinkEngine::AudioCallback(const std::chrono::microseconds& hostTime)
             timepos = TimeMap2_beatsToTime(0, ms_len, &ms);
             // SetEditCurPos(timepos, false, false);
             TimeMap_GetTimeSigAtTime(
-                0, timepos, &timesig_num, &timesig_denom, &hostBpm);
+                0,
+                timepos,
+                &timesig_num,
+                &timesig_denom,
+                &hostBpm);
             sessionState.setTempo(hostBpm, hostTime);
             ptidx = FindTempoTimeSigMarker(0, timepos);
             double tempBpm {0};
             if (GetTempoTimeSigMarker(
-                    0, ptidx - 1, &timepos, &measurepos, &beatpos, &tempBpm,
-                    &timesig_num, &timesig_denom, &lineartempo)) {
+                    0,
+                    ptidx - 1,
+                    &timepos,
+                    &measurepos,
+                    &beatpos,
+                    &tempBpm,
+                    &timesig_num,
+                    &timesig_denom,
+                    &lineartempo)) {
                 SetTempoTimeSigMarker(
-                    0, ptidx - 1, timepos, measurepos, beatpos, hostBpm,
-                    timesig_num, timesig_denom, lineartempo);
+                    0,
+                    ptidx - 1,
+                    timepos,
+                    measurepos,
+                    beatpos,
+                    hostBpm,
+                    timesig_num,
+                    timesig_denom,
+                    lineartempo);
                 GetTempoTimeSigMarker(
-                    0, ptidx, &timepos, &measurepos, &beatpos, 0, &timesig_num,
-                    &timesig_denom, &lineartempo);
+                    0,
+                    ptidx,
+                    &timepos,
+                    &measurepos,
+                    &beatpos,
+                    0,
+                    &timesig_num,
+                    &timesig_denom,
+                    &lineartempo);
                 // timepos = timepos;
             }
             sessionState.requestBeatAtStartPlayingTime(0, engineData.quantum);
@@ -272,7 +300,8 @@ void BlinkEngine::AudioCallback(const std::chrono::microseconds& hostTime)
         else if (GetLink().numPeers() == 0 && engineData.isPuppet) {
             const auto startBeat = fmod(TimeMap_timeToQN_abs(0, cpos), 1.);
             sessionState.requestBeatAtStartPlayingTime(
-                startBeat, engineData.quantum);
+                startBeat,
+                engineData.quantum);
         }
         isPlaying = true;
     }
@@ -303,12 +332,25 @@ void BlinkEngine::AudioCallback(const std::chrono::microseconds& hostTime)
         // set REAPER if puppet
         if (engineData.isPuppet) {
             // set tempo to current active tempo time sig marker
-            std::thread([this, engineData, ptidx, timepos, measurepos, beatpos,
-                         timesig_num, timesig_denom, lineartempo]() {
+            std::thread([this,
+                         engineData,
+                         ptidx,
+                         timepos,
+                         measurepos,
+                         beatpos,
+                         timesig_num,
+                         timesig_denom,
+                         lineartempo]() {
                 if (!SetTempoTimeSigMarker(
-                        0, ptidx, timepos, measurepos, beatpos,
+                        0,
+                        ptidx,
+                        timepos,
+                        measurepos,
+                        beatpos,
                         round(engineData.requestedTempo * 100) / 100,
-                        timesig_num, timesig_denom, lineartempo)) {
+                        timesig_num,
+                        timesig_denom,
+                        lineartempo)) {
                     SetTempo(engineData.requestedTempo);
                 }
                 else {
@@ -331,7 +373,11 @@ void BlinkEngine::AudioCallback(const std::chrono::microseconds& hostTime)
     qnAbs = currentQN;
     double currentHostBpm {0};
     TimeMap_GetTimeSigAtTime(
-        0, pos2 - frameTime.count() / 1.0e6, 0, 0, &currentHostBpm);
+        0,
+        pos2 - frameTime.count() / 1.0e6,
+        0,
+        0,
+        &currentHostBpm);
 
     const auto hostBeat =
         fmod(abs(fmod(qnAbs, 1.0) - qnLandOffset + qnJumpOffset), 1.0);
@@ -381,7 +427,8 @@ void BlinkEngine::AudioCallback(const std::chrono::microseconds& hostTime)
                 }
                 pushBeat += floor(sessionState.beatAtTime(hostTime, 1.));
                 sessionState.setTempo(
-                    currentHostBpm, sessionState.timeAtBeat(pushBeat, 1.));
+                    currentHostBpm,
+                    sessionState.timeAtBeat(pushBeat, 1.));
             }
         }
         // try to improve sync with playrate change as long as difference is
