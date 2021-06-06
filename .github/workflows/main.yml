@@ -144,16 +144,16 @@ jobs:
               arg2: "Xcode",
               arg3: '"-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64"',
               arg4: '"-DCMAKE_OSX_DEPLOYMENT_TARGET=10.9"',
-              arg5: "echo yay",
             }
-          - {
-              os: macos-latest,
-              arg1: "-G",
-              arg2: "Xcode",
-              arg3: '"-DCMAKE_OSX_ARCHITECTURES=x86_64"',
-              arg4: "",
-              arg5: "sudo xcode-select --switch /Applications/Xcode_10.3.app",
-            }
+          # - {
+          #     os: macos-latest,
+          #     arg1: "-G",
+          #     arg2: "Xcode",
+          #     arg3: '"-DCMAKE_OSX_ARCHITECTURES=i386"',
+          #     arg4: "",
+          #     arg5: "sudo xcode-select --switch /Applications/Xcode_10.3.app",
+          #   }
+    # arg5: "echo yay",
     steps:
       - uses: actions/checkout@v2
         with:
@@ -161,7 +161,6 @@ jobs:
 
       - name: configure and build
         run: |
-          ${{matrix.config.arg5}}
           cmake ${{matrix.config.arg1}} ${{matrix.config.arg2}} -B ${{github.workspace}}/build ${{matrix.config.arg3}} ${{matrix.config.arg4}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
 
