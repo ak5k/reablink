@@ -17,7 +17,7 @@ static bool loadAPI(void* (*getFunc)(const char*))
         bool required;
     };
 
-    const ApiFunc funcs[22] {
+    const ApiFunc funcs[] {
         REQUIRED_API(Audio_RegHardwareHook),
         REQUIRED_API(FindTempoTimeSigMarker),
         REQUIRED_API(GetCursorPosition),
