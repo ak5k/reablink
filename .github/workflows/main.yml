@@ -151,7 +151,7 @@ jobs:
               arg2: "Xcode",
               arg3: '"-DCMAKE_OSX_ARCHITECTURES=i386"',
               arg4: '"-DCMAKE_OSX_DEPLOYMENT_TARGET=10.5"',
-              arg5: '"-DCMAKE_OSX_SYSROOT=/Applications/Xcode_10.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain"',
+              arg5: "sudo xcode-select --switch /Applications/Xcode_10.3.app/Contents/Developer",
             }
     steps:
       - uses: actions/checkout@v2
@@ -160,6 +160,7 @@ jobs:
 
       - name: configure and build
         run: |
+          ${{matrix.config.arg5}} || true
           cmake ${{matrix.config.arg1}} ${{matrix.config.arg2}} -B ${{github.workspace}}/build ${{matrix.config.arg3}} ${{matrix.config.arg4}} ${{matrix.config.arg5}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
 
