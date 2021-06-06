@@ -150,7 +150,7 @@ jobs:
               os: macos-latest,
               arg1: "-G",
               arg2: "Xcode",
-              arg3: '"-DCMAKE_OSX_ARCHITECTURES=i386"',
+              arg3: '"-DCMAKE_OSX_ARCHITECTURES=x86_64"',
               arg4: "",
               arg5: "sudo xcode-select --switch /Applications/Xcode_10.3.app",
             }
