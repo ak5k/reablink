@@ -1,0 +1,180 @@
+# ${{github.workflow}}
+name: ReaBlink
+
+on:
+  # push:
+  #   tags:
+  #     - "v[0-9]+.*"
+  workflow_dispatch:
+    name: build
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  release:
+    name: create release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: create release
+        run: |
+          hub release delete  ${{github.ref}} || true
+          hub release create -d -m "${{github.workflow }} ${{github.ref}}" -t main ${{github.ref}}
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        # uses: actions/create-release@v1
+        # with:
+        #   tag_name: ${{github.ref}}
+        #   release_name: ${{github.workflow}} ${{github.ref}}
+        #   draft: true
+        #   prerelease: false
+
+  linux-builds:
+    needs: release
+    runs-on: ${{matrix.config.os}}
+    strategy:
+      matrix:
+        config:
+          - { os: ubuntu-latest }
+          - {
+              os: ubuntu-latest,
+              linux_cross: "-DLINUX_CROSS=aarch64",
+              arch: "aarch64",
+            }
+          - {
+              os: ubuntu-latest,
+              linux_cross: "-DLINUX_CROSS=i686",
+              arch: "i686",
+            }
+          - {
+              os: ubuntu-latest,
+              linux_cross: "-DLINUX_CROSS=armv7l",
+              arch: "arm",
+              armarg: "eabi",
+            }
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      # linux builds in debian buster docker container image
+      - name: build
+        shell: bash
+        run: |
+          docker run -i -v ${{github.workspace}}:/srv -w /srv debian:buster /bin/bash -s <<EOF
+          . /etc/os-release
+          echo "deb http://ftp.debian.org/debian \$VERSION_CODENAME-backports main" |
+            tee /etc/apt/sources.list.d/backports.list
+          apt update -y
+          apt upgrade -y
+          apt install -y --allow-unauthenticated build-essential lsb-release
+          apt install -y --allow-unauthenticated -t  \$VERSION_CODENAME-backports cmake
+          COMPILER=g++
+          if [ ! -z $LINUX_CROSS ]; then
+            apt install -y g++-$ARCH-linux-gnu$ARMARG binutils-$ARCH-linux-gnu$ARMARG
+            COMPILER=$ARCH-linux-gnu$ARMARG-g++
+          fi
+          cmake -B $(pwd)/build $LINUX_CROSS -DCMAKE_CXX_COMPILER=\$COMPILER -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+          cmake --build $(pwd)/build --config ${{env.BUILD_TYPE}}
+          cpack --config $(pwd)/build/CPackConfig.cmake
+          EOF
+        env:
+          LINUX_CROSS: ${{matrix.config.linux_cross}}
+          ARCH: ${{matrix.config.arch}}
+          ARMARG: ${{matrix.config.armarg}}
+
+      - name: upload release assets
+        shell: bash
+        run: |
+          set -x
+          ASSETS=()
+          FILES="${{github.workspace}}/package/*"
+          for ASSET in $FILES; do
+            ASSETS+=("-a" "$ASSET")
+          done
+          hub release edit "${ASSETS[@]}" -m "" "${{github.ref}}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  windows-builds:
+    needs: release
+    runs-on: ${{matrix.config.os}}
+    strategy:
+      matrix:
+        config:
+          - { os: windows-latest }
+          - { os: windows-latest, arg1: "-A", arg2: "Win32" }
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: configure cmake
+        run: cmake -B ${{github.workspace}}/build ${{matrix.config.arg1}} ${{matrix.config.arg2}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+
+      - name: build
+        run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+
+      - name: cpack
+        run: cpack --config ${{github.workspace}}/build/CPackConfig.cmake
+
+      - name: upload release assets
+        shell: bash
+        run: |
+          set -x
+          ASSETS=()
+          FILES="./package/*"
+          for ASSET in $FILES; do
+            ASSETS+=("-a" "$ASSET")
+          done
+          hub release edit "${ASSETS[@]}" -m "" "${{github.ref}}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  macos-builds:
+    needs: release
+    runs-on: ${{matrix.config.os}}
+    strategy:
+      matrix:
+        config:
+          - {
+              os: macos-latest,
+              arg1: "-G",
+              arg2: "Xcode",
+              arg3: '"-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64"',
+              arg4: '"-DCMAKE_OSX_DEPLOYMENT_TARGET=10.12"',
+            }
+          # - {
+          #     os: macos-latest,
+          #     arg1: "-G",
+          #     arg2: "Xcode",
+          #     arg3: '"-DCMAKE_OSX_ARCHITECTURES=arm64"',
+          #     arg4: '"-DCMAKE_OSX_DEPLOYMENT_TARGET=10.9"',
+          #   }
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: configure and build
+        run: |
+          cmake ${{matrix.config.arg1}} ${{matrix.config.arg2}} -B ${{github.workspace}}/build ${{matrix.config.arg3}} ${{matrix.config.arg4}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+          cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+
+      - name: cpack
+        shell: bash
+        run: cpack --config ${{github.workspace}}/build/CPackConfig.cmake
+
+      - name: upload release assets
+        shell: bash
+        run: |
+          set -x
+          ASSETS=()
+          FILES="${{github.workspace}}/package/*"
+          for ASSET in $FILES; do
+            ASSETS+=("-a" "$ASSET")
+          done
+          hub release edit "${ASSETS[@]}" -m "" "${{github.ref}}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
