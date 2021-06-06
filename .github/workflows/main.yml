@@ -132,7 +132,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  macos-builds:
+  macosx-builds:
     needs: release
     runs-on: ${{matrix.config.os}}
     strategy:
@@ -152,7 +152,7 @@ jobs:
               arg2: "Xcode",
               arg3: '"-DCMAKE_OSX_ARCHITECTURES=i386"',
               arg4: '"-DCMAKE_OSX_DEPLOYMENT_TARGET=10.5"',
-              arg5: "sudo xcode-select --switch /Applications/Xcode_10.3.app/Contents/Developer",
+              arg5: "sudo xcode-select --switch /Applications/Xcode_10.3.app",
             }
     steps:
       - uses: actions/checkout@v2
