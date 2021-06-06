@@ -1,0 +1,5 @@
+**/build
+**/.vscode
+.DS_Store
+**/_CPack_Packages
+/package
