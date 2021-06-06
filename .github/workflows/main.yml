@@ -151,7 +151,7 @@ jobs:
               arg1: "-G",
               arg2: "Xcode",
               arg3: '"-DCMAKE_OSX_ARCHITECTURES=i386"',
-              arg4: '"-DCMAKE_OSX_DEPLOYMENT_TARGET=10.5"',
+              arg4: "",
               arg5: "sudo xcode-select --switch /Applications/Xcode_10.3.app",
             }
     steps:
