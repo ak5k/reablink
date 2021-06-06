@@ -151,7 +151,7 @@ jobs:
               arg2: "Xcode",
               arg3: '"-DCMAKE_OSX_ARCHITECTURES=i386"',
               arg4: '"-DCMAKE_OSX_DEPLOYMENT_TARGET=10.5"',
-              arg5: '"-DCMAKE_OSX_SYSROOT macosx10.14"',
+              arg5: '"-DCMAKE_OSX_SYSROOT=macosx10.14"',
             }
     steps:
       - uses: actions/checkout@v2
