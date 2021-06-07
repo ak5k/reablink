@@ -4,15 +4,6 @@
 #ifdef WIN32
 // Make sure to define this before <cmath> is included for Windows
 #define _USE_MATH_DEFINES
-/* #define htonll(x) \
-    ((1 == htonl(1))                                                           \
-         ? (x)                                                                 \
-         : ((uint64_t)htonl((x)&0xFFFFFFFF) << 32) | htonl((x) >> 32))
-#define ntohll(x)                                                              \
-    ((1 == ntohl(1))                                                           \
-         ? (x)                                                                 \
-         : ((uint64_t)ntohl((x)&0xFFFFFFFF) << 32) | ntohl((x) >> 32)) */
-
 #define ASIO_NO_EXCEPTIONS
 #endif
 

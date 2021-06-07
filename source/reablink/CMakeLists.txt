@@ -4,6 +4,16 @@ add_library(
         BlinkEngine.cpp
 )
 
+configure_file(
+    ${CMAKE_CURRENT_LIST_DIR}/ReaBlinkConfig.h.in
+    ${PROJECT_BINARY_DIR}/ReaBlinkConfig.h
+)
+
+target_include_directories(
+    reablink PUBLIC
+    ${PROJECT_BINARY_DIR}
+)
+
 set_target_properties(
     reablink PROPERTIES
     CXX_STANDARD 17
