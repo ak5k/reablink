@@ -114,7 +114,6 @@ jobs:
 
       - name: configure cmake
         run: |
-          vs_enterprise.exe --add --passive --includeRecommended Microsoft.VisualStudio.Component.WinXP 
           cmake -B ${{github.workspace}}/build -T v141_xp ${{matrix.config.arg1}} ${{matrix.config.arg2}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
       - name: build
