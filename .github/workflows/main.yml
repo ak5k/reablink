@@ -114,7 +114,7 @@ jobs:
 
       - name: configure cmake
         run: |
-          cmake -B ${{github.workspace}}/build -T v141_xp ${{matrix.config.arg1}} ${{matrix.config.arg2}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+          cmake -B ${{github.workspace}}/build ${{matrix.config.arg1}} ${{matrix.config.arg2}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
       - name: build
         run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
