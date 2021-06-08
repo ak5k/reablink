@@ -36,7 +36,9 @@ jobs:
     strategy:
       matrix:
         config:
-          - { os: ubuntu-latest }
+          - { 
+              os: ubuntu-latest 
+            }
           - {
               os: ubuntu-latest,
               linux_cross: "-DLINUX_CROSS=aarch64",
@@ -111,7 +113,9 @@ jobs:
           submodules: recursive
 
       - name: configure cmake
-        run: cmake -B ${{github.workspace}}/build ${{matrix.config.arg1}} ${{matrix.config.arg2}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+        run: |
+          vs_enterprise.exe --add --passive --includeRecommended Microsoft.VisualStudio.Component.WinXP 
+          cmake -B ${{github.workspace}}/build -T v141_xp ${{matrix.config.arg1}} ${{matrix.config.arg2}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
       - name: build
         run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
