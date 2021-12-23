@@ -182,6 +182,7 @@ jobs:
           for ASSET in $FILES; do
             ASSETS+=("-a" "$ASSET")
           done
+          ASSETS+=("-a" "${{github.workspace}}/scripts/ReaBlink_Monitor.lua")
           hub release edit "${ASSETS[@]}" -m "" "${{github.ref}}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
