@@ -1,6 +1,10 @@
 header = "enabled | num peers | quantum | start stop sync | tempo   | beats(QN) | metro\n"
 gfx.init("ReaBlink Monitor", 640, 32)
 
+if reaper.GetToggleCommandState(40531) ~= 0 then
+ reaper.Main_OnCommand(40531,0)
+end
+
 if not reaper.Blink_GetEnabled() then 
   reaper.Blink_SetEnabled(true)
 end

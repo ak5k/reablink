@@ -432,6 +432,22 @@ bool runCommand(int command, int flag)
             res = true;
             startStop();
         }
+        if (command == 40073) {
+            res = true;
+            startStop();
+        }
+        if (command == 1007) {
+            res = true;
+            startStop();
+        }
+        if (command == 1008) {
+            res = true;
+            startStop();
+        }
+        if (command == 1016) {
+            res = true;
+            blinkEngine.StopPlaying();
+        }
         if (command == 41130) {
             res = true;
             const auto tempo = GetTempo();
@@ -458,7 +474,7 @@ void SetCaptureTransportCommands(bool enable)
 }
 const char* defstring_SetCaptureTransportCommands =
     "void\0bool\0enable\0"
-    "Captures REAPER 'Transport: Play/stop' and 'Tempo: Increase/Decrease "
+    "Captures REAPER Transport commands and 'Tempo: Increase/Decrease "
     "current project tempo by 01 BPM' commands and broadcasts them into Link "
     "session. When used with Master or Puppet mode enabled, provides better "
     "integration between REAPER and Link session transport and tempos.";

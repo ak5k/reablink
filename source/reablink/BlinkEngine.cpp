@@ -292,8 +292,8 @@ void BlinkEngine::AudioCallback(const std::chrono::microseconds& hostTime)
                 (host_start_time.count() - session_start_time.count()) / 1.0e6;
             frameCountDown++;
             timepos += startOffset;
+            std::thread(OnStopButton).detach();
             std::thread([timepos]() {
-                OnStopButton();
                 SetEditCurPos(timepos, false, true);
             }).detach();
         }
@@ -437,7 +437,10 @@ void BlinkEngine::AudioCallback(const std::chrono::microseconds& hostTime)
             !engineData.isMaster && sessionState.isPlaying() &&
             playbackFrameCount > playbackFrameSafe && diff > syncTolerance &&
             diff < qLen - ceil((frameTime.count() / 1.0e3) * 2)) {
-            syncCorrection = true;
+            if (syncCorrection == false) {
+                syncTolerance--;
+                syncCorrection = true;
+            }
             if (hostBeat - sessionBeat > 0) {
                 // slow_down
                 std::thread([]() { Main_OnCommand(40525, 0); }).detach();
@@ -450,6 +453,7 @@ void BlinkEngine::AudioCallback(const std::chrono::microseconds& hostTime)
         else if (syncCorrection) {
             std::thread(Main_OnCommand, 40521, 0).detach();
             syncCorrection = false;
+            syncTolerance++;
         }
     }
 

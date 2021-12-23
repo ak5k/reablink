@@ -5,8 +5,9 @@
 // Make sure to define this before <cmath> is included for Windows
 #define _USE_MATH_DEFINES
 #define ASIO_NO_EXCEPTIONS
-// #define htonll(x) (((uint64_t)htonl((x)&0xFFFFFFFF) << 32) | htonl((x) >> 32))
-// #define ntohll(x) (((uint64_t)ntohl((x)&0xFFFFFFFF) << 32) | ntohl((x) >> 32))
+// #define htonll(x) (((uint64_t)htonl((x)&0xFFFFFFFF) << 32) | htonl((x) >>
+// 32)) #define ntohll(x) (((uint64_t)ntohl((x)&0xFFFFFFFF) << 32) | ntohl((x)
+// >> 32))
 #endif
 
 #include <ableton/Link.hpp>
@@ -128,7 +129,7 @@ class BlinkEngine {
 
     static constexpr auto beatTolerance = 0.02;
     static constexpr auto playbackFrameSafe = 16;
-    static constexpr auto syncTolerance = 3;
+    int syncTolerance = 3;
     static constexpr auto tempoTolerance = 0.005;
 
     std::mutex m;

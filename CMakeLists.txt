@@ -16,10 +16,19 @@ if(NOT EXISTS ${PROJECT_SOURCE_DIR}/vendor/reaper-sdk/WDL)
     find_package(Git QUIET)
     execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
-    file(CREATE_LINK 
-        ${PROJECT_SOURCE_DIR}/vendor/WDL/WDL
-        ${PROJECT_SOURCE_DIR}/vendor/reaper-sdk/WDL 
-        SYMBOLIC)
+    if(NOT CMAKE_SYSTEM_NAME MATCHES Windows)
+        file(CREATE_LINK 
+            ${PROJECT_SOURCE_DIR}/vendor/WDL/WDL
+            ${PROJECT_SOURCE_DIR}/vendor/reaper-sdk/WDL 
+            SYMBOLIC)
+    else()
+        file(COPY
+            ${PROJECT_SOURCE_DIR}/vendor/WDL/WDL
+            DESTINATION
+            ${PROJECT_SOURCE_DIR}/vendor/reaper-sdk/
+        )
+    endif(NOT CMAKE_SYSTEM_NAME MATCHES Windows)
+    
 endif()
 
 if (CMAKE_SYSTEM_NAME MATCHES Windows)
