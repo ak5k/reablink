@@ -96,12 +96,12 @@ install(
     COMPONENT Plugin
 )
 
-install(
-    DIRECTORY "scripts"
-    CONFIGURATIONS Release
-    DESTINATION "."
-    COMPONENT Scripts
-)
+# install(
+#     DIRECTORY "scripts"
+#     CONFIGURATIONS Release
+#     DESTINATION "."
+#     COMPONENT Scripts
+# )
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PACKAGE_NAME ReaBlink)
@@ -122,7 +122,7 @@ endif()
 
 if (UNIX AND NOT APPLE)
     STRING(TOLOWER "${CMAKE_SYSTEM_NAME}" CMAKE_SYSTEM_NAME)
-    set(CPACK_GENERATOR TGZ)
+    # set(CPACK_GENERATOR TGZ)
     set(CPACK_PACKAGE_FILE_NAME ${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CMAKE_SYSTEM_NAME}-${ARCH_NAME})
 endif()
 
