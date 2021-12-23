@@ -4,7 +4,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 project(
     ReaBlink
-    VERSION 0.4.1
+    VERSION 0.4.2
     LANGUAGES CXX
 )
 
