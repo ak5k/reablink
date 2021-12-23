@@ -330,6 +330,7 @@ void BlinkEngine::AudioCallback(const std::chrono::microseconds& hostTime)
     // set tempo
     if (engineData.requestedTempo > 0) {
         // set REAPER if puppet
+        updateTimelineFrameCount = 0;
         if (engineData.isPuppet) {
             // set tempo to current active tempo time sig marker
             std::thread([this,
@@ -354,12 +355,18 @@ void BlinkEngine::AudioCallback(const std::chrono::microseconds& hostTime)
                     SetTempo(engineData.requestedTempo);
                 }
                 else {
-                    UpdateTimeline();
+                    ;
                 }
             }).detach();
         }
         // set tempo to link session
         sessionState.setTempo(engineData.requestedTempo, hostTime);
+    }
+
+    updateTimelineFrameCount++;
+    if (engineData.isPuppet &&
+        updateTimelineFrameCount == updateTimelineInterval) {
+        std::thread(UpdateTimeline).detach();
     }
 
     // get current qn position

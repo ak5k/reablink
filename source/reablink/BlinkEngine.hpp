@@ -62,6 +62,7 @@ void asio::detail::throw_exception(const Exception& e)
 #define REAPERAPI_WANT_Undo_EndBlock
 #define REAPERAPI_WANT_UpdateTimeline
 #define REAPERAPI_WANT_plugin_register
+#define REAPERAPI_WANT_time_precise
 #endif
 
 #include <reaper_plugin_functions.h>
@@ -131,6 +132,9 @@ class BlinkEngine {
     static constexpr auto playbackFrameSafe = 16;
     int syncTolerance = 3;
     static constexpr auto tempoTolerance = 0.005;
+
+    static constexpr auto updateTimelineInterval = 100;
+    int updateTimelineFrameCount = updateTimelineInterval + 1;
 
     std::mutex m;
 
