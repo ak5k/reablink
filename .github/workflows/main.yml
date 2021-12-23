@@ -90,7 +90,7 @@ jobs:
         shell: bash
         run: |
           set -x
-          unzip "${{github.workspace}}/package/*.zip" ./
+          unzip "${{github.workspace}}/package/*.zip" -d ./
           FILES="./*.so"
           ASSETS=()
           for ASSET in $FILES; do
@@ -127,7 +127,7 @@ jobs:
         shell: bash
         run: |
           set -x
-          unzip "${{github.workspace}}/package/*.zip" ./
+          unzip "${{github.workspace}}/package/*.zip" -d ./
           FILES="./*.dll"
           ASSETS=()
           for ASSET in $FILES; do
@@ -176,7 +176,7 @@ jobs:
         shell: bash
         run: |
           set -x
-          unzip "${{github.workspace}}/package/*.zip" ./
+          unzip "${{github.workspace}}/package/*.zip" -d ./
           FILES="./*.dylib"
           ASSETS=()
           for ASSET in $FILES; do
