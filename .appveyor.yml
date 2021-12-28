@@ -86,7 +86,7 @@ for:
   - matrix: { only: [appveyor_build_worker_image: &windows Visual Studio 2022] }
     cache:
       - build\vcpkg_installed -> vcpkg.json
-    # install:
+    install:
       - if "%ARCH%" == "x64" call "%ProgramFiles%\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat"
       - if "%ARCH%" == "x86" call "%ProgramFiles%\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars32.bat"
 
