@@ -12,7 +12,7 @@ build_script:
   - '[ "$ARCH" != `uname -m` ] || cmake --build build --target reaper_reablink'
 
 for:
-  - matrix: { only: [ appveyor_build_worker_image: &linux Ubuntu ] }
+  - matrix: { only: [appveyor_build_worker_image: &linux Ubuntu] }
     install: |-
       set -e
       sudo sed -i '/arch=/! s/^deb/deb [arch=amd64,i386]/' /etc/apt/sources.list
@@ -58,7 +58,14 @@ for:
     artifacts:
       - path: build/reaper_reablink*.so
 
-  - matrix: { only: [ appveyor_build_worker_image: macos, appveyor_build_worker_image: macos-mojave ] }
+  - matrix:
+      {
+        only:
+          [
+            appveyor_build_worker_image: macos,
+            appveyor_build_worker_image: macos-mojave,
+          ],
+      }
     cache:
       - build/vcpkg_installed -> vcpkg.json, cmake/vcpkg-triplets/auto-osx.cmake
     install:
@@ -71,13 +78,12 @@ for:
         *)     export DEPLOY_TARGET=10.9 XCODE_VERSION=9.4.1 ;;
         esac
       - sudo xcode-select -s /Applications/Xcode-$XCODE_VERSION.app
-
       # https://letsencrypt.org/docs/dst-root-ca-x3-expiration-september-2021/
       - sudo curl -k https://curl.se/ca/cacert.pem -o /etc/ssl/cert.pem
     artifacts:
       - path: build/reaper_reablink*.dylib
 
-  - matrix: { only: [ appveyor_build_worker_image: &windows ] }
+  - matrix: { only: [appveyor_build_worker_image: &windows Visual Studio 2022] }
     cache:
       - build\vcpkg_installed -> vcpkg.json
     # install:
@@ -85,7 +91,8 @@ for:
     #   - if "%ARCH%" == "x86" call "%ProgramFiles%\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars32.bat"
 
     build_script:
-      - cmake -B build -A %ARCH% -DCMAKE_BUILD_TYPE=RelWithDebInfo
+      # - cmake -B build -A %ARCH% -DCMAKE_BUILD_TYPE=RelWithDebInfo
+      - cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
         -DVCPKG_TARGET_TRIPLET=%ARCH%-windows-static
         -DCMAKE_TOOLCHAIN_FILE=C:\Tools\vcpkg\scripts\buildsystems\vcpkg.cmake
       - cmake --build build
@@ -100,7 +107,7 @@ environment:
       ARCH: x64
     - job_name: Windows 32-bit
       appveyor_build_worker_image: *windows
-      ARCH: Win32
+      ARCH: x86
     - job_name: macOS x86 64-bit
       appveyor_build_worker_image: macos-mojave
       ARCH: x86_64
@@ -126,7 +133,7 @@ environment:
 deploy:
   provider: GitHub
   draft: true
-  description: ''
+  description: ""
   force_update: true
   auth_token:
     secure: Rk8do2Q/etdabjwIABBRdTJu1a4wYVu9Ltz8HJuC0wc3rz+hHUMGa3N7vTlsrd7z
