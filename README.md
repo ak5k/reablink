@@ -1,6 +1,6 @@
 # ReaBlink
 ## Ableton Link REAPER plug-in extension
-REAPER Plug-In Extension providing ReaScript bindings for Ableton Link session, and Ableton Link Test Plan compliant implementations (Master/Puppet modes) for REAPER. 
+REAPER plug-in extension providing ReaScript bindings for Ableton Link session, and Ableton Link Test Plan compliant implementations (Master/Puppet modes) for REAPER. 
 
 [Install from ReaPack](https://reapack.com) or
 [download latest release](https://github.com/ak5k/reablink/releases/latest)<br/>
