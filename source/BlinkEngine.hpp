@@ -139,13 +139,13 @@ class BlinkEngine {
 
     std::mutex m;
 
-    #ifdef WIN32
-        ableton::link::HostTimeFilter<ableton::platforms::windows::Clock>
-            hostTimeFilter;
-    #else
-        ableton::link::HostTimeFilter<ableton::link::platform::Clock>
-            hostTimeFilter;
-    #endif
+#ifdef WIN32
+    ableton::link::HostTimeFilter<ableton::platforms::windows::Clock>
+        hostTimeFilter;
+#else
+    ableton::link::HostTimeFilter<ableton::link::platform::Clock>
+        hostTimeFilter;
+#endif
 };
 
 #endif

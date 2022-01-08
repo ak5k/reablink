@@ -4,9 +4,9 @@
 #include "ReaBlink.hpp"
 
 // from cfillion reapack
-#define REQUIRED_API(name)                                                     \
-    {                                                                          \
-        reinterpret_cast<void**>(&name), #name, true                           \
+#define REQUIRED_API(name)                           \
+    {                                                \
+        reinterpret_cast<void**>(&name), #name, true \
     }
 
 static bool loadAPI(void* (*getFunc)(const char*))

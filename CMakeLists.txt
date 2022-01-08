@@ -99,7 +99,7 @@ if(WIN32)
     $<$<NOT:$<CONFIG:Debug>>:/OPT:ICF>
 
     # Use relative path to the PDB file to avoid exposing the full path
-    /PDBALTPATH:%_PDB%
+    # /PDBALTPATH:%_PDB%
   )
 else()
   add_compile_options(
@@ -164,11 +164,11 @@ install(TARGETS ${PROJECT_NAME}
 add_subdirectory(${CMAKE_SOURCE_DIR}/source)
 target_link_libraries(${PROJECT_NAME} reablink)
 
-if(UNIX AND NOT APPLE)
-  set(THREADS_PREFER_PTHREAD_FLAG ON)
-  find_package(Threads REQUIRED)
-  target_link_libraries(${PROJECT_NAME} Threads::Threads)
-endif()
+# if(UNIX AND NOT APPLE)
+#   set(THREADS_PREFER_PTHREAD_FLAG ON)
+#   find_package(Threads REQUIRED)
+#   target_link_libraries(${PROJECT_NAME} Threads::Threads)
+# endif()
 
 if (MSVC)
     set_target_properties( ${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} )
@@ -178,3 +178,11 @@ if (MSVC)
     set_target_properties( ${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${CMAKE_CURRENT_BINARY_DIR} )
     # etc for the other available configuration types (MinSizeRel, RelWithDebInfo)
 endif (MSVC)
+
+find_package(WDL REQUIRED)
+target_link_libraries(reablink WDL::WDL)
+
+if(NOT WIN32)
+  find_package(SWELL REQUIRED)
+  target_link_libraries(reablink SWELL::swell)
+endif()
