@@ -164,11 +164,11 @@ install(TARGETS ${PROJECT_NAME}
 add_subdirectory(${CMAKE_SOURCE_DIR}/source)
 target_link_libraries(${PROJECT_NAME} reablink)
 
-# if(UNIX AND NOT APPLE)
-#   set(THREADS_PREFER_PTHREAD_FLAG ON)
-#   find_package(Threads REQUIRED)
-#   target_link_libraries(${PROJECT_NAME} Threads::Threads)
-# endif()
+if(UNIX AND NOT APPLE)
+  set(THREADS_PREFER_PTHREAD_FLAG ON)
+  find_package(Threads REQUIRED)
+  target_link_libraries(${PROJECT_NAME} Threads::Threads)
+endif()
 
 if (MSVC)
     set_target_properties( ${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} )
