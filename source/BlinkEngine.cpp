@@ -203,7 +203,7 @@ void BlinkEngine::AudioCallback(const std::chrono::microseconds& hostTime)
     }
     else {
         if (playbackFrameCount > 0) {
-            std::thread(Undo_EndBlock, "ReaBlink", 0).detach();
+            std::thread(Undo_EndBlock, "ReaBlink", -1).detach();
         }
         // pos = cpos;
         pos2 = cpos;

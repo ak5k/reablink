@@ -5,21 +5,21 @@ include(CheckCompilerFlag)
 include(CheckIncludeFileCXX)
 include(CheckLinkerFlag)
 
-# set up reaper-sdk and WDL
-if(NOT EXISTS ${PROJECT_SOURCE_DIR}/vendor/reaper-sdk/WDL)
-    file(REMOVE
-        ${PROJECT_SOURCE_DIR}/vendor/reaper-sdk/WDL
-    )
-    find_package(Git QUIET)
-    execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive --depth 1
-        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
-    if(NOT CMAKE_SYSTEM_NAME MATCHES Windows)
-        file(CREATE_LINK
-            ${PROJECT_SOURCE_DIR}/vendor/WDL/WDL
-            ${PROJECT_SOURCE_DIR}/vendor/reaper-sdk/WDL
-            SYMBOLIC)
-    endif()
-endif()
+# # set up reaper-sdk and WDL
+# if(NOT EXISTS ${PROJECT_SOURCE_DIR}/vendor/reaper-sdk/WDL)
+#     file(REMOVE
+#         ${PROJECT_SOURCE_DIR}/vendor/reaper-sdk/WDL
+#     )
+#     find_package(Git QUIET)
+#     execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive --depth 1
+#         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+#     if(NOT CMAKE_SYSTEM_NAME MATCHES Windows)
+#         file(CREATE_LINK
+#             ${PROJECT_SOURCE_DIR}/vendor/WDL/WDL
+#             ${PROJECT_SOURCE_DIR}/vendor/reaper-sdk/WDL
+#             SYMBOLIC)
+#     endif()
+# endif()
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
@@ -118,7 +118,7 @@ endif()
 
 add_library(common INTERFACE)
 target_include_directories(
-    common INTERFACE
+    common SYSTEM INTERFACE
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/vendor
     ${CMAKE_SOURCE_DIR}/vendor/reaper-sdk/sdk)
@@ -130,8 +130,8 @@ if(WIN32)
 else()
   target_compile_options(common INTERFACE
     -Wall -Wextra -Werror
-    -Wno-unused-parameter -Wno-missing-field-initializers
-    -Wno-unused-function -Wno-missing-braces
+    # -Wno-unused-parameter -Wno-missing-field-initializers
+    # -Wno-unused-function -Wno-missing-braces
   )
 
   # Clang 11
