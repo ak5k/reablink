@@ -364,7 +364,6 @@ void BlinkEngine::AudioCallback(const std::chrono::microseconds& hostTime)
                 engineData.quantum);
         }
         isPlaying = true;
-        diffVector.clear();
     }
     else if (isPlaying && !sessionState.isPlaying()) {
         isPlaying = false;
@@ -430,18 +429,6 @@ void BlinkEngine::AudioCallback(const std::chrono::microseconds& hostTime)
     const auto qLen = floor((60. / sessionBpm) * 1.0e3);
 
     auto diff = abs(hostBeatTime - sessionBeatTime) * 1.0e3;
-
-    diffVector.push_back(diff);
-    if (diffVector.size() > playbackFrameSafe) {
-        diffVector.erase(diffVector.begin());
-    }
-
-    diff = 0;
-    for (auto& f : diffVector) {
-        diff += f;
-    }
-
-    diff = diff / diffVector.size();
 
     // REAPER is master, unless user has requested tempo change
     if (engineData.isMaster && !(engineData.requestedTempo > 0)) {

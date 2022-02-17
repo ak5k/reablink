@@ -134,7 +134,6 @@ class BlinkEngine {
     static constexpr auto tempoTolerance = 0.001;
     static constexpr auto updateTimelineInterval = 100;
     int FrameCount = 4;
-    std::vector<double> diffVector;
 
 #ifdef WIN32
     ableton::link::HostTimeFilter<ableton::platforms::windows::Clock>
