@@ -1,7 +1,7 @@
+#include "ReaBlink.hpp"
+
 #define REAPERAPI_IMPLEMENT
 #include <reaper_plugin_functions.h>
-
-#include "ReaBlink.hpp"
 
 // from cfillion reapack
 #define REQUIRED_API(name)                           \

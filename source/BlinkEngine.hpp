@@ -1,19 +1,15 @@
 #ifndef BLINKENGINE_HPP
 #define BLINKENGINE_HPP
-
 #ifdef WIN32
 // Make sure to define this before <cmath> is included for Windows
 #define _USE_MATH_DEFINES
 #define ASIO_NO_EXCEPTIONS
-// #define htonll(x) (((uint64_t)htonl((x)&0xFFFFFFFF) << 32) | htonl((x) >>
-// 32)) #define ntohll(x) (((uint64_t)ntohl((x)&0xFFFFFFFF) << 32) | ntohl((x)
-// >> 32))
 #endif
 
 #include <ableton/Link.hpp>
 #include <ableton/link/HostTimeFilter.hpp>
 #include <cmath>
-#include <iostream>
+// #include <iostream>
 #include <mutex>
 
 #ifdef WIN32
@@ -38,6 +34,8 @@ void asio::detail::throw_exception(const Exception& e)
 #endif
 #endif
 
+#include <reaper_plugin_functions.h>
+/*
 #ifdef NDEBUG
 #define REAPERAPI_MINIMAL
 #define REAPERAPI_WANT_Audio_RegHardwareHook
@@ -63,9 +61,7 @@ void asio::detail::throw_exception(const Exception& e)
 #define REAPERAPI_WANT_UpdateTimeline
 #define REAPERAPI_WANT_plugin_register
 #endif
-
-#include <reaper_plugin_functions.h>
-
+ */
 class BlinkEngine {
   public:
     static BlinkEngine& GetInstance();
@@ -95,6 +91,7 @@ class BlinkEngine {
     void SetTempo(double tempo);
     void StartPlaying();
     void StopPlaying();
+    static void Worker();
 
     std::mutex m;
 

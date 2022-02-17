@@ -141,10 +141,8 @@ BlinkEngine::EngineData BlinkEngine::PullEngineData()
 
 std::mutex mtx;
 std::condition_variable cv;
-std::string data;
 bool ready = false;
 bool running = false;
-std::chrono::microseconds host_time_shared {};
 
 void BlinkEngine::OnAudioBuffer(
     bool isPost,
@@ -153,55 +151,80 @@ void BlinkEngine::OnAudioBuffer(
     audio_hook_register_t* reg)
 {
     (void)reg;
-    auto& blinkEngine = GetInstance();
-    if (len != blinkEngine.frameSize || srate != blinkEngine.sampleRate) {
-        blinkEngine.frameSize = len;
-        blinkEngine.frameTime =
-            std::chrono::microseconds(llround((len / srate) * 1.0e6));
-        // blinkEngine.hostTimeFilter.reset();
-        blinkEngine.outputLatency =
-            std::chrono::microseconds(llround(GetOutputLatency() * 1.0e6));
-        blinkEngine.samplePosition = len;
-        blinkEngine.sampleRate = srate;
-    }
+    // auto& blinkEngine = GetInstance();
+    // if (len != blinkEngine.frameSize || srate != blinkEngine.sampleRate) {
+    //     blinkEngine.frameSize = len;
+    //     blinkEngine.samplePosition = len;
+    //     blinkEngine.sampleRate = srate;
+    //     blinkEngine.frameTime =
+    //         std::chrono::microseconds(llround((len / srate) * 1.0e6));
+    //     // blinkEngine.hostTimeFilter.reset();
+    //     blinkEngine.outputLatency =
+    //         std::chrono::microseconds(llround(GetOutputLatency() * 1.0e6));
+    // }
     if (!isPost) {
         // does linear regression to generate timestamp based on sample position
         // advancement and current system time
-        const auto hostTime = blinkEngine.hostTimeFilter.sampleTimeToHostTime(
-                                  blinkEngine.samplePosition) +
-                              blinkEngine.outputLatency + blinkEngine.frameTime;
+        // const auto hostTime =
+        // blinkEngine.hostTimeFilter.sampleTimeToHostTime(
+        //                           blinkEngine.samplePosition) +
+        //                       blinkEngine.outputLatency +
+        //                       blinkEngine.frameTime;
 
-        host_time_shared = hostTime;
+        // host_time_shared = hostTime;
 
         // const auto hostTime = blinkEngine.GetLink().clock().micros() +
         //                       blinkEngine.outputLatency +
         //                       blinkEngine.frameTime;
 
-        blinkEngine.samplePosition += len; // advance sample position
+        // blinkEngine.samplePosition += len; // advance sample position
+        auto& blinkEngine = GetInstance();
         if (blinkEngine.GetLink().isEnabled()) {
-            std::scoped_lock lk(mtx);
-            ready = true;
+            {
+                std::scoped_lock lk(mtx);
+                if (len != blinkEngine.frameSize ||
+                    srate != blinkEngine.sampleRate) {
+                    blinkEngine.frameSize = len;
+                    blinkEngine.samplePosition = len;
+                    blinkEngine.sampleRate = srate;
+                }
+                ready = true;
+            }
             cv.notify_one();
         }
     }
     return;
 } // called twice per frame, isPost being false then true
 
-void worker_thread()
+void BlinkEngine::Worker()
 {
     while (true) {
         // Wait until main() sends data
         std::unique_lock<std::mutex> lk(mtx);
         cv.wait(lk, [] { return ready; });
         ready = false;
-        auto host_time = host_time_shared;
         lk.unlock();
         cv.notify_one();
         auto& blinkEngine = BlinkEngine::GetInstance();
-        blinkEngine.AudioCallback(host_time);
-        std::scoped_lock lk2 {blinkEngine.m};
-        if (running == false) {
-            break;
+        blinkEngine.frameTime = std::chrono::microseconds(
+            llround((blinkEngine.frameSize / blinkEngine.sampleRate) * 1.0e6));
+        // blinkEngine.hostTimeFilter.reset();
+        blinkEngine.outputLatency =
+            std::chrono::microseconds(llround(GetOutputLatency() * 1.0e6));
+
+        const auto hostTime = blinkEngine.hostTimeFilter.sampleTimeToHostTime(
+                                  blinkEngine.samplePosition) +
+                              blinkEngine.outputLatency + blinkEngine.frameTime;
+
+        blinkEngine.samplePosition +=
+            blinkEngine.frameSize; // advance sample position
+
+        blinkEngine.AudioCallback(hostTime);
+        {
+            std::scoped_lock lk2 {blinkEngine.m};
+            if (running == false) {
+                break;
+            }
         }
     }
     return;
@@ -210,10 +233,12 @@ void worker_thread()
 void BlinkEngine::Initialize(bool enable)
 {
     // hostTimeFilter.reset();
-    std::scoped_lock lk {m};
-    if (running == false) {
-        running = true;
-        std::thread(worker_thread).detach();
+    if (running != enable) {
+        std::scoped_lock lk {m};
+        running = !running;
+        if (running == true) {
+            std::thread(Worker).detach();
+        }
     }
     Audio_RegHardwareHook(enable, &audioHook);
 }
@@ -226,7 +251,8 @@ void BlinkEngine::AudioCallback(const std::chrono::microseconds& hostTime)
 
     // reaper timeline positions
     const auto cpos = GetCursorPosition();
-    //  auto pos2 = GetPlayPosition();                               // = now
+    //  auto pos2 = GetPlayPosition();                               // =
+    //  now
     auto pos2 = GetPlayPosition2() + frameTime.count() / 1.0e6; // = hosttime
 
     // set undo if playing
@@ -350,6 +376,7 @@ void BlinkEngine::AudioCallback(const std::chrono::microseconds& hostTime)
             qnLandOffset = 0.;
             syncCorrection = false;
             OnStopButton();
+            Main_OnCommand(40521, 0);
         }
     }
 
