@@ -327,13 +327,16 @@ void BlinkEngine::AudioCallback(const std::chrono::microseconds& hostTime)
                 sessionState.timeAtBeat(0, engineData.quantum);
             double startOffset =
                 (host_start_time.count() - session_start_time.count()) / 1.0e6;
-            frameCountDown++;
+            // frameCountDown++;
             timepos += startOffset;
-            std::thread(OnStopButton).detach();
+            // std::thread(OnStopButton).detach();
+            // // std::thread(OnPauseButton).detach();
+            // std::thread([timepos]() {
+            //     SetEditCurPos(timepos, false, true);
+            // }).detach();
+            OnStopButton();
             // std::thread(OnPauseButton).detach();
-            std::thread([timepos]() {
-                SetEditCurPos(timepos, false, true);
-            }).detach();
+            SetEditCurPos(timepos, false, true);
         }
         else if (GetLink().numPeers() == 0 && engineData.isPuppet) {
             const auto startBeat = fmod(TimeMap_timeToQN_abs(0, cpos), 1.);
@@ -353,7 +356,7 @@ void BlinkEngine::AudioCallback(const std::chrono::microseconds& hostTime)
             qnJumpOffset = 0.;
             qnLandOffset = 0.;
             syncCorrection = false;
-            std::thread(OnStopButton).detach();
+            OnStopButton();
         }
     }
 
@@ -362,7 +365,7 @@ void BlinkEngine::AudioCallback(const std::chrono::microseconds& hostTime)
         frameCountDown > 0) {
         frameCountDown--;
         if (frameCountDown == 0) {
-            std::thread(OnPlayButton).detach();
+            OnPlayButton();
         }
     }
 
@@ -478,15 +481,17 @@ void BlinkEngine::AudioCallback(const std::chrono::microseconds& hostTime)
             }
             if (hostBeat - sessionBeat > 0) {
                 // slow_down
-                std::thread([]() { Main_OnCommand(40525, 0); }).detach();
+                // std::thread([]() { Main_OnCommand(40525, 0); }).detach();
+                Main_OnCommand(40525, 0);
             }
             else {
-                std::thread([]() { Main_OnCommand(40524, 0); }).detach();
+                // std::thread([]() { Main_OnCommand(40524, 0); }).detach();
+                Main_OnCommand(40524, 0);
             }
         }
         // reset playback rate if sync corrected
         else if (syncCorrection && diff < syncTolerance) {
-            std::thread([]() { Main_OnCommand(40521, 0); }).detach();
+            Main_OnCommand(40521, 0);
             syncTolerance++;
             syncCorrection = false;
         }
@@ -512,6 +517,7 @@ void BlinkEngine::AudioCallback(const std::chrono::microseconds& hostTime)
             // set tempo to link session
             sessionState.setTempo(engineData.requestedTempo, hostTime);
         }
+        UpdateTimeline();
     }
 
     // Timeline modifications are complete, commit the results
