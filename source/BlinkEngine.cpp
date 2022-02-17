@@ -179,7 +179,7 @@ void BlinkEngine::OnAudioBuffer(
 
         blinkEngine.samplePosition += len; // advance sample position
         if (blinkEngine.GetLink().isEnabled()) {
-            std::lock_guard<std::mutex> lk(mtx);
+            std::scoped_lock lk(mtx);
             ready = true;
             blinkEngine.AudioCallback(hostTime);
             cv.notify_one();
