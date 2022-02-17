@@ -96,6 +96,8 @@ class BlinkEngine {
     void StartPlaying();
     void StopPlaying();
 
+    std::mutex m;
+
   private:
     BlinkEngine();
     struct EngineData {
@@ -136,8 +138,6 @@ class BlinkEngine {
     static constexpr auto updateTimelineInterval = 100;
     int FrameCount = updateTimelineInterval + 1;
     std::vector<double> diffVector;
-
-    std::mutex m;
 
 #ifdef WIN32
     ableton::link::HostTimeFilter<ableton::platforms::windows::Clock>

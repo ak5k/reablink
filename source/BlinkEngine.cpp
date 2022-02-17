@@ -25,12 +25,6 @@ BlinkEngine& BlinkEngine::GetInstance()
     return instance;
 }
 
-void BlinkEngine::Initialize(bool enable)
-{
-    // hostTimeFilter.reset();
-    Audio_RegHardwareHook(enable, &audioHook);
-}
-
 ableton::Link& BlinkEngine::GetLink() const
 {
     static ableton::Link link(
@@ -145,6 +139,13 @@ BlinkEngine::EngineData BlinkEngine::PullEngineData()
     return engineData;
 }
 
+std::mutex mtx;
+std::condition_variable cv;
+std::string data;
+bool ready = false;
+bool running = false;
+std::chrono::microseconds host_time_shared {};
+
 void BlinkEngine::OnAudioBuffer(
     bool isPost,
     int len,
@@ -170,17 +171,53 @@ void BlinkEngine::OnAudioBuffer(
                                   blinkEngine.samplePosition) +
                               blinkEngine.outputLatency + blinkEngine.frameTime;
 
+        host_time_shared = hostTime;
+
         // const auto hostTime = blinkEngine.GetLink().clock().micros() +
         //                       blinkEngine.outputLatency +
         //                       blinkEngine.frameTime;
 
         blinkEngine.samplePosition += len; // advance sample position
         if (blinkEngine.GetLink().isEnabled()) {
+            std::lock_guard<std::mutex> lk(mtx);
+            ready = true;
             blinkEngine.AudioCallback(hostTime);
+            cv.notify_one();
         }
     }
     return;
 } // called twice per frame, isPost being false then true
+
+void worker_thread()
+{
+    while (true) {
+        // Wait until main() sends data
+        std::unique_lock<std::mutex> lk(mtx);
+        cv.wait(lk, [] { return ready; });
+        ready = false;
+        auto host_time = host_time_shared;
+        lk.unlock();
+        cv.notify_one();
+        auto& blinkEngine = BlinkEngine::GetInstance();
+        blinkEngine.AudioCallback(host_time);
+        std::scoped_lock lk2 {blinkEngine.m};
+        if (running == false) {
+            break;
+        }
+    }
+    return;
+}
+
+void BlinkEngine::Initialize(bool enable)
+{
+    // hostTimeFilter.reset();
+    std::scoped_lock lk {m};
+    if (running == false) {
+        running = true;
+        std::thread(worker_thread).detach();
+    }
+    Audio_RegHardwareHook(enable, &audioHook);
+}
 
 void BlinkEngine::AudioCallback(const std::chrono::microseconds& hostTime)
 {

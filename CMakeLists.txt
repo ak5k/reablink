@@ -1,25 +1,18 @@
-cmake_minimum_required(VERSION 3.16.0)
-project(reaper_reablink VERSION 0.4.4 LANGUAGES CXX)
+cmake_minimum_required(VERSION 3.19)
+project(reaper_reablink VERSION 0.5.0 LANGUAGES CXX)
 
 include(CheckCompilerFlag)
 include(CheckIncludeFileCXX)
 include(CheckLinkerFlag)
+include(FindGit)
+include(FindThreads)
 
-# # set up reaper-sdk and WDL
-# if(NOT EXISTS ${PROJECT_SOURCE_DIR}/vendor/reaper-sdk/WDL)
-#     file(REMOVE
-#         ${PROJECT_SOURCE_DIR}/vendor/reaper-sdk/WDL
-#     )
-#     find_package(Git QUIET)
-#     execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive --depth 1
-#         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
-#     if(NOT CMAKE_SYSTEM_NAME MATCHES Windows)
-#         file(CREATE_LINK
-#             ${PROJECT_SOURCE_DIR}/vendor/WDL/WDL
-#             ${PROJECT_SOURCE_DIR}/vendor/reaper-sdk/WDL
-#             SYMBOLIC)
-#     endif()
-# endif()
+if(NOT EXISTS ${PROJECT_SOURCE_DIR}/vendor/reaper-sdk/README)
+    execute_process(
+      COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive --depth 1 
+      WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+      )
+endif()
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
