@@ -273,7 +273,6 @@ void BlinkEngine::AudioCallback(const std::chrono::microseconds& hostTime)
             int ms {0}, ms_len {0};
             (void)TimeMap2_timeToBeats(0, cpos, &ms, &ms_len, 0, 0);
             timepos = TimeMap2_beatsToTime(0, ms_len, &ms);
-            // SetEditCurPos(timepos, false, false);
             TimeMap_GetTimeSigAtTime(
                 0,
                 timepos,
@@ -329,13 +328,7 @@ void BlinkEngine::AudioCallback(const std::chrono::microseconds& hostTime)
                 (host_start_time.count() - session_start_time.count()) / 1.0e6;
             // frameCountDown++;
             timepos += startOffset;
-            // std::thread(OnStopButton).detach();
-            // // std::thread(OnPauseButton).detach();
-            // std::thread([timepos]() {
-            //     SetEditCurPos(timepos, false, true);
-            // }).detach();
             OnStopButton();
-            // std::thread(OnPauseButton).detach();
             SetEditCurPos(timepos, false, true);
         }
         else if (GetLink().numPeers() == 0 && engineData.isPuppet) {
@@ -371,7 +364,7 @@ void BlinkEngine::AudioCallback(const std::chrono::microseconds& hostTime)
 
     FrameCount++;
     if (engineData.isPuppet && FrameCount == updateTimelineInterval) {
-        std::thread(UpdateTimeline).detach();
+        // std::thread(UpdateTimeline).detach();
     }
 
     // get current qn position
@@ -468,11 +461,8 @@ void BlinkEngine::AudioCallback(const std::chrono::microseconds& hostTime)
         // greater than 3 ms
         else if (
             !engineData.isMaster && sessionState.isPlaying() &&
-            playbackFrameCount > playbackFrameSafe &&
-            playbackFrameCount %
-                    (int)((500 / (frameTime.count() / 1.0e3)) + 0.5) ==
-                0 &&
-            diff > syncTolerance && abs(hostBeat - sessionBeat) < 0.5
+            playbackFrameCount > playbackFrameSafe && diff > syncTolerance &&
+            abs(hostBeat - sessionBeat) < 0.5
             // && diff < qLen - ceil((frameTime.count() / 1.0e3) * 2)
         ) {
             if (syncCorrection == false) {
@@ -481,11 +471,9 @@ void BlinkEngine::AudioCallback(const std::chrono::microseconds& hostTime)
             }
             if (hostBeat - sessionBeat > 0) {
                 // slow_down
-                // std::thread([]() { Main_OnCommand(40525, 0); }).detach();
                 Main_OnCommand(40525, 0);
             }
             else {
-                // std::thread([]() { Main_OnCommand(40524, 0); }).detach();
                 Main_OnCommand(40524, 0);
             }
         }

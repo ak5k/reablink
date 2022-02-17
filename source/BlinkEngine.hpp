@@ -136,7 +136,7 @@ class BlinkEngine {
     double syncTolerance = 3;
     static constexpr auto tempoTolerance = 0.001;
     static constexpr auto updateTimelineInterval = 100;
-    int FrameCount = updateTimelineInterval + 1;
+    int FrameCount = 4;
     std::vector<double> diffVector;
 
 #ifdef WIN32
