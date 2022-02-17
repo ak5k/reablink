@@ -181,7 +181,6 @@ void BlinkEngine::OnAudioBuffer(
         if (blinkEngine.GetLink().isEnabled()) {
             std::scoped_lock lk(mtx);
             ready = true;
-            blinkEngine.AudioCallback(hostTime);
             cv.notify_one();
         }
     }
