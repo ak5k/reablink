@@ -16,7 +16,7 @@ target_include_directories(reablink PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
 if(WIN32)
   target_compile_options(reablink PRIVATE
-    /W3 /WX)
+    /W4 /WX /wd4706 /wd4100 /wd4996 /wd4505)
 else()
   target_compile_options(reablink PRIVATE
     -Wall -Wextra -Werror -Wpedantic)
