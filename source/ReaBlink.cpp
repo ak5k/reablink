@@ -1,13 +1,16 @@
 #include "ReaBlink.hpp"
 #include "BlinkEngine.hpp"
 #include <ReaBlinkConfig.h>
+#include <reaper_plugin_functions.h>
 #include <reascript_vararg.hpp>
 #include <string>
+
+namespace blink {
 
 BlinkEngine& blinkEngine = BlinkEngine::GetInstance();
 
 bool isLinkRunning {false};
-std::atomic<bool> reaper_shutdown {false};
+bool reaper_shutdown {false};
 std::mutex m;
 
 std::chrono::microseconds doubleToMicros(double time)
@@ -705,7 +708,6 @@ void registerReaBlink()
 
 void unregisterReaBlink()
 {
-    reaper_shutdown = true;
 
     plugin_register(
         "-API_Blink_SetPlayingAndBeatAtTimeRequest",
@@ -911,4 +913,12 @@ void unregisterReaBlink()
     if (isLinkRunning) {
         blinkEngine.GetLink().enable(false); // !!!
     }
+
+    {
+        std::scoped_lock lk(mtx);
+        reaper_shutdown = true;
+    }
+    cv.notify_one();
 }
+
+} // namespace blink

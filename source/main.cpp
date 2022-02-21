@@ -50,8 +50,6 @@ static bool loadAPI(void* (*getFunc)(const char*))
 
     return true;
 }
-// from cfillion reapack
-
 extern "C" {
 REAPER_PLUGIN_DLL_EXPORT int ReaperPluginEntry(
     REAPER_PLUGIN_HINSTANCE hInstance,
@@ -59,7 +57,7 @@ REAPER_PLUGIN_DLL_EXPORT int ReaperPluginEntry(
 {
     (void)hInstance;
     if (!rec) {
-        unregisterReaBlink();
+        blink::unregisterReaBlink();
         return 0;
     }
     else if (
@@ -67,7 +65,7 @@ REAPER_PLUGIN_DLL_EXPORT int ReaperPluginEntry(
         !loadAPI(rec->GetFunc)) {
         return 0;
     }
-    registerReaBlink();
+    blink::registerReaBlink();
     return 1;
 }
 }

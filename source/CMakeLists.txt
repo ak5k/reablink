@@ -5,17 +5,24 @@ add_library(
         BlinkEngine.cpp
 )
 
+include(${CMAKE_SOURCE_DIR}/vendor/link/AbletonLinkConfig.cmake)
+target_link_libraries(
+    reablink Ableton::Link
+)
+
+target_link_libraries(reablink reaper_plugin)
+
 target_include_directories(reablink PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
-target_link_libraries(reablink common)
+if(WIN32)
+  target_compile_options(reablink PRIVATE
+    /W3 /WX)
+else()
+  target_compile_options(reablink PRIVATE
+    -Wall -Wextra -Werror -Wpedantic)
+endif()
 
 configure_file(
     ${CMAKE_CURRENT_LIST_DIR}/ReaBlinkConfig.h.in
     ${CMAKE_CURRENT_BINARY_DIR}/ReaBlinkConfig.h
-)
-
-include(${CMAKE_SOURCE_DIR}/vendor/link/AbletonLinkConfig.cmake)
-
-target_link_libraries(
-    reablink Ableton::Link
 )

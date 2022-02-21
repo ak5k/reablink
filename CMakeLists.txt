@@ -109,42 +109,45 @@ else()
   endif()
 endif()
 
-add_library(common INTERFACE)
+add_library(reaper_plugin INTERFACE IMPORTED)
 target_include_directories(
-    common SYSTEM INTERFACE
+    reaper_plugin INTERFACE
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/vendor
     ${CMAKE_SOURCE_DIR}/vendor/reaper-sdk/sdk)
 
-if(WIN32)
-  target_compile_options(common INTERFACE
-    /W3 /WX /wd4244 /wd4267 /wd4312 /wd4996 /wd5208)
-  target_compile_definitions(common INTERFACE NOMINMAX UNICODE)
-else()
-  target_compile_options(common INTERFACE
-    -Wall -Wextra -Werror
-    # -Wno-unused-parameter -Wno-missing-field-initializers
-    # -Wno-unused-function -Wno-missing-braces
-  )
+find_package(WDL REQUIRED)
+target_link_libraries(reaper_plugin INTERFACE WDL::WDL)
 
+if(NOT WIN32)
+  find_package(SWELL REQUIRED)
+  target_link_libraries(reaper_plugin INTERFACE SWELL::swell)
+endif()
+
+if(WIN32)
+  target_compile_definitions(reaper_plugin INTERFACE NOMINMAX UNICODE)
+else()
   # Clang 11
   check_compiler_flag(CXX -Wnon-c-typedef-for-linkage HAVE_NON_C_TYPEDEF_FOR_LINKAGE)
   if(HAVE_NON_C_TYPEDEF_FOR_LINKAGE)
-    target_compile_options(common INTERFACE -Wno-non-c-typedef-for-linkage)
+    target_compile_options(reaper_plugin INTERFACE -Wno-non-c-typedef-for-linkage)
   endif()
 endif()
 
 check_include_file_cxx(optional HAS_STD_OPTIONAL)
 if(HAS_STD_OPTIONAL)
-  target_compile_definitions(common INTERFACE HAS_STD_OPTIONAL)
+  target_compile_definitions(reaper_plugin INTERFACE HAS_STD_OPTIONAL)
 endif()
 
 check_include_file_cxx(variant HAS_STD_VARIANT)
 if(HAS_STD_VARIANT)
-  target_compile_definitions(common INTERFACE HAS_STD_VARIANT)
+  target_compile_definitions(reaper_plugin INTERFACE HAS_STD_VARIANT)
 endif()
 
 add_library(${PROJECT_NAME} SHARED)
+add_subdirectory(${CMAKE_SOURCE_DIR}/source)
+target_link_libraries(${PROJECT_NAME} reablink)
+
 set_target_properties(${PROJECT_NAME} PROPERTIES
   PREFIX "" # disable the "lib" prefix
   OUTPUT_NAME "reaper_reablink-${ARCH_NAME}"
@@ -154,8 +157,6 @@ install(TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION "${REAPER_USER_PLUGINS}" # Windows .dll
   LIBRARY DESTINATION "${REAPER_USER_PLUGINS}" # Linux .so/macOS .dylib
 )
-add_subdirectory(${CMAKE_SOURCE_DIR}/source)
-target_link_libraries(${PROJECT_NAME} reablink)
 
 if(UNIX AND NOT APPLE)
   set(THREADS_PREFER_PTHREAD_FLAG ON)
@@ -171,11 +172,3 @@ if (MSVC)
     set_target_properties( ${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${CMAKE_CURRENT_BINARY_DIR} )
     # etc for the other available configuration types (MinSizeRel, RelWithDebInfo)
 endif (MSVC)
-
-find_package(WDL REQUIRED)
-target_link_libraries(reablink WDL::WDL)
-
-if(NOT WIN32)
-  find_package(SWELL REQUIRED)
-  target_link_libraries(reablink SWELL::swell)
-endif()

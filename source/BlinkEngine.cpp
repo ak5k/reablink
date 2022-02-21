@@ -1,5 +1,7 @@
 #include "BlinkEngine.hpp"
 
+namespace blink {
+
 BlinkEngine::BlinkEngine()
     : audioHook {OnAudioBuffer, 0, 0, 0, 0, 0}
     , frameCountDown {0}
@@ -151,33 +153,7 @@ void BlinkEngine::OnAudioBuffer(
     audio_hook_register_t* reg)
 {
     (void)reg;
-    // auto& blinkEngine = GetInstance();
-    // if (len != blinkEngine.frameSize || srate != blinkEngine.sampleRate) {
-    //     blinkEngine.frameSize = len;
-    //     blinkEngine.samplePosition = len;
-    //     blinkEngine.sampleRate = srate;
-    //     blinkEngine.frameTime =
-    //         std::chrono::microseconds(llround((len / srate) * 1.0e6));
-    //     // blinkEngine.hostTimeFilter.reset();
-    //     blinkEngine.outputLatency =
-    //         std::chrono::microseconds(llround(GetOutputLatency() * 1.0e6));
-    // }
     if (!isPost) {
-        // does linear regression to generate timestamp based on sample position
-        // advancement and current system time
-        // const auto hostTime =
-        // blinkEngine.hostTimeFilter.sampleTimeToHostTime(
-        //                           blinkEngine.samplePosition) +
-        //                       blinkEngine.outputLatency +
-        //                       blinkEngine.frameTime;
-
-        // host_time_shared = hostTime;
-
-        // const auto hostTime = blinkEngine.GetLink().clock().micros() +
-        //                       blinkEngine.outputLatency +
-        //                       blinkEngine.frameTime;
-
-        // blinkEngine.samplePosition += len; // advance sample position
         auto& blinkEngine = GetInstance();
         if (blinkEngine.GetLink().isEnabled()) {
             {
@@ -528,3 +504,5 @@ void BlinkEngine::AudioCallback(const std::chrono::microseconds& hostTime)
     // Timeline modifications are complete, commit the results
     GetLink().commitAudioSessionState(sessionState);
 }
+
+} // namespace blink

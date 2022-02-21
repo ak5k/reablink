@@ -1,5 +1,6 @@
 #ifndef BLINKENGINE_HPP
 #define BLINKENGINE_HPP
+
 #ifdef WIN32
 // Make sure to define this before <cmath> is included for Windows
 #define _USE_MATH_DEFINES
@@ -8,12 +9,10 @@
 
 #include <ableton/Link.hpp>
 #include <ableton/link/HostTimeFilter.hpp>
-
 #include <atomic>
 #include <cmath>
 #include <mutex>
-
-extern std::atomic<bool> reaper_shutdown;
+#include <reaper_plugin_functions.h>
 
 #ifdef WIN32
 #ifdef NDEBUG
@@ -37,34 +36,12 @@ void asio::detail::throw_exception(const Exception& e)
 #endif
 #endif
 
-#include <reaper_plugin_functions.h>
-/*
-#ifdef NDEBUG
-#define REAPERAPI_MINIMAL
-#define REAPERAPI_WANT_Audio_RegHardwareHook
-#define REAPERAPI_WANT_FindTempoTimeSigMarker
-#define REAPERAPI_WANT_GetCursorPosition
-#define REAPERAPI_WANT_GetOutputLatency
-#define REAPERAPI_WANT_GetPlayPosition
-#define REAPERAPI_WANT_GetPlayPosition2
-#define REAPERAPI_WANT_GetPlayState
-#define REAPERAPI_WANT_GetTempoTimeSigMarker
-#define REAPERAPI_WANT_Main_OnCommand
-#define REAPERAPI_WANT_Master_GetTempo
-#define REAPERAPI_WANT_OnPlayButton
-#define REAPERAPI_WANT_OnStopButton
-#define REAPERAPI_WANT_SetEditCurPos
-#define REAPERAPI_WANT_SetTempoTimeSigMarker
-#define REAPERAPI_WANT_TimeMap2_beatsToTime
-#define REAPERAPI_WANT_TimeMap2_timeToBeats
-#define REAPERAPI_WANT_TimeMap_GetTimeSigAtTime
-#define REAPERAPI_WANT_TimeMap_timeToQN_abs
-#define REAPERAPI_WANT_Undo_BeginBlock
-#define REAPERAPI_WANT_Undo_EndBlock
-#define REAPERAPI_WANT_UpdateTimeline
-#define REAPERAPI_WANT_plugin_register
-#endif
- */
+namespace blink {
+
+extern bool reaper_shutdown;
+extern std::condition_variable cv;
+extern std::mutex mtx;
+
 class BlinkEngine {
   public:
     static BlinkEngine& GetInstance();
@@ -148,3 +125,5 @@ class BlinkEngine {
 };
 
 #endif
+
+} // namespace blink
