@@ -8,9 +8,12 @@
 
 #include <ableton/Link.hpp>
 #include <ableton/link/HostTimeFilter.hpp>
+
+#include <atomic>
 #include <cmath>
-// #include <iostream>
 #include <mutex>
+
+extern std::atomic<bool> reaper_shutdown;
 
 #ifdef WIN32
 #ifdef NDEBUG

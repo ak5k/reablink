@@ -201,10 +201,13 @@ void BlinkEngine::Worker()
     while (true) {
         // Wait until main() sends data
         std::unique_lock<std::mutex> lk(mtx);
-        cv.wait(lk, [] { return ready; });
+        cv.wait(lk, [] { return ready || reaper_shutdown; });
         ready = false;
         lk.unlock();
         cv.notify_one();
+        if (reaper_shutdown) {
+            break;
+        }
         auto& blinkEngine = BlinkEngine::GetInstance();
         blinkEngine.frameTime = std::chrono::microseconds(
             llround((blinkEngine.frameSize / blinkEngine.sampleRate) * 1.0e6));

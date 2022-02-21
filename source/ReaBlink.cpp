@@ -7,6 +7,7 @@
 BlinkEngine& blinkEngine = BlinkEngine::GetInstance();
 
 bool isLinkRunning {false};
+std::atomic<bool> reaper_shutdown {false};
 std::mutex m;
 
 std::chrono::microseconds doubleToMicros(double time)
@@ -704,6 +705,8 @@ void registerReaBlink()
 
 void unregisterReaBlink()
 {
+    reaper_shutdown = true;
+
     plugin_register(
         "-API_Blink_SetPlayingAndBeatAtTimeRequest",
         (void*)SetPlayingAndBeatAtTimeRequest);
