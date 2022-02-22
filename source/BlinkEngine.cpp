@@ -238,13 +238,13 @@ void BlinkEngine::AudioCallback(const std::chrono::microseconds& hostTime)
     // otherwise position to cursor
     if ((GetPlayState() & 1) == 1 || (GetPlayState() & 4) == 4) {
         if (playbackFrameCount == 0) {
-            std::thread(Undo_BeginBlock).detach();
+            Undo_BeginBlock();
         }
         playbackFrameCount++;
     }
     else {
         if (playbackFrameCount > 0) {
-            std::thread(Undo_EndBlock, "ReaBlink", -1).detach();
+            Undo_EndBlock("ReaBlink", -1);
         }
         // pos = cpos;
         pos2 = cpos;
