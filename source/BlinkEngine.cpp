@@ -331,7 +331,7 @@ void BlinkEngine::AudioCallback(const std::chrono::microseconds& hostTime)
                 sessionState.timeAtBeat(0, engineData.quantum);
             double startOffset =
                 (host_start_time.count() - session_start_time.count()) / 1.0e6;
-            // frameCountDown++;
+            frameCountDown++;
             timepos += startOffset;
             OnStopButton();
             SetEditCurPos(timepos, false, true);
