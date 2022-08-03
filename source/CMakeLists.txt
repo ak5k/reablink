@@ -6,6 +6,7 @@ add_library(
 )
 
 include(${CMAKE_SOURCE_DIR}/vendor/link/AbletonLinkConfig.cmake)
+target_compile_definitions(Ableton::Link INTERFACE LINK_WINDOWS_SETTHREADDESCRIPTION)
 target_link_libraries(
     reablink Ableton::Link
 )
@@ -16,7 +17,8 @@ target_include_directories(reablink PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
 if(WIN32)
   target_compile_options(reablink PRIVATE
-    /W4 /WX /wd4706 /wd4100 /wd4996 /wd4505)
+    /W3 /WX /wd4996 # /wd4706 /wd4100 /wd4996 /wd4505
+    )
 else()
   target_compile_options(reablink PRIVATE
     -Wall -Wextra -Werror -Wpedantic)
