@@ -3,7 +3,7 @@
 version: "{build}-{branch}"
 
 before_build:
-  - git submodule update --init --recursive --depth 1
+  - git submodule update --init --recursive --depth 1 #
   - |-
     cd vendor/link
     git fetch --all
