@@ -13,7 +13,7 @@ if(NOT EXISTS ${PROJECT_SOURCE_DIR}/vendor/reaper-sdk/README)
       WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
       )
     execute_process(
-      COMMAND ${GIT_EXECUTABLE} checkout Link-3.0.6
+      COMMAND ${GIT_EXECUTABLE} checkout tags/Link-3.0.6
       WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/vendor/link
       )
 endif()
