@@ -4,6 +4,9 @@ version: "{build}-{branch}"
 
 before_build:
   - git submodule update --init --recursive --depth 1
+  - |-
+    cd vendor/link
+    git checkout Link-3.0.6
 build_script:
   - cmake -B build -DCMAKE_BUILD_TYPE=Release
     -DVCPKG_TARGET_TRIPLET=$TRIPLET -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN
