@@ -2,9 +2,9 @@
 cmake_minimum_required(VERSION 3.16)
 project(reaper_reablink VERSION 0.5.0 LANGUAGES CXX)
 
-include(CheckCompilerFlag)
-include(CheckIncludeFileCXX)
-include(CheckLinkerFlag)
+# include(CheckCompilerFlag)
+# include(CheckIncludeFileCXX)
+# include(CheckLinkerFlag)
 include(FindGit)
 include(FindThreads)
 
