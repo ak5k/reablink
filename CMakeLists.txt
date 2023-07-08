@@ -6,6 +6,9 @@ include(CheckIncludeFileCXX)
 include(CheckLinkerFlag)
 include(FindGit)
 include(FindThreads)
+if(WIN32)
+  find_package(PThreads4W REQUIRED)
+endif()
 
 if(NOT EXISTS ${PROJECT_SOURCE_DIR}/vendor/reaper-sdk/README)
     execute_process(

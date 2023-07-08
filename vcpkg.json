@@ -1,0 +1,10 @@
+{
+    "name": "reablink",
+    "version-string": "current",
+    "dependencies": [
+        {
+            "name": "pthreads",
+            "platform": "windows"
+        }
+    ]
+}

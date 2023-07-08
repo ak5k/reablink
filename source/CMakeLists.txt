@@ -16,6 +16,7 @@ target_link_libraries(reablink reaper_plugin)
 target_include_directories(reablink PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
 if(WIN32)
+  target_link_libraries(Ableton::Link INTERFACE PThreads4W::PThreads4W)
   target_compile_options(reablink PRIVATE
     /W3 /WX /wd4996 # /wd4706 /wd4100 /wd4996 /wd4505
     )
