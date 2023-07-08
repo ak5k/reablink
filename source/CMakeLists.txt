@@ -6,17 +6,17 @@ add_library(
 )
 
 include(${CMAKE_SOURCE_DIR}/vendor/link/AbletonLinkConfig.cmake)
-target_compile_definitions(Ableton::Link INTERFACE LINK_WINDOWS_SETTHREADDESCRIPTION)
 target_link_libraries(
-    reablink Ableton::Link
+    reablink PRIVATE Ableton::Link
 )
 
-target_link_libraries(reablink reaper_plugin)
+target_link_libraries(reablink PRIVATE reaper_plugin)
 
 target_include_directories(reablink PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
 if(WIN32)
-  target_link_libraries(Ableton::Link INTERFACE PThreads4W::PThreads4W)
+  target_link_libraries(reablink PRIVATE PThreads4W::PThreads4W)
+  target_compile_definitions(Ableton::Link INTERFACE LINK_WINDOWS_SETTHREADDESCRIPTION)
   target_compile_options(reablink PRIVATE
     /W3 /WX /wd4996 # /wd4706 /wd4100 /wd4996 /wd4505
     )
