@@ -7,6 +7,8 @@ before_build:
   - |-
     cd vendor/link
     git checkout tags/Link-3.0.6
+    cd ..
+    cd ..
 build_script:
   - cmake -B build -DCMAKE_BUILD_TYPE=Release
     -DVCPKG_TARGET_TRIPLET=$TRIPLET -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN
