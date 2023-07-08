@@ -2,6 +2,18 @@
 
 namespace blink {
 
+std::atomic_bool stopper {false};
+
+void StopperSafe()
+{
+    if (stopper == true) {
+        stopper = false;
+        OnStopButton();
+        Main_OnCommand(40521, 0);
+    }
+    return;
+}
+
 BlinkEngine::BlinkEngine()
     : audioHook {OnAudioBuffer, 0, 0, 0, 0, 0}
     , frameCountDown {0}
@@ -29,9 +41,10 @@ BlinkEngine& BlinkEngine::GetInstance()
 
 ableton::Link& BlinkEngine::GetLink() const
 {
-    static ableton::Link link(
-        Master_GetTempo()); // = new ableton::Link(Master_GetTempo());
-    return link;
+    // static ableton::Link link(
+    //     Master_GetTempo()); // = new ableton::Link(Master_GetTempo());
+    static auto link = new ableton::Link(Master_GetTempo());
+    return *link;
 }
 
 void BlinkEngine::StartPlaying()
@@ -217,6 +230,11 @@ void BlinkEngine::Initialize(bool enable)
         running = !running;
         if (running == true) {
             std::thread(Worker).detach();
+
+            plugin_register("timer", (void*)&StopperSafe);
+        }
+        else {
+            plugin_register("-timer", (void*)&StopperSafe);
         }
     }
     Audio_RegHardwareHook(enable, &audioHook);
@@ -353,8 +371,10 @@ void BlinkEngine::AudioCallback(const std::chrono::microseconds& hostTime)
             qnJumpOffset = 0.;
             qnLandOffset = 0.;
             syncCorrection = false;
-            OnStopButton();
-            Main_OnCommand(40521, 0);
+            // OnStopButton();
+            // Main_OnCommand(40521, 0);
+
+            stopper = true;
         }
     }
 

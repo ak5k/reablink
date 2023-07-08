@@ -50,8 +50,8 @@ void SetEnabled(bool enable)
         blinkEngine.Initialize(true);
     }
     else {
-        blinkEngine.GetLink().enable(false);
         blinkEngine.Initialize(false);
+        blinkEngine.GetLink().enable(false);
     }
     return;
 }
@@ -909,11 +909,10 @@ void unregisterReaBlink()
 
     plugin_register("-hookcommand", (void*)runCommand);
 
-    blinkEngine.Initialize(false);
     if (isLinkRunning) {
         blinkEngine.GetLink().enable(false); // !!!
     }
-
+    blinkEngine.Initialize(false);
     {
         std::scoped_lock lk(mtx);
         reaper_shutdown = true;
