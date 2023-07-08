@@ -89,12 +89,12 @@ for:
     artifacts:
       - path: build/reaper_reablink*.dylib
 
-  - matrix: { only: [appveyor_build_worker_image: &windows Visual Studio 2017] }
+  - matrix: { only: [appveyor_build_worker_image: &windows Visual Studio 2022] }
     cache:
       - build\vcpkg_installed -> vcpkg.json
     install:
-      # - if "%ARCH%" == "x64" call "%ProgramFiles%\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat"
-      # - if "%ARCH%" == "x86" call "%ProgramFiles%\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars32.bat"
+      - if "%ARCH%" == "x64" call "%ProgramFiles%\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat"
+      - if "%ARCH%" == "x86" call "%ProgramFiles%\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars32.bat"
 
     build_script:
       # - cmake -B build -A %ARCH% -DCMAKE_BUILD_TYPE=RelWithDebInfo
