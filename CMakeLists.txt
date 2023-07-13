@@ -1,11 +1,13 @@
 cmake_minimum_required(VERSION 3.19)
 project(reaper_reablink VERSION 0.5.0 LANGUAGES CXX)
 
+
 include(CheckCompilerFlag)
 include(CheckIncludeFileCXX)
 include(CheckLinkerFlag)
 include(FindGit)
 include(FindThreads)
+
 
 if(NOT EXISTS ${PROJECT_SOURCE_DIR}/vendor/reaper-sdk/README)
     execute_process(
@@ -61,7 +63,6 @@ if(VCPKG_TOOLCHAIN)
 endif()
 
 if(WIN32)
-  set(LINK_WINDOWS_SETTHREADDESCRIPTION)
   foreach(arg
     CMAKE_C_FLAGS_DEBUG CMAKE_CXX_FLAGS_DEBUG
     CMAKE_C_FLAGS_RELEASE CMAKE_CXX_FLAGS_RELEASE
