@@ -7,6 +7,7 @@ add_library(
 
 if (WIN32)
   if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    message("SetThreadDescription")
     set(LINK_WINDOWS_SETTHREADDESCRIPTION 1)
   endif()
 endif()
