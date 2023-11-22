@@ -18,7 +18,7 @@ build_script:
   - '[ "$ARCH" != `uname -m` ] || cmake --build build --target reaper_reablink'
 
 for:
-  - matrix: { only: [appveyor_build_worker_image: &linux Ubuntu] }
+  - matrix: { only: [appveyor_build_worker_image: &linux Ubuntu2004] }
     install: |-
       set -e
       sudo sed -i '/arch=/! s/^deb/deb [arch=amd64,i386]/' /etc/apt/sources.list
@@ -40,7 +40,7 @@ for:
         sudo aptitude install -yR ${native[@]} > /dev/null
       }
 
-      sudo update-alternatives --set gcc /usr/bin/gcc-7
+      sudo update-alternatives --set gcc /usr/bin/gcc-9
       case $ARCH in
       x86_64)
         install-deps amd64
