@@ -1,0 +1,4 @@
+// clang-format off
+#define reablink_VERSION_MAJOR @reablink_VERSION_MAJOR@
+#define reablink_VERSION_MINOR @reablink_VERSION_MINOR@
+// clang-format on

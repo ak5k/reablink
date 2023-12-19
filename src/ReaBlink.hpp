@@ -1,7 +1,8 @@
 #ifndef REABLINK_HPP
 #define REABLINK_HPP
 
-namespace blink {
+namespace blink
+{
 
 void registerReaBlink();
 void unregisterReaBlink();

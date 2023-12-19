@@ -3,3 +3,4 @@
 .DS_Store
 **/_CPack_Packages
 /package
+ReaBlinkConfig.h

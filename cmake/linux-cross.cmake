@@ -1,5 +1,3 @@
-# heavily 'inspired' by cfillions reapack/reaimgui
-
 if(NOT DEFINED ENV{ARCH})
   message(FATAL_ERROR "The ARCH environment variable is not set.")
 endif()
@@ -21,5 +19,4 @@ if(DEFINED ENV{TOOLCHAIN_PREFIX})
   set(CMAKE_FIND_ROOT_PATH /usr/$ENV{TOOLCHAIN_PREFIX})
   set(CMAKE_LIBRARY_PATH /usr/lib/$ENV{TOOLCHAIN_PREFIX})
   set(CMAKE_INCLUDE_PATH /usr/include/$ENV{TOOLCHAIN_PREFIX})
-  set(ENV{PKG_CONFIG_PATH} /usr/lib/$ENV{TOOLCHAIN_PREFIX}/pkgconfig)
 endif()

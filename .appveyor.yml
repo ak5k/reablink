@@ -1,148 +1,110 @@
-# heavily 'inspired' by cfillions reapack/reaimgui
-
 version: "{build}-{branch}"
 
-before_build:
-  - git submodule update --init --recursive --depth 1 #
-  - |-
-    cd vendor/link
-    git fetch --all
-    git checkout tags/Link-3.0.6
-    cd ..
-    cd ..
 build_script:
+  - export VCPKG_OVERLAY_TRIPLETS=cmake/vcpkg-triplets
   - cmake -B build -DCMAKE_BUILD_TYPE=Release
-    -DVCPKG_TARGET_TRIPLET=$TRIPLET -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN
+    -DCMAKE_TOOLCHAIN_FILE=~/vcpkg/scripts/buildsystems/vcpkg.cmake
+    -DVCPKG_TARGET_TRIPLET=arch-env -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=$TOOLCHAIN
     -DCMAKE_OSX_ARCHITECTURES=$ARCH -DCMAKE_OSX_DEPLOYMENT_TARGET=$DEPLOY_TARGET
-  - cmake --build build --target reaper_reablink
-  - '[ "$ARCH" != `uname -m` ] || cmake --build build --target reaper_reablink'
+  - cmake --build build
 
 for:
-  - matrix: { only: [appveyor_build_worker_image: &linux Ubuntu2004] }
+  - matrix: { only: [ appveyor_build_worker_image: &linux Ubuntu2204 ] }
+    cache:
+      - build/vcpkg_installed -> vcpkg.json, cmake/vcpkg-triplets/arch-env.cmake
     install: |-
-      set -e
+      # set -e
+
       sudo sed -i '/arch=/! s/^deb/deb [arch=amd64,i386]/' /etc/apt/sources.list
-      awk '
-      $3 !~ /ubuntu\.com/ { next }
-      $1 == "deb" {
-        $2 = "[arch=armhf,arm64]";
-        $3 = "http://ports.ubuntu.com/ubuntu-ports/"
-      } 1' /etc/apt/sources.list | sudo tee /etc/apt/sources.list.d/ports.list > /dev/null
 
       install-deps() {
+        # sudo add-apt-repository --remove "deb http://apt.postgresql.org/pub/repos/apt/ bionic-pgdg main"
         local arch="$1"; shift
-        local native=("$@")
-        # local target=(libboost-dev)
+        local native=("$@" php-cli qemu-user-binfmt)
+
         sudo dpkg --add-architecture $arch
         sudo apt-get update -qq
         sudo apt-get install -qq aptitude > /dev/null
-        # sudo aptitude install -yR ${native[@]} ${target[@]/%/:$arch} > /dev/null
         sudo aptitude install -yR ${native[@]} > /dev/null
       }
 
-      sudo update-alternatives --set gcc /usr/bin/gcc-9
+      # sudo update-alternatives --set gcc /usr/bin/gcc-9
+
       case $ARCH in
       x86_64)
         install-deps amd64
         ;;
       i686)
         install-deps i386 g++-multilib
-        export TOOLCHAIN=cmake/linux-cross.cmake \
+        export TOOLCHAIN=$(pwd)/cmake/linux-cross.cmake \
                TOOLCHAIN_PREFIX=i386-linux-gnu
         ;;
       armv7l)
         install-deps armhf g++-arm-linux-gnueabihf
-        export TOOLCHAIN=cmake/linux-cross.cmake \
+        export TOOLCHAIN=$(pwd)/cmake/linux-cross.cmake \
                TOOLCHAIN_PREFIX=arm-linux-gnueabihf
         ;;
       aarch64)
         install-deps arm64 g++-aarch64-linux-gnu
-        export TOOLCHAIN=cmake/linux-cross.cmake \
+        export TOOLCHAIN=$(pwd)/cmake/linux-cross.cmake \
                TOOLCHAIN_PREFIX=aarch64-linux-gnu
         ;;
       esac
     artifacts:
-      - path: build/reaper_reablink*.so
+      - path: build/reaper_*.so
 
-  - matrix:
-      {
-        only:
-          [
-            appveyor_build_worker_image: macos,
-            appveyor_build_worker_image: macos-mojave,
-          ],
-      }
+  - matrix: { only: [ appveyor_build_worker_image: &macos macos-monterey ] }
     cache:
       - build/vcpkg_installed -> vcpkg.json, cmake/vcpkg-triplets/arch-env.cmake
     install:
-      - TRIPLET=arch-env TOOLCHAIN=~/vcpkg/scripts/buildsystems/vcpkg.cmake
-      - export VCPKG_OVERLAY_TRIPLETS=cmake/vcpkg-triplets
-
       - |-
-        case $ARCH in
-        arm64) export DEPLOY_TARGET=11.0 XCODE_VERSION=12.3  ;;
-        *)     export DEPLOY_TARGET=10.9 XCODE_VERSION=9.4.1 ;;
-        esac
-      - sudo xcode-select -s /Applications/Xcode-$XCODE_VERSION.app
-      # https://letsencrypt.org/docs/dst-root-ca-x3-expiration-september-2021/
-      - sudo curl -k https://curl.se/ca/cacert.pem -o /etc/ssl/cert.pem
-    artifacts:
-      - path: build/reaper_reablink*.dylib
+        echo " "
+        brew install php
 
-  - matrix: { only: [appveyor_build_worker_image: &windows Visual Studio 2022] }
+    artifacts:
+      - path: build/reaper_*.dylib
+
+  - matrix: { only: [ appveyor_build_worker_image: &windows Visual Studio 2022 ] }
+
     cache:
       - build\vcpkg_installed -> vcpkg.json
     install:
       - if "%ARCH%" == "x64" call "%ProgramFiles%\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat"
       - if "%ARCH%" == "x86" call "%ProgramFiles%\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars32.bat"
-
     build_script:
-      # - cmake -B build -A %ARCH% -DCMAKE_BUILD_TYPE=RelWithDebInfo
       - cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
         -DVCPKG_TARGET_TRIPLET=%ARCH%-windows-static
         -DCMAKE_TOOLCHAIN_FILE=C:\Tools\vcpkg\scripts\buildsystems\vcpkg.cmake
       - cmake --build build
     artifacts:
-      - path: build\reaper_reablink*.dll
-      - path: scripts\ReaBlink_Monitor.lua
+      - path: build\reaper_*.dll
+      - path: build\reaper_*.pdb
 
 environment:
   matrix:
+    - job_name: Linux ARM 64-bit
+      appveyor_build_worker_image: *linux
+      ARCH: aarch64
     - job_name: Windows 64-bit
       appveyor_build_worker_image: *windows
       ARCH: x64
     - job_name: macOS ARM 64-bit
-      appveyor_build_worker_image: macos
+      appveyor_build_worker_image: *macos
       ARCH: arm64
     - job_name: Linux x86 64-bit
       appveyor_build_worker_image: *linux
       ARCH: x86_64
     - job_name: macOS x86 64-bit
-      appveyor_build_worker_image: macos-mojave
+      appveyor_build_worker_image: *macos
       ARCH: x86_64
-    - job_name: Windows 32-bit
-      appveyor_build_worker_image: *windows
-      ARCH: x86
-    - job_name: macOS x86 32-bit
-      appveyor_build_worker_image: macos-mojave
-      ARCH: i386
-    - job_name: Linux x86 32-bit
-      appveyor_build_worker_image: *linux
-      ARCH: i686
-    - job_name: Linux ARM 64-bit
-      appveyor_build_worker_image: *linux
-      ARCH: aarch64
-    - job_name: Linux ARM 32-bit
-      appveyor_build_worker_image: *linux
-      ARCH: armv7l
 
 deploy:
   provider: GitHub
   draft: true
-  description: ""
+  description: ''
   force_update: true
   auth_token:
     secure: Rk8do2Q/etdabjwIABBRdTJu1a4wYVu9Ltz8HJuC0wc3rz+hHUMGa3N7vTlsrd7z
-  artifact: /.*\.(dll|dylib|so|lua)/
+  artifact: /.*\.(dll|pdb|dylib|so)/
   on:
     APPVEYOR_REPO_TAG: true

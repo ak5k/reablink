@@ -4,7 +4,7 @@
 #ifdef WIN32
 // Make sure to define this before <cmath> is included for Windows
 #define _USE_MATH_DEFINES
-#define ASIO_NO_EXCEPTIONS
+// #define ASIO_NO_EXCEPTIONS
 #endif
 
 #include <ableton/Link.hpp>
@@ -16,33 +16,37 @@
 
 #ifdef WIN32
 #ifdef NDEBUG
-template <typename Exception>
-void asio::detail::throw_exception(const Exception& e)
-{
-    (void)e;
-    return;
-}
+// template <typename Exception>
+// void asio::detail::throw_exception(const Exception& e)
+// {
+//     (void)e;
+//     return;
+// }
 #else
-template <typename Exception>
-void asio::detail::throw_exception(const Exception& e)
-{
-    try {
-        throw e;
-    }
-    catch (const std::exception& e) {
-        std::cerr << e.what() << '\n';
-    }
-}
+// template <typename Exception>
+// void asio::detail::throw_exception(const Exception& e)
+// {
+//     try
+//     {
+//         throw e;
+//     }
+//     catch (const std::exception& e)
+//     {
+//         std::cerr << e.what() << '\n';
+//     }
+// }
 #endif
 #endif
 
-namespace blink {
+namespace blink
+{
 
 extern bool reaper_shutdown;
 extern std::condition_variable cv;
 extern std::mutex mtx;
 
-class BlinkEngine {
+class BlinkEngine
+{
   public:
     static BlinkEngine& GetInstance();
 
@@ -51,23 +55,20 @@ class BlinkEngine {
     BlinkEngine& operator=(BlinkEngine const&) = delete;
     BlinkEngine& operator=(BlinkEngine&&) = delete;
 
-    ableton::Link& GetLink() const;
+    static ableton::Link& GetLink();
     bool GetMaster() const;
-    bool GetPlaying() const;
+    static bool GetPlaying();
     bool GetPuppet() const;
-    bool GetStartStopSyncEnabled() const;
+    static bool GetStartStopSyncEnabled();
     double GetQuantum() const;
     void AudioCallback(const std::chrono::microseconds& hostTime);
     void Initialize(bool enable);
-    static void OnAudioBuffer(
-        bool isPost,
-        int len,
-        double srate,
-        audio_hook_register_t* reg);
+    static void OnAudioBuffer(bool isPost, int len, double srate,
+                              audio_hook_register_t* reg);
     void SetMaster(bool enable);
     void SetPuppet(bool enable);
     void SetQuantum(double setQuantum);
-    void SetStartStopSyncEnabled(bool enabled);
+    static void SetStartStopSyncEnabled(bool enabled);
     void SetTempo(double tempo);
     void StartPlaying();
     void StopPlaying();
@@ -77,7 +78,9 @@ class BlinkEngine {
 
   private:
     BlinkEngine();
-    struct EngineData {
+
+    struct EngineData
+    {
         double requestedTempo;
         bool requestStart;
         bool requestStop;
@@ -117,7 +120,7 @@ class BlinkEngine {
 
 #ifdef WIN32
     ableton::link::HostTimeFilter<ableton::platforms::windows::Clock>
-        hostTimeFilter;
+        hostTimeFilter {};
 #else
     ableton::link::HostTimeFilter<ableton::link::platform::Clock>
         hostTimeFilter;
