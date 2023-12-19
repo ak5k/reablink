@@ -358,7 +358,15 @@ const char* defstring_SetPlayingAndBeatAtTimeRequest =
 
 void startStop()
 {
-    const auto sessionState = link_session->link.captureAppSessionState();
+    auto sessionState = link_session->link.captureAppSessionState();
+    if (sessionState.isPlaying())
+    {
+        link_session->audioPlatform.mEngine.stopPlaying();
+    }
+    else
+    {
+        link_session->audioPlatform.mEngine.startPlaying();
+    }
 }
 
 const char* defstring_startStop =
@@ -461,20 +469,18 @@ bool runCommand(int command, int flag)
         {
             res = true;
             link_session->audioPlatform.mEngine.stopPlaying();
-
-            // blinkEngine.StopPlaying();
         }
         if (command == 41130)
         {
             res = true;
-            const auto tempo = GetTempo();
-            // blinkEngine.SetTempo(tempo - 1);
+            auto tempo = GetTempo();
+            link_session->audioPlatform.mEngine.setTempo(tempo - 1);
         }
         if (command == 41129)
         {
             res = true;
-            const auto tempo = GetTempo();
-            // blinkEngine.SetTempo(tempo + 1);
+            auto tempo = GetTempo();
+            link_session->audioPlatform.mEngine.setTempo(tempo + 1);
         }
     }
     return res;
@@ -501,8 +507,8 @@ const char* defstring_SetCaptureTransportCommands =
 
 double Blink_GetVersion()
 {
-    static const auto major = reablink_VERSION_MAJOR;
-    static const auto minor = reablink_VERSION_MINOR;
+    auto major = reablink_VERSION_MAJOR;
+    auto minor = reablink_VERSION_MINOR;
     return std::stod(
         std::string(std::to_string(major) + "." + std::to_string(minor)));
 }
