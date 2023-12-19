@@ -28,7 +28,8 @@ FetchContent_Declare(reaper-sdk SYSTEM
     SOURCE_DIR     "${PROJECT_LIB_DIR}/reaper-sdk"
     )
 
-FetchContent_MakeAvailable(link WDL reaper-sdk)
+FetchContent_Populate(link)
+FetchContent_MakeAvailable(WDL reaper-sdk)
 
 include(${PROJECT_LIB_DIR}/link/AbletonLinkConfig.cmake)
 target_link_libraries(${PROJECT_NAME} Ableton::Link)
