@@ -16,14 +16,18 @@ for:
       # set -e
 
       sudo sed -i '/arch=/! s/^deb/deb [arch=amd64,i386]/' /etc/apt/sources.list
+      awk '
+      $3 !~ /ubuntu\.com/ { next }
+      $1 == "deb" {
+        $2 = "[arch=armhf,arm64]";
+        $3 = "http://ports.ubuntu.com/ubuntu-ports/"
+      } 1' /etc/apt/sources.list | sudo tee /etc/apt/sources.list.d/ports.list > /dev/null
 
       install-deps() {
         # sudo add-apt-repository --remove "deb http://apt.postgresql.org/pub/repos/apt/ bionic-pgdg main"
         local arch="$1"; shift
         local native=("$@" php-cli qemu-user-binfmt )
-        local target=(
-          libasound-dev portaudio19-dev libportaudio2 libportaudiocpp0
-        )
+        local target=( libasound-dev portaudio19-dev libportaudio2 libportaudiocpp0 )
 
         sudo dpkg --add-architecture $arch
         sudo apt-get update -qq
