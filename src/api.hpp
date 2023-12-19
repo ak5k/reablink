@@ -394,6 +394,7 @@ const char* defstring_GetQuantum =
 
 void SetMaster(bool enable)
 {
+    (void)enable;
     // return blinkEngine.SetMaster(enable);
 }
 
@@ -416,6 +417,7 @@ const char* defstring_GetMaster =
 
 void SetPuppet(bool enable)
 {
+    (void)enable;
     // blinkEngine.Initialize(enable);
     // return blinkEngine.SetPuppet(enable);
 }
