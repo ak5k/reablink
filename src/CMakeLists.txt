@@ -2,7 +2,7 @@ target_sources(
   ${PROJECT_NAME}
   PRIVATE
   main.cpp
-  AudioEngine.cpp
+  engine.cpp
 )
 
 if (WIN32)

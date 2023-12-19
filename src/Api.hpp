@@ -1,5 +1,5 @@
-#include "AudioEngine.hpp"
 #include "ReaBlinkConfig.h"
+#include "engine.hpp"
 #include "reascript_vararg.hpp"
 #include <reaper_plugin_functions.h>
 
@@ -13,10 +13,10 @@ struct LinkSession
     LinkSession() = default;
 };
 
-namespace blink
+namespace reablink
 {
 
-LinkSession* link_session = nullptr;
+LinkSession* link_session {nullptr};
 bool isLinkRunning {false};
 bool reaper_shutdown {false};
 std::mutex m;
@@ -50,11 +50,11 @@ const char* defstring_GetEnabled =
  */
 void SetEnabled(bool enable)
 {
-    if (enable != link_session->running)
-    {
-        link_session->running = enable;
-        link_session->link.enable(enable);
-    }
+    // if (enable != link_session->running)
+    // {
+    link_session->running = enable;
+    link_session->link.enable(enable);
+    // }
 }
 
 const char* defstring_SetEnabled =
@@ -153,7 +153,6 @@ void SetTempoAtTime(double bpm, double time)
     auto sessionState = link_session->link.captureAppSessionState();
     sessionState.setTempo(bpm, doubleToMicros(time));
     link_session->link.commitAppSessionState(sessionState);
-    return;
 }
 
 const char* defstring_SetTempoAtTime =
@@ -248,7 +247,6 @@ void SetBeatAtTimeRequest(double beat, double time, double quantum)
     auto sessionState = link_session->link.captureAppSessionState();
     sessionState.requestBeatAtTime(beat, doubleToMicros(time), quantum);
     link_session->link.commitAppSessionState(sessionState);
-    return;
 }
 
 const char* defstring_SetBeatAtTimeRequest =
@@ -281,7 +279,6 @@ void SetBeatAtTimeForce(double beat, double time, double quantum)
     auto sessionState = link_session->link.captureAppSessionState();
     sessionState.forceBeatAtTime(beat, doubleToMicros(time), quantum);
     link_session->link.commitAppSessionState(sessionState);
-    return;
 }
 
 const char* defstring_SetBeatAtTimeForce =
@@ -296,7 +293,6 @@ void SetPlaying(bool playing, double time)
     auto sessionState = link_session->link.captureAppSessionState();
     sessionState.setIsPlaying(playing, doubleToMicros(time));
     link_session->link.commitAppSessionState(sessionState);
-    return;
 }
 
 const char* defstring_SetPlaying =
@@ -334,7 +330,6 @@ void SetBeatAtStartPlayingTimeRequest(double beat, double quantum)
     auto sessionState = link_session->link.captureAppSessionState();
     sessionState.requestBeatAtStartPlayingTime(beat, quantum);
     link_session->link.commitAppSessionState(sessionState);
-    return;
 }
 
 const char* defstring_SetBeatAtStartPlayingTimeRequest =
@@ -354,7 +349,6 @@ void SetPlayingAndBeatAtTimeRequest(bool playing, double time, double beat,
     sessionState.setIsPlayingAndRequestBeatAtTime(playing, doubleToMicros(time),
                                                   beat, quantum);
     link_session->link.commitAppSessionState(sessionState);
-    return;
 }
 
 const char* defstring_SetPlayingAndBeatAtTimeRequest =
@@ -365,15 +359,6 @@ const char* defstring_SetPlayingAndBeatAtTimeRequest =
 void startStop()
 {
     const auto sessionState = link_session->link.captureAppSessionState();
-    if (sessionState.isPlaying())
-    {
-        blinkEngine.StopPlaying();
-    }
-    else
-    {
-        blinkEngine.StartPlaying();
-    }
-    return;
 }
 
 const char* defstring_startStop =
@@ -382,8 +367,7 @@ const char* defstring_startStop =
 
 void SetQuantum(double quantum)
 {
-    auto sessionState = link_session->link.captureAppSessionState();
-    sessionState.return;
+    link_session->audioPlatform.mEngine.setQuantum(quantum);
 }
 
 const char* defstring_SetQuantum =
@@ -393,7 +377,7 @@ const char* defstring_SetQuantum =
 
 double GetQuantum()
 {
-    return blinkEngine.GetQuantum();
+    return link_session->audioPlatform.mEngine.quantum();
 }
 
 const char* defstring_GetQuantum =
@@ -402,7 +386,7 @@ const char* defstring_GetQuantum =
 
 void SetMaster(bool enable)
 {
-    return blinkEngine.SetMaster(enable);
+    // return blinkEngine.SetMaster(enable);
 }
 
 const char* defstring_SetMaster =
@@ -414,7 +398,8 @@ const char* defstring_SetMaster =
 
 bool GetMaster()
 {
-    return blinkEngine.GetMaster();
+    // return blinkEngine.GetMaster();
+    return false;
 }
 
 const char* defstring_GetMaster =
@@ -424,7 +409,7 @@ const char* defstring_GetMaster =
 void SetPuppet(bool enable)
 {
     // blinkEngine.Initialize(enable);
-    return blinkEngine.SetPuppet(enable);
+    // return blinkEngine.SetPuppet(enable);
 }
 
 const char* defstring_SetPuppet =
@@ -438,7 +423,8 @@ const char* defstring_SetPuppet =
 
 bool GetPuppet()
 {
-    return blinkEngine.GetPuppet();
+    // return blinkEngine.GetPuppet();
+    return false;
 }
 
 const char* defstring_GetPuppet =
@@ -474,19 +460,21 @@ bool runCommand(int command, int flag)
         if (command == 1016)
         {
             res = true;
-            blinkEngine.StopPlaying();
+            link_session->audioPlatform.mEngine.stopPlaying();
+
+            // blinkEngine.StopPlaying();
         }
         if (command == 41130)
         {
             res = true;
             const auto tempo = GetTempo();
-            blinkEngine.SetTempo(tempo - 1);
+            // blinkEngine.SetTempo(tempo - 1);
         }
         if (command == 41129)
         {
             res = true;
             const auto tempo = GetTempo();
-            blinkEngine.SetTempo(tempo + 1);
+            // blinkEngine.SetTempo(tempo + 1);
         }
     }
     return res;
@@ -502,7 +490,6 @@ void SetCaptureTransportCommands(bool enable)
     {
         plugin_register("-hookcommand", (void*)runCommand);
     }
-    return;
 }
 
 const char* defstring_SetCaptureTransportCommands =
@@ -524,8 +511,10 @@ const char* defstring_Blink_GetVersion =
     "double\0\0\0"
     "Get Blink version.";
 
-void registerReaBlink()
+void Register()
 {
+    link_session = new LinkSession();
+
     plugin_register("API_Blink_GetVersion", (void*)Blink_GetVersion);
     plugin_register("APIdef_Blink_GetVersion",
                     (void*)defstring_Blink_GetVersion);
@@ -700,7 +689,7 @@ void registerReaBlink()
                         &InvokeReaScriptAPI<&SetCaptureTransportCommands>));
 }
 
-void unregisterReaBlink()
+void Unregister()
 {
     plugin_register("-API_Blink_SetPlayingAndBeatAtTimeRequest",
                     (void*)SetPlayingAndBeatAtTimeRequest);
@@ -869,16 +858,11 @@ void unregisterReaBlink()
 
     plugin_register("-hookcommand", (void*)runCommand);
 
-    if (isLinkRunning)
+    if (link_session && link_session->running)
     {
-        link_session->link.enable(false); // !!!
+        link_session->running = false;
+        link_session->link.enable(false);
     }
-    blinkEngine.Initialize(false);
-    {
-        std::scoped_lock lk(mtx);
-        reaper_shutdown = true;
-    }
-    cv.notify_one();
 }
 
-} // namespace blink
+} // namespace reablink

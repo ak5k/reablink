@@ -30,6 +30,13 @@ FetchContent_Declare(reaper-sdk SYSTEM
 
 FetchContent_MakeAvailable(link WDL reaper-sdk)
 
+FILE(GLOB header_paths 
+    ${PROJECT_LIB_DIR}/*/include
+    ${PROJECT_LIB_DIR}/*/sdk
+    )
+target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${header_paths})
+
+
 include(${CMAKE_SOURCE_DIR}/lib/link/AbletonLinkConfig.cmake)
 target_link_libraries(
     ${PROJECT_NAME} Ableton::Link
@@ -56,11 +63,6 @@ else()
       -Wall -Wextra -Werror -Wpedantic
   )
 endif()
-
-FILE(GLOB header_paths 
-    ${PROJECT_LIB_DIR}/*/include
-    ${PROJECT_LIB_DIR}/*/sdk
-    )
 
 include_directories(${PROJECT_NAME} ${header_paths})
 
