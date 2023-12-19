@@ -122,62 +122,10 @@ endif()
 
 STRING(TOLOWER "${ARCH_NAME}" ARCH_NAME)
 
-# set(CMAKE_CXX_EXTENSIONS OFF)
-# set(CMAKE_CXX_STANDARD_REQUIRED ON)
-# set(CMAKE_CXX_VISIBILITY_PRESET "hidden")
-# set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-# set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-
-# set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_MINSIZEREL     ON)
-# set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE        ON)
-# set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELWITHDEBINFO ON)
-
 if(VCPKG_TOOLCHAIN)
   set(CMAKE_MAP_IMPORTED_CONFIG_MINSIZEREL Release)
   set(CMAKE_MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release)
 endif()
-
-# if(WIN32)
-  # foreach(arg
-  #   CMAKE_C_FLAGS_DEBUG CMAKE_CXX_FLAGS_DEBUG
-  #   CMAKE_C_FLAGS_RELEASE CMAKE_CXX_FLAGS_RELEASE
-  #   CMAKE_C_FLAGS_RELWITHDEBINFO CMAKE_CXX_FLAGS_RELWITHDEBINFO
-  #   CMAKE_C_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_MINSIZEREL
-  # )
-  #   # Embed debug information in the object files
-  #   string(REGEX REPLACE "/Z[iI]" "/Z7" ${arg} "${${arg}}")
-  # endforeach()
-
-#   add_compile_options(
-#     # Exception handling model
-#     /EHsc
-
-#     # Enhance optimized debugging
-#     $<$<NOT:$<CONFIG:Debug>>:/Zo>
-
-#     # Eliminate duplicate strings
-#     $<$<NOT:$<CONFIG:Debug>>:/GF>
-
-#     # Enable function-level linking
-#     $<$<NOT:$<CONFIG:Debug>>:/Gy>
-
-#     # Remove unreferenced COMDAT
-#     $<$<NOT:$<CONFIG:Debug>>:/Zc:inline>
-#   )
-
-#   add_link_options(
-#     # Remove unreferenced code
-#     $<$<NOT:$<CONFIG:Debug>>:/OPT:REF>
-
-#     # Remove duplicate sections
-#     $<$<NOT:$<CONFIG:Debug>>:/OPT:ICF>
-
-#     # Use relative path to the PDB file to avoid exposing the full path
-#     /PDBALTPATH:%_PDB%
-#   )
-# else()
-#   add_compile_options(-fsigned-char -fstack-protector-strong -fdiagnostics-color)
-# endif()
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
   PREFIX "" # disable the "lib" prefix
