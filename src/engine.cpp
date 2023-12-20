@@ -98,9 +98,14 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
 {
     (void)numSamples; // unused
 
+    const auto engineData = pullEngineData();
+
+    auto sessionState = mLink.captureAudioSessionState();
+
+    // calculate timer interval average
     static std::vector<double> timer_intervals {};
     static double time0 = 0.;
-    auto timer_interval_average = 0.;
+    auto frame_time = 0.;
     auto now = std::chrono::high_resolution_clock::now();
     auto now_double =
         std::chrono::duration<double>(now.time_since_epoch()).count();
@@ -120,13 +125,29 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
             timer_intervals.erase(timer_intervals.begin());
         }
 
-        timer_interval_average = sum / count;
+        frame_time = sum / count;
     }
     time0 = now_double;
 
-    const auto engineData = pullEngineData();
+    // reaper timeline positions
+    auto cpos = GetCursorPosition();
+    auto pos = GetPlayPosition(); // + frameTime.count() / 1.0e6; // = hosttime
+    auto pos2 =
+        GetPlayPosition2(); // + frameTime.count() / 1.0e6; // = hosttime
 
-    auto sessionState = mLink.captureAudioSessionState();
+    // find current tempo and time sig
+    // and active time sig marker
+    bool lineartempo {false};
+    double beatpos {0};
+    double timepos {0};
+    double hostBpm {0};
+    int measurepos {0};
+    int timesig_num {0};
+    int timesig_denom {0};
+    int ptidx {0};
+    TimeMap_GetTimeSigAtTime(0, pos2, &timesig_num, &timesig_denom, &hostBpm);
+    ptidx = FindTempoTimeSigMarker(0, pos2);
+    GetTempoTimeSigMarker(0, ptidx, &timepos, 0, 0, 0, 0, 0, 0);
 
     if (engineData.requestStart)
     {
@@ -138,16 +159,66 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
         sessionState.setIsPlaying(false, hostTime);
     }
 
+    // static int frameCountDown {0};
+    static int frame_count {0};
+    double wait_time {0};
     if (!mIsPlaying && sessionState.isPlaying())
     {
+        Undo_BeginBlock();
+        OnPlayButton();
         // Reset the timeline so that beat 0 corresponds to the time when
         // transport starts
+        // 'quantized launch' madness
+        int ms {0};
+        int ms_len {0};
+        (void)TimeMap2_timeToBeats(0, cpos, &ms, &ms_len, 0, 0);
+        timepos = TimeMap2_beatsToTime(0, ms_len, &ms);
+        TimeMap_GetTimeSigAtTime(0, timepos, &timesig_num, &timesig_denom,
+                                 &hostBpm);
+        sessionState.setTempo(hostBpm, hostTime);
+        ptidx = FindTempoTimeSigMarker(0, timepos);
+        double tempBpm {0};
+        if (GetTempoTimeSigMarker(0, ptidx - 1, &timepos, &measurepos, &beatpos,
+                                  &tempBpm, &timesig_num, &timesig_denom,
+                                  &lineartempo))
+        {
+            SetTempoTimeSigMarker(0, ptidx - 1, timepos, measurepos, beatpos,
+                                  hostBpm, timesig_num, timesig_denom,
+                                  lineartempo);
+            GetTempoTimeSigMarker(0, ptidx, &timepos, &measurepos, &beatpos, 0,
+                                  &timesig_num, &timesig_denom, &lineartempo);
+            // timepos = timepos;
+        }
+
         sessionState.requestBeatAtStartPlayingTime(0, engineData.quantum);
+        // frameCountDown = static_cast<int>(
+        //     (sessionState.timeAtBeat(0, engineData.quantum).count() -
+        //      hostTime.count()) /
+        //     (1.0e6 / frame_time));
+        wait_time = (sessionState.timeAtBeat(0, engineData.quantum).count() -
+                     hostTime.count()) /
+                    1.0e6;
+        frame_count = static_cast<int>(wait_time / frame_time);
+        frame_count = frame_count > 0 ? frame_count : 1;
+        OnStopButton();
+        SetEditCurPos(timepos, false, false);
         mIsPlaying = true;
     }
     else if (mIsPlaying && !sessionState.isPlaying())
     {
+        OnStopButton();
         mIsPlaying = false;
+        Undo_EndBlock("ReaBlink", -1);
+    }
+
+    // playback countdown and launch
+    if (mIsPlaying && sessionState.isPlaying() && frame_count > 0)
+    {
+        frame_count--;
+        if (frame_count == 0)
+        {
+            OnPlayButton();
+        }
     }
 
     if (engineData.requestedTempo > 0)
