@@ -115,7 +115,7 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
         double sum = 0.0;
         int count = 0;
 
-        while (count < timer_intervals.size())
+        while (count < (int)timer_intervals.size())
         {
             sum += timer_intervals.at(count);
             count++;
@@ -131,7 +131,8 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
 
     // reaper timeline positions
     auto cpos = GetCursorPosition();
-    auto pos = GetPlayPosition(); // + frameTime.count() / 1.0e6; // = hosttime
+    // auto pos = GetPlayPosition(); // + frameTime.count() / 1.0e6; // =
+    // hosttime
     auto pos2 =
         GetPlayPosition2(); // + frameTime.count() / 1.0e6; // = hosttime
 

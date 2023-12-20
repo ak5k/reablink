@@ -81,8 +81,6 @@ struct LinkSession
             instance.sampleRate = srate;
             instance.lastAudioBufferTime =
                 instance.link.clock().micros().count() / 1.0e6;
-
-            auto asdf = instance.link.clock().micros().count();
         }
         (void)reg;
     }

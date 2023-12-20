@@ -59,7 +59,12 @@ else()
   target_compile_options(
     ${PROJECT_NAME}
       PRIVATE
-      -Wall -Wextra -Werror -Wpedantic
+      -Wall -Wextra -Werror -Wpedantic 
+      -Wno-switch -Wno-unused-function -Wno-unused -Wno-sign-compare
+      -Wno-missing-braces -Wno-missing-field-initializers -Wno-unused-parameter
+      -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-label
+      -Wno-unused-value -Wno-shadow -Wno-conversion -Wno-format
+      -Wno-maybe-uninitialized -Wno-implicit-fallthrough 
   )
 endif()
 
@@ -131,6 +136,13 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
   PREFIX "" # disable the "lib" prefix
   OUTPUT_NAME "reaper_${PROJECT_NAME}-${ARCH_NAME}"
 )
+
+# if(WIN32)
+#   add_link_options(
+#     # Use relative path to the PDB file to avoid exposing the full path
+#     /PDBALTPATH:%_PDB%
+#   )
+# endif()
 
 add_subdirectory(src)
 
