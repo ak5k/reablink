@@ -22,6 +22,7 @@
 // Make sure to define this before <cmath> is included for Windows
 #define _USE_MATH_DEFINES // NOLINT
 #include <ableton/Link.hpp>
+#include <ableton/link/HostTimeFilter.hpp>
 #include <atomic>
 #include <mutex>
 
@@ -41,6 +42,8 @@ class AudioEngine
     void setQuantum(double quantum);
     bool isStartStopSyncEnabled() const;
     void setStartStopSyncEnabled(bool enabled);
+    void audioCallback(std::chrono::microseconds hostTime,
+                       std::size_t numSamples);
 
   private:
     struct EngineData
@@ -53,8 +56,6 @@ class AudioEngine
     };
 
     EngineData pullEngineData();
-    void audioCallback(std::chrono::microseconds hostTime,
-                       std::size_t numSamples);
 
     Link& mLink; // NOLINT
     std::atomic<std::chrono::microseconds> mOutputLatency;

@@ -1,6 +1,7 @@
 #include "ReaBlinkConfig.h"
 #include "engine.hpp"
 #include "reascript_vararg.hpp"
+#include <atomic>
 #include <reaper_plugin_functions.h>
 
 #ifdef _WIN32
@@ -42,11 +43,16 @@ struct LinkSession
     ableton::linkaudio::AudioPlatform audioPlatform =
         ableton::linkaudio::AudioPlatform(link);
 
+    std::atomic<int> length {0};
+    std::atomic<double> sampleRate {0};
+    std::atomic<double> lastAudioBufferTime {0};
+
     LinkSession& operator=(const LinkSession&&) = delete;
     LinkSession& operator=(const LinkSession&) = delete;
     LinkSession(const LinkSession&&) = delete;
     LinkSession(const LinkSession&) = delete;
 
+    // singleton
     static LinkSession& getInstance()
     {
         static LinkSession* instance = new LinkSession(); // NOLINT
@@ -54,7 +60,37 @@ struct LinkSession
     }
 
   private:
-    LinkSession() = default;
+    LinkSession()
+    {
+        static audio_hook_register_t audio_hook(OnAudioBuffer, 0, 0, 0, 0);
+        Audio_RegHardwareHook(true, &audio_hook);
+        plugin_register("timer", reinterpret_cast<void*>(&activate));
+        plugin_register("timer", audioCallback);
+    }
+
+    // registered on REAPER audio thread
+    static void OnAudioBuffer(bool isPost, int len, double srate,
+                              struct audio_hook_register_t* reg)
+    {
+        if (!isPost)
+        {
+            LinkSession& instance = getInstance();
+            instance.length = len;
+            instance.sampleRate = srate;
+            instance.lastAudioBufferTime =
+                instance.link.clock().micros().count() / 1.0e6;
+        }
+        (void)reg;
+    }
+
+    // register on REAPER timer
+    static void audioCallback()
+    {
+        getInstance().audioPlatform.mEngine.audioCallback(
+            std::chrono::microseconds(
+                llround(getInstance().lastAudioBufferTime * 1.0e6)),
+            getInstance().length);
+    }
 };
 
 LinkSession* link_session {nullptr};
@@ -71,11 +107,6 @@ double microsToDouble(std::chrono::microseconds time)
 {
     return std::chrono::duration<double>(time).count();
 }
-
-void OnAudioBuffer(bool isPost, int len, double srate,
-                   struct audio_hook_register_t* reg)
-{
-} // called twice per frame, isPost being false then true
 
 /*! @brief Is Link currently enabled?
  *  Thread-safe: yes
@@ -96,15 +127,6 @@ const char* defstring_GetEnabled =
  */
 void SetEnabled(bool enable)
 {
-    static int init = 0;
-    static audio_hook_register_t reg {nullptr, nullptr};
-    if (init == 0)
-    {
-        init = 1;
-        plugin_register("timer", reinterpret_cast<void*>(&activate));
-        Audio_RegHardwareHook(true, OnAudioBuffer);
-    }
-
     LinkSession::getInstance().running = enable;
     LinkSession::getInstance().link.enable(enable);
 }
