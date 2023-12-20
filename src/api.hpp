@@ -39,6 +39,18 @@ struct LinkSession
     ableton::linkaudio::AudioPlatform audioPlatform =
         ableton::linkaudio::AudioPlatform(link);
 
+    LinkSession& operator=(const LinkSession&&) = delete;
+    LinkSession& operator=(const LinkSession&) = delete;
+    LinkSession(const LinkSession&&) = delete;
+    LinkSession(const LinkSession&) = delete;
+
+    static LinkSession& getInstance()
+    {
+        static LinkSession* instance = new LinkSession(); // NOLINT
+        return *instance;
+    }
+
+  private:
     LinkSession() = default;
 };
 
@@ -66,7 +78,7 @@ double microsToDouble(std::chrono::microseconds time)
  */
 bool GetEnabled()
 {
-    return link_session->link.isEnabled();
+    return LinkSession::getInstance().link.isEnabled();
 }
 
 const char* defstring_GetEnabled =
@@ -83,8 +95,8 @@ void SetEnabled(bool enable)
         plugin_register("timer", reinterpret_cast<void*>(&activate));
     (void)init;
 
-    link_session->running = enable;
-    link_session->link.enable(enable);
+    LinkSession::getInstance().running = enable;
+    LinkSession::getInstance().link.enable(enable);
 }
 
 const char* defstring_SetEnabled =
@@ -98,7 +110,7 @@ const char* defstring_SetEnabled =
  */
 bool GetStartStopSyncEnabled()
 {
-    return link_session->link.isStartStopSyncEnabled();
+    return LinkSession::getInstance().link.isStartStopSyncEnabled();
 }
 
 const char* defstring_GetStartStopSyncEnabled =
@@ -111,7 +123,7 @@ const char* defstring_GetStartStopSyncEnabled =
  */
 void SetStartStopSyncEnabled(bool enable)
 {
-    link_session->link.enableStartStopSync(enable);
+    LinkSession::getInstance().link.enableStartStopSync(enable);
 }
 
 const char* defstring_SetStartStopSyncEnabled =
@@ -124,7 +136,7 @@ const char* defstring_SetStartStopSyncEnabled =
  */
 int GetNumPeers()
 {
-    return (int)link_session->link.numPeers();
+    return (int)LinkSession::getInstance().link.numPeers();
 }
 
 const char* defstring_GetNumPeers =
@@ -140,7 +152,7 @@ const char* defstring_GetNumPeers =
  */
 double GetClockNow()
 {
-    return link_session->link.clock().micros().count() / 1.0e6;
+    return LinkSession::getInstance().link.clock().micros().count() / 1.0e6;
 }
 
 const char* defstring_GetClockNow =
@@ -155,7 +167,7 @@ const char* defstring_GetClockNow =
  */
 double GetTempo()
 {
-    return link_session->link.captureAppSessionState().tempo();
+    return LinkSession::getInstance().link.captureAppSessionState().tempo();
 }
 
 const char* defstring_GetTempo =
@@ -166,9 +178,11 @@ const char* defstring_GetTempo =
  */
 void SetTempo(double bpm)
 {
-    auto sessionState = link_session->link.captureAppSessionState();
-    sessionState.setTempo(bpm, link_session->link.clock().micros());
-    link_session->link.commitAppSessionState(sessionState);
+    auto sessionState =
+        LinkSession::getInstance().link.captureAppSessionState();
+    sessionState.setTempo(bpm,
+                          LinkSession::getInstance().link.clock().micros());
+    LinkSession::getInstance().link.commitAppSessionState(sessionState);
 }
 
 const char* defstring_SetTempo =
@@ -180,9 +194,10 @@ const char* defstring_SetTempo =
  */
 void SetTempoAtTime(double bpm, double time)
 {
-    auto sessionState = link_session->link.captureAppSessionState();
+    auto sessionState =
+        LinkSession::getInstance().link.captureAppSessionState();
     sessionState.setTempo(bpm, doubleToMicros(time));
-    link_session->link.commitAppSessionState(sessionState);
+    LinkSession::getInstance().link.commitAppSessionState(sessionState);
 }
 
 const char* defstring_SetTempoAtTime =
@@ -200,7 +215,7 @@ const char* defstring_SetTempoAtTime =
  */
 double GetBeatAtTime(double time, double quantum)
 {
-    return link_session->link.captureAppSessionState().beatAtTime(
+    return LinkSession::getInstance().link.captureAppSessionState().beatAtTime(
         doubleToMicros(time), quantum);
 }
 
@@ -220,7 +235,7 @@ const char* defstring_GetBeatAtTime =
  */
 double GetPhaseAtTime(double time, double quantum)
 {
-    return link_session->link.captureAppSessionState().phaseAtTime(
+    return LinkSession::getInstance().link.captureAppSessionState().phaseAtTime(
         doubleToMicros(time), quantum);
 }
 
@@ -237,7 +252,8 @@ const char* defstring_GetPhaseAtTime =
 double GetTimeAtBeat(double beat, double quantum)
 {
     return microsToDouble(
-        link_session->link.captureAppSessionState().timeAtBeat(beat, quantum));
+        LinkSession::getInstance().link.captureAppSessionState().timeAtBeat(
+            beat, quantum));
 }
 
 const char* defstring_GetTimeAtBeat =
@@ -274,9 +290,10 @@ const char* defstring_GetTimeAtBeat =
  */
 void SetBeatAtTimeRequest(double beat, double time, double quantum)
 {
-    auto sessionState = link_session->link.captureAppSessionState();
+    auto sessionState =
+        LinkSession::getInstance().link.captureAppSessionState();
     sessionState.requestBeatAtTime(beat, doubleToMicros(time), quantum);
-    link_session->link.commitAppSessionState(sessionState);
+    LinkSession::getInstance().link.commitAppSessionState(sessionState);
 }
 
 const char* defstring_SetBeatAtTimeRequest =
@@ -306,9 +323,10 @@ const char* defstring_SetBeatAtTimeRequest =
  */
 void SetBeatAtTimeForce(double beat, double time, double quantum)
 {
-    auto sessionState = link_session->link.captureAppSessionState();
+    auto sessionState =
+        LinkSession::getInstance().link.captureAppSessionState();
     sessionState.forceBeatAtTime(beat, doubleToMicros(time), quantum);
-    link_session->link.commitAppSessionState(sessionState);
+    LinkSession::getInstance().link.commitAppSessionState(sessionState);
 }
 
 const char* defstring_SetBeatAtTimeForce =
@@ -320,9 +338,10 @@ const char* defstring_SetBeatAtTimeForce =
  */
 void SetPlaying(bool playing, double time)
 {
-    auto sessionState = link_session->link.captureAppSessionState();
+    auto sessionState =
+        LinkSession::getInstance().link.captureAppSessionState();
     sessionState.setIsPlaying(playing, doubleToMicros(time));
-    link_session->link.commitAppSessionState(sessionState);
+    LinkSession::getInstance().link.commitAppSessionState(sessionState);
 }
 
 const char* defstring_SetPlaying =
@@ -333,7 +352,7 @@ const char* defstring_SetPlaying =
 /*! @brief: Is transport playing? */
 bool GetPlaying()
 {
-    return link_session->link.captureAppSessionState().isPlaying();
+    return LinkSession::getInstance().link.captureAppSessionState().isPlaying();
 }
 
 const char* defstring_GetPlaying =
@@ -343,8 +362,9 @@ const char* defstring_GetPlaying =
 /*! @brief: Get the time at which a transport start/stop occurs */
 double GetTimeForPlaying()
 {
-    return microsToDouble(
-        link_session->link.captureAppSessionState().timeForIsPlaying());
+    return microsToDouble(LinkSession::getInstance()
+                              .link.captureAppSessionState()
+                              .timeForIsPlaying());
 }
 
 const char* defstring_GetTimeForPlaying =
@@ -357,9 +377,10 @@ const char* defstring_GetTimeForPlaying =
  */
 void SetBeatAtStartPlayingTimeRequest(double beat, double quantum)
 {
-    auto sessionState = link_session->link.captureAppSessionState();
+    auto sessionState =
+        LinkSession::getInstance().link.captureAppSessionState();
     sessionState.requestBeatAtStartPlayingTime(beat, quantum);
-    link_session->link.commitAppSessionState(sessionState);
+    LinkSession::getInstance().link.commitAppSessionState(sessionState);
 }
 
 const char* defstring_SetBeatAtStartPlayingTimeRequest =
@@ -375,10 +396,11 @@ const char* defstring_SetBeatAtStartPlayingTimeRequest =
 void SetPlayingAndBeatAtTimeRequest(bool playing, double time, double beat,
                                     double quantum)
 {
-    auto sessionState = link_session->link.captureAppSessionState();
+    auto sessionState =
+        LinkSession::getInstance().link.captureAppSessionState();
     sessionState.setIsPlayingAndRequestBeatAtTime(playing, doubleToMicros(time),
                                                   beat, quantum);
-    link_session->link.commitAppSessionState(sessionState);
+    LinkSession::getInstance().link.commitAppSessionState(sessionState);
 }
 
 const char* defstring_SetPlayingAndBeatAtTimeRequest =
@@ -388,14 +410,15 @@ const char* defstring_SetPlayingAndBeatAtTimeRequest =
 
 void startStop()
 {
-    auto sessionState = link_session->link.captureAppSessionState();
+    auto sessionState =
+        LinkSession::getInstance().link.captureAppSessionState();
     if (sessionState.isPlaying())
     {
-        link_session->audioPlatform.mEngine.stopPlaying();
+        LinkSession::getInstance().audioPlatform.mEngine.stopPlaying();
     }
     else
     {
-        link_session->audioPlatform.mEngine.startPlaying();
+        LinkSession::getInstance().audioPlatform.mEngine.startPlaying();
     }
 }
 
@@ -405,7 +428,7 @@ const char* defstring_startStop =
 
 void SetQuantum(double quantum)
 {
-    link_session->audioPlatform.mEngine.setQuantum(quantum);
+    LinkSession::getInstance().audioPlatform.mEngine.setQuantum(quantum);
 }
 
 const char* defstring_SetQuantum =
@@ -415,7 +438,7 @@ const char* defstring_SetQuantum =
 
 double GetQuantum()
 {
-    return link_session->audioPlatform.mEngine.quantum();
+    return LinkSession::getInstance().audioPlatform.mEngine.quantum();
 }
 
 const char* defstring_GetQuantum =
@@ -500,19 +523,21 @@ bool runCommand(int command, int flag)
         if (command == 1016)
         {
             res = true;
-            link_session->audioPlatform.mEngine.stopPlaying();
+            LinkSession::getInstance().audioPlatform.mEngine.stopPlaying();
         }
         if (command == 41130)
         {
             res = true;
             auto tempo = GetTempo();
-            link_session->audioPlatform.mEngine.setTempo(tempo - 1);
+            LinkSession::getInstance().audioPlatform.mEngine.setTempo(tempo -
+                                                                      1);
         }
         if (command == 41129)
         {
             res = true;
             auto tempo = GetTempo();
-            link_session->audioPlatform.mEngine.setTempo(tempo + 1);
+            LinkSession::getInstance().audioPlatform.mEngine.setTempo(tempo +
+                                                                      1);
         }
     }
     return res;
@@ -551,8 +576,6 @@ const char* defstring_Blink_GetVersion =
 
 void Register()
 {
-    link_session = new LinkSession();
-
     plugin_register("API_Blink_GetVersion", (void*)Blink_GetVersion);
     plugin_register("APIdef_Blink_GetVersion",
                     (void*)defstring_Blink_GetVersion);
@@ -895,12 +918,6 @@ void Unregister()
         reinterpret_cast<void*>(&InvokeReaScriptAPI<&Blink_GetVersion>));
 
     plugin_register("-hookcommand", (void*)runCommand);
-
-    if (link_session && link_session->running)
-    {
-        link_session->running = false;
-        link_session->link.enable(false);
-    }
 }
 
 } // namespace reablink

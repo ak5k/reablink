@@ -1,4 +1,10 @@
 // clang-format off
-#define reablink_VERSION_MAJOR @reablink_VERSION_MAJOR@
-#define reablink_VERSION_MINOR @reablink_VERSION_MINOR@
+enum
+{
+    reablink_VERSION_MAJOR = @reablink_VERSION_MAJOR@,
+    reablink_VERSION_MINOR = @reablink_VERSION_MINOR@,
+    reablink_VERSION_PATCH = 0,
+    reablink_VERSION_BUILD = 0
+};
+
 // clang-format on
