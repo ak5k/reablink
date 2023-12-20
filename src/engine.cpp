@@ -6,6 +6,7 @@
 #endif
 #include <cmath>
 #include <iostream>
+#include <vector>
 
 #include <reaper_plugin_functions.h>
 
@@ -13,16 +14,10 @@ namespace ableton::linkaudio
 {
 AudioEngine::AudioEngine(Link& link)
     : mLink(link)
-    , mOutputLatency(std::chrono::microseconds {0})
     , mSharedEngineData({0., false, false, 4., false})
     , mLockfreeEngineData(mSharedEngineData)
     , mIsPlaying(false)
 {
-    if (!mOutputLatency.is_lock_free())
-    {
-        std::cout << "WARNING: AudioEngine::mOutputLatency is not lock free!"
-                  << std::endl;
-    }
 }
 
 void AudioEngine::startPlaying()
@@ -102,6 +97,33 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
                                 const std::size_t numSamples)
 {
     (void)numSamples; // unused
+
+    static std::vector<double> timer_intervals {};
+    static double time0 = 0.;
+    auto timer_interval_average = 0.;
+    auto now = std::chrono::high_resolution_clock::now();
+    auto now_double =
+        std::chrono::duration<double>(now.time_since_epoch()).count();
+    if (time0 > 0)
+    {
+        timer_intervals.push_back(now_double - time0);
+        double sum = 0.0;
+        int count = 0;
+
+        while (count < timer_intervals.size())
+        {
+            sum += timer_intervals.at(count);
+            count++;
+        }
+        if (timer_intervals.size() > 512) // NOLINT
+        {
+            timer_intervals.erase(timer_intervals.begin());
+        }
+
+        timer_interval_average = sum / count;
+    }
+    time0 = now_double;
+
     const auto engineData = pullEngineData();
 
     auto sessionState = mLink.captureAudioSessionState();

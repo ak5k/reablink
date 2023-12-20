@@ -1,3 +1,5 @@
+#pragma once
+
 #include "ReaBlinkConfig.h"
 #include "engine.hpp"
 #include "reascript_vararg.hpp"
@@ -62,10 +64,10 @@ struct LinkSession
   private:
     LinkSession()
     {
-        static audio_hook_register_t audio_hook(OnAudioBuffer, 0, 0, 0, 0);
+        static audio_hook_register_t audio_hook(OnAudioBuffer, 0, 0, 0, 0, 0);
         Audio_RegHardwareHook(true, &audio_hook);
         plugin_register("timer", reinterpret_cast<void*>(&activate));
-        plugin_register("timer", audioCallback);
+        plugin_register("timer", (void*)audioCallback);
     }
 
     // registered on REAPER audio thread
@@ -79,6 +81,8 @@ struct LinkSession
             instance.sampleRate = srate;
             instance.lastAudioBufferTime =
                 instance.link.clock().micros().count() / 1.0e6;
+
+            auto asdf = instance.link.clock().micros().count();
         }
         (void)reg;
     }
@@ -87,8 +91,12 @@ struct LinkSession
     static void audioCallback()
     {
         getInstance().audioPlatform.mEngine.audioCallback(
-            std::chrono::microseconds(
-                llround(getInstance().lastAudioBufferTime * 1.0e6)),
+            std::chrono::microseconds(llround(
+                (                                     //
+                    getInstance().lastAudioBufferTime //
+                    + GetOutputLatency() +
+                    2 * getInstance().length / getInstance().sampleRate) *
+                1.0e6)),
             getInstance().length);
     }
 };

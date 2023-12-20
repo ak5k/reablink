@@ -1,6 +1,7 @@
 target_sources(
   ${PROJECT_NAME}
   PRIVATE
+  api.hpp
   main.cpp
   engine.cpp
 )
