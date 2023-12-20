@@ -7,6 +7,9 @@
 #include <mmiscapi2.h>
 #endif
 
+namespace reablink
+{
+
 constexpr unsigned int TIMER_RATE {1};
 constexpr unsigned int MISC_TIMER {666};
 
@@ -54,9 +57,6 @@ struct LinkSession
     LinkSession() = default;
 };
 
-namespace reablink
-{
-
 LinkSession* link_session {nullptr};
 bool isLinkRunning {false};
 bool reaper_shutdown {false};
@@ -71,6 +71,11 @@ double microsToDouble(std::chrono::microseconds time)
 {
     return std::chrono::duration<double>(time).count();
 }
+
+void OnAudioBuffer(bool isPost, int len, double srate,
+                   struct audio_hook_register_t* reg)
+{
+} // called twice per frame, isPost being false then true
 
 /*! @brief Is Link currently enabled?
  *  Thread-safe: yes
@@ -91,9 +96,14 @@ const char* defstring_GetEnabled =
  */
 void SetEnabled(bool enable)
 {
-    static auto init =
+    static int init = 0;
+    static audio_hook_register_t reg {nullptr, nullptr};
+    if (init == 0)
+    {
+        init = 1;
         plugin_register("timer", reinterpret_cast<void*>(&activate));
-    (void)init;
+        Audio_RegHardwareHook(true, OnAudioBuffer);
+    }
 
     LinkSession::getInstance().running = enable;
     LinkSession::getInstance().link.enable(enable);
