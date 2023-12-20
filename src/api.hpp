@@ -64,7 +64,7 @@ struct LinkSession
   private:
     LinkSession()
     {
-        static audio_hook_register_t audio_hook(OnAudioBuffer, 0, 0, 0, 0, 0);
+        static audio_hook_register_t audio_hook(OnAudioBuffer);
         Audio_RegHardwareHook(true, &audio_hook);
         plugin_register("timer", reinterpret_cast<void*>(&activate));
         plugin_register("timer", (void*)audioCallback);
