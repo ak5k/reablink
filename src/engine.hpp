@@ -60,7 +60,6 @@ class AudioEngine
     std::atomic<std::chrono::microseconds> mOutputLatency;
     EngineData mSharedEngineData;
     EngineData mLockfreeEngineData;
-    std::chrono::microseconds mTimeAtLastClick;
     bool mIsPlaying;
     std::mutex mEngineDataGuard;
 
