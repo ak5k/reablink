@@ -3,6 +3,35 @@
 #include "reascript_vararg.hpp"
 #include <reaper_plugin_functions.h>
 
+#ifdef _WIN32
+#include <mmiscapi2.h>
+#endif
+
+constexpr unsigned int TIMER_RATE {1};
+constexpr unsigned int MISC_TIMER {666};
+
+#ifdef HIRES
+void CALLBACK timerCallback(UINT, UINT, DWORD_PTR, DWORD_PTR, DWORD_PTR)
+{
+    SendMessage(GetMainHwnd(), WM_TIMER, MISC_TIMER, 0);
+}
+#endif
+
+static void activate()
+{
+    plugin_register("-timer", reinterpret_cast<void*>(&activate));
+
+#ifdef HIRES
+    // REAPER already does timeBeginPeriod(1)
+    if (timeSetEvent(TIMER_RATE, 1, &timerCallback, 0, TIME_PERIODIC))
+    {
+        KillTimer(GetMainHwnd(), MISC_TIMER);
+    }
+#else
+    SetTimer(GetMainHwnd(), MISC_TIMER, TIMER_RATE, nullptr);
+#endif
+}
+
 struct LinkSession
 {
     std::atomic<bool> running = true;
@@ -50,11 +79,12 @@ const char* defstring_GetEnabled =
  */
 void SetEnabled(bool enable)
 {
-    // if (enable != link_session->running)
-    // {
+    static auto init =
+        plugin_register("timer", reinterpret_cast<void*>(&activate));
+    (void)init;
+
     link_session->running = enable;
     link_session->link.enable(enable);
-    // }
 }
 
 const char* defstring_SetEnabled =
