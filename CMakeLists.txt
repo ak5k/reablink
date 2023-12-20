@@ -64,7 +64,7 @@ else()
       -Wno-missing-braces -Wno-missing-field-initializers -Wno-unused-parameter
       -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-label
       -Wno-unused-value -Wno-shadow -Wno-conversion -Wno-format
-      -Wno-maybe-uninitialized -Wno-implicit-fallthrough 
+      -Wno-uninitialized -Wno-implicit-fallthrough 
   )
 endif()
 
