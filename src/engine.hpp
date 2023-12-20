@@ -56,11 +56,11 @@ class AudioEngine
     void audioCallback(std::chrono::microseconds hostTime,
                        std::size_t numSamples);
 
-    Link& mLink;
+    Link& mLink; // NOLINT
     std::atomic<std::chrono::microseconds> mOutputLatency;
     EngineData mSharedEngineData;
     EngineData mLockfreeEngineData;
-    bool mIsPlaying;
+    bool mIsPlaying; // NOLINT
     std::mutex mEngineDataGuard;
 
     friend class AudioPlatform;

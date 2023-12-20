@@ -51,8 +51,6 @@ execute_process(
 )
 
 if(WIN32)
-  target_compile_definitions(${PROJECT_NAME} PRIVATE HIRES=1)
-  target_link_libraries(${PROJECT_NAME} ws2_32 winmm)
   target_compile_options(
     ${PROJECT_NAME} 
       PRIVATE 
@@ -135,6 +133,11 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 )
 
 add_subdirectory(src)
+
+if(WIN32)
+  target_compile_definitions(${PROJECT_NAME} PRIVATE HIRES=1)
+  target_link_libraries(${PROJECT_NAME} ws2_32 user32 winmm)
+endif()
 
 set(REAPER_USER_PLUGINS "UserPlugins")
 install(TARGETS ${PROJECT_NAME}
