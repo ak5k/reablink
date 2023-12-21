@@ -95,6 +95,19 @@ struct LinkSession
     }
 };
 
+static void OnAudioBuffer(bool isPost, int len, double srate,
+                          struct audio_hook_register_t* reg)
+{
+    static const auto& clock = LinkSession::getInstance().link.clock();
+    if (!isPost)
+    {
+        g_abuf_len = len;
+        g_abuf_srate = srate;
+        g_abuf_time = (double)clock.micros().count() / 1.0e6;
+    }
+    (void)reg;
+}
+
 LinkSession* link_session {nullptr};
 bool isLinkRunning {false};
 bool reaper_shutdown {false};
@@ -110,19 +123,6 @@ double microsToDouble(std::chrono::microseconds time)
     return std::chrono::duration<double>(time).count();
 }
 
-static void OnAudioBuffer(bool isPost, int len, double srate,
-                          struct audio_hook_register_t* reg)
-{
-    static const auto& clock = LinkSession::getInstance().link.clock();
-    if (!isPost)
-    {
-        g_abuf_len = len;
-        g_abuf_srate = srate;
-        g_abuf_time = (double)clock.micros().count() / 1.0e6;
-    }
-    (void)reg;
-}
-
 /*! @brief Get audio buffer timing information.
  *  Thread-safe: yes
  *  Realtime-safe: yes
@@ -130,14 +130,6 @@ static void OnAudioBuffer(bool isPost, int len, double srate,
 // NOLINTNEXTLINE
 void GetAudioBufferTimingInfo(int* lenOut, double* srateOut, double* timeOut)
 {
-    static audio_hook_register_t audio_hook {OnAudioBuffer, 0, 0, 0, 0};
-    static int init = 0;
-    int n = 0;
-    while (init == 0 && n++ < 1000)
-    {
-        init = Audio_RegHardwareHook(true, &audio_hook);
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    }
     *lenOut = g_abuf_len;
     *srateOut = g_abuf_srate;
     *timeOut = g_abuf_time;
@@ -650,8 +642,11 @@ const char* defstring_Blink_GetVersion =
     "double\0\0\0"
     "Get Blink version.";
 
-void Register()
+void Init()
 {
+    static audio_hook_register_t audio_hook {OnAudioBuffer, 0, 0, 0, 0};
+    Audio_RegHardwareHook(true, &audio_hook);
+
     plugin_register("API_Blink_GetAudioBufferTimingInfo",
                     (void*)GetAudioBufferTimingInfo);
     plugin_register("APIdef_Blink_GetAudioBufferTimingInfo",

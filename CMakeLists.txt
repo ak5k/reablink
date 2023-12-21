@@ -7,6 +7,12 @@ project(reablink VERSION 0.5.0 LANGUAGES C CXX)
 add_library(${PROJECT_NAME} SHARED)
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 23)
 
+if(WIN32)
+  target_compile_definitions(${PROJECT_NAME} PRIVATE HIRES=1)
+  target_link_libraries(${PROJECT_NAME} PRIVATE ws2_32 user32 winmm)
+endif()
+
+
 # path for external 3rd party library dependencies 
 set(PROJECT_LIB_DIR ${PROJECT_SOURCE_DIR}/lib)
 
@@ -158,11 +164,6 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 # endif()
 
 add_subdirectory(src)
-
-if(WIN32)
-  target_compile_definitions(${PROJECT_NAME} PRIVATE HIRES=1)
-  target_link_libraries(${PROJECT_NAME} PRIVATE ws2_32 user32 winmm)
-endif()
 
 set(REAPER_USER_PLUGINS "UserPlugins")
 install(TARGETS ${PROJECT_NAME}

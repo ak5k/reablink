@@ -3,7 +3,7 @@
 
 namespace reablink
 {
-void Register();
+void Init();
 void Unregister();
 } // namespace reablink
 

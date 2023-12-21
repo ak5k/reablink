@@ -11,10 +11,10 @@ REAPER_PLUGIN_DLL_EXPORT auto REAPER_PLUGIN_ENTRYPOINT(
     (void)hInstance;
     if (rec != nullptr && REAPERAPI_LoadAPI(rec->GetFunc) == 0)
     {
-        reablink::Register();
+        reablink::Init();
         return 1;
     }
-    reablink::Unregister();
+    // reablink::Unregister();
     return 0;
 }
 }
