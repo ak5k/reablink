@@ -1,9 +1,7 @@
-#include "engine.hpp" // must include before reaper_plugin_functions.h
+#include "api.hpp"
 
 #define REAPERAPI_IMPLEMENT
 #include <reaper_plugin_functions.h>
-
-#include "api.hpp"
 
 extern "C"
 {

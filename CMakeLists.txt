@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.22)
 include(CheckCXXCompilerFlag)
 include(FetchContent)
 
-project(reablink VERSION 0.4.7 LANGUAGES C CXX)
+project(reablink VERSION 0.5.0 LANGUAGES C CXX)
 add_library(${PROJECT_NAME} SHARED)
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 23)
 
@@ -29,17 +29,18 @@ FetchContent_Declare(reaper-sdk SYSTEM
     )
 
 FetchContent_Populate(link)
-FetchContent_MakeAvailable(WDL reaper-sdk)
-
 include(${PROJECT_LIB_DIR}/link/AbletonLinkConfig.cmake)
-target_link_libraries(${PROJECT_NAME} Ableton::Link)
+target_link_libraries(${PROJECT_NAME} PRIVATE Ableton::Link)
+FetchContent_Populate(WDL)
+FetchContent_Populate(reaper-sdk)
 
-FILE(GLOB header_paths 
-    ${PROJECT_LIB_DIR}/*/include
-    ${PROJECT_LIB_DIR}/*/sdk
+add_library(header INTERFACE)
+target_include_directories(header
+    INTERFACE 
+    ${PROJECT_LIB_DIR}/reaper-sdk/sdk
     )
+target_link_libraries(${PROJECT_NAME} PRIVATE header)
 
-target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${header_paths})
 
 # symlink WDL to reaper-sdk
 execute_process(
@@ -54,7 +55,9 @@ if(WIN32)
   target_compile_options(
     ${PROJECT_NAME} 
       PRIVATE 
-      /W3 /WX)
+      /W3 /WX
+      /wd4244
+      )
 else()
   target_compile_options(
     ${PROJECT_NAME}
@@ -79,8 +82,6 @@ else()
   )
 endif()
 
-include_directories(${PROJECT_NAME} ${header_paths})
-
 if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
   set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
     CACHE STRING "")
@@ -98,10 +99,10 @@ if(NOT WIN32)
   find_package(SWELL REQUIRED)
 endif()
 
-target_link_libraries(${PROJECT_NAME} WDL::WDL)
+target_link_libraries(${PROJECT_NAME} PRIVATE WDL::WDL)
 
 if(SWELL_FOUND)
-  target_link_libraries(${PROJECT_NAME} SWELL::swell)
+  target_link_libraries(${PROJECT_NAME} PRIVATE SWELL::swell)
 
   # Transpile the Win32 resource file
   find_package(PHP REQUIRED)
@@ -159,7 +160,7 @@ add_subdirectory(src)
 
 if(WIN32)
   target_compile_definitions(${PROJECT_NAME} PRIVATE HIRES=1)
-  target_link_libraries(${PROJECT_NAME} ws2_32 user32 winmm)
+  target_link_libraries(${PROJECT_NAME} PRIVATE ws2_32 user32 winmm)
 endif()
 
 set(REAPER_USER_PLUGINS "UserPlugins")

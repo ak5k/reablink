@@ -4,11 +4,17 @@
 #endif
 
 #include "engine.hpp"
-#include <reaper_plugin_functions.h>
+#include "global_vars.hpp"
+#include <algorithm>
 #include <vector>
+
+#include <reaper_plugin_functions.h>
 
 namespace ableton::linkaudio
 {
+
+constexpr int TIMER_INTERVALS_SIZE = 512;
+
 AudioEngine::AudioEngine(Link& link)
     : mLink(link)
     , mSharedEngineData({0., false, false, 4., false})
@@ -96,11 +102,10 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
     (void)numSamples; // unused
 
     const auto engineData = pullEngineData();
-
     auto sessionState = mLink.captureAudioSessionState();
 
     // calculate timer interval average
-    static std::vector<double> timer_intervals {};
+    static std::vector<double> timer_intervals(TIMER_INTERVALS_SIZE, 0.);
     static double time0 = 0.;
     auto frame_time = 0.;
     auto now = std::chrono::high_resolution_clock::now();
@@ -110,19 +115,25 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
     {
         timer_intervals.push_back(now_double - time0);
         double sum = 0.0;
-        int count = 0;
-
-        while (count < (int)timer_intervals.size())
+        int count = TIMER_INTERVALS_SIZE / 2;
+        int num = 0;
+        std::sort(timer_intervals.begin(), timer_intervals.end(),
+                  std::greater<double>());
+        while (count > 0)
         {
-            sum += timer_intervals.at(count);
-            count++;
-        }
-        if (timer_intervals.size() > 512) // NOLINT
-        {
-            timer_intervals.erase(timer_intervals.begin());
+            auto temp =
+                timer_intervals.at(count + (TIMER_INTERVALS_SIZE / 4) - 1);
+            if (temp > 0.0)
+            {
+                sum += temp;
+                num++;
+            }
+            count--;
         }
 
-        frame_time = sum / count;
+        timer_intervals.pop_back();
+
+        frame_time = sum / num;
     }
     time0 = now_double;
 
@@ -193,12 +204,15 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
         //     (sessionState.timeAtBeat(0, engineData.quantum).count() -
         //      hostTime.count()) /
         //     (1.0e6 / frame_time));
-        wait_time = (double)( //
+        wait_time = ( //
                         sessionState.timeAtBeat(0, engineData.quantum).count() -
                         hostTime.count()) /
                     1.0e6;
         frame_count = wait_time / frame_time;
+        auto offset = frame_count * frame_time - wait_time;
+        timepos = timepos + offset; // probably negative offset
         frame_count = frame_count > 0 ? frame_count : 1;
+
         OnStopButton();
         SetEditCurPos(timepos, false, false);
         mIsPlaying = true;

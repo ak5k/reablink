@@ -1,4 +1,6 @@
-#pragma once
+#ifndef REABLINK_ENGINE_HPP
+#define REABLINK_ENGINE_HPP
+
 #include <ableton/Link.hpp>
 #include <mutex>
 
@@ -53,3 +55,5 @@ class AudioPlatform
     AudioEngine mEngine;
 };
 } // namespace ableton::linkaudio
+
+#endif // REABLINK_ENGINE_HPP

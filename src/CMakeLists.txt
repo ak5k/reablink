@@ -1,9 +1,10 @@
 target_sources(
   ${PROJECT_NAME}
   PRIVATE
-  api.hpp
   main.cpp
+  api.cpp
   engine.cpp
+  global_vars.cpp
 )
 
 if (WIN32)
