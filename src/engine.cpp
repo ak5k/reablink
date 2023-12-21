@@ -1,14 +1,11 @@
-#include "engine.hpp"
-
 // Make sure to define this before <cmath> is included for Windows
 #ifdef LINK_PLATFORM_WINDOWS
 #define _USE_MATH_DEFINES // NOLINT
 #endif
-#include <cmath>
-#include <iostream>
-#include <vector>
 
+#include "engine.hpp"
 #include <reaper_plugin_functions.h>
+#include <vector>
 
 namespace ableton::linkaudio
 {
@@ -196,10 +193,11 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
         //     (sessionState.timeAtBeat(0, engineData.quantum).count() -
         //      hostTime.count()) /
         //     (1.0e6 / frame_time));
-        wait_time = (sessionState.timeAtBeat(0, engineData.quantum).count() -
-                     hostTime.count()) /
+        wait_time = (double)( //
+                        sessionState.timeAtBeat(0, engineData.quantum).count() -
+                        hostTime.count()) /
                     1.0e6;
-        frame_count = static_cast<int>(wait_time / frame_time);
+        frame_count = wait_time / frame_time;
         frame_count = frame_count > 0 ? frame_count : 1;
         OnStopButton();
         SetEditCurPos(timepos, false, false);

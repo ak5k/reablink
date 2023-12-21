@@ -1,10 +1,5 @@
 #pragma once
-
-// Make sure to define this before <cmath> is included for Windows
-#define _USE_MATH_DEFINES // NOLINT
 #include <ableton/Link.hpp>
-#include <ableton/link/HostTimeFilter.hpp>
-#include <atomic>
 #include <mutex>
 
 namespace ableton::linkaudio
@@ -57,5 +52,4 @@ class AudioPlatform
 
     AudioEngine mEngine;
 };
-
 } // namespace ableton::linkaudio

@@ -1,10 +1,12 @@
 #pragma once
-
 #include "ReaBlinkConfig.h"
 #include "engine.hpp"
-#include "reascript_vararg.hpp"
 #include <atomic>
+
+// #include "engine.hpp"
 #include <reaper_plugin_functions.h>
+
+#include "reascript_vararg.hpp"
 
 #ifdef _WIN32
 #include <mmiscapi2.h>
@@ -13,8 +15,12 @@
 namespace reablink
 {
 
-constexpr unsigned int TIMER_RATE {1};
+unsigned int g_timer_rate {1};
 constexpr unsigned int MISC_TIMER {666};
+
+std::atomic_int g_abuf_len {};
+std::atomic<double> g_abuf_srate {};
+std::atomic<double> g_abuf_time {};
 
 #ifdef HIRES
 void CALLBACK timerCallback(UINT, UINT, DWORD_PTR, DWORD_PTR, DWORD_PTR)
@@ -23,20 +29,33 @@ void CALLBACK timerCallback(UINT, UINT, DWORD_PTR, DWORD_PTR, DWORD_PTR)
 }
 #endif
 
-static void activate()
+void ReaperGoBrrr();
+
+void SetReaperGoBrrr(const int* rateInOptional)
 {
-    plugin_register("-timer", reinterpret_cast<void*>(&activate));
+    if (rateInOptional)
+    {
+        g_timer_rate = (unsigned int)*rateInOptional;
+    }
+    plugin_register("timer", reinterpret_cast<void*>(&ReaperGoBrrr));
+}
+
+void ReaperGoBrrr()
+{
+    plugin_register("-timer", reinterpret_cast<void*>(&ReaperGoBrrr));
 
 #ifdef HIRES
     // REAPER already does timeBeginPeriod(1)
-    if (timeSetEvent(TIMER_RATE, 1, &timerCallback, 0, TIME_PERIODIC))
+    if (timeSetEvent(g_timer_rate, 1, &timerCallback, 0, TIME_PERIODIC))
     {
         KillTimer(GetMainHwnd(), MISC_TIMER);
     }
 #else
-    SetTimer(GetMainHwnd(), MISC_TIMER, TIMER_RATE, nullptr);
+    SetTimer(GetMainHwnd(), MISC_TIMER, g_timer_rate, nullptr);
 #endif
 }
+
+// } // namespace reablink
 
 struct LinkSession
 {
@@ -44,10 +63,6 @@ struct LinkSession
     ableton::Link link = ableton::Link(Master_GetTempo());
     ableton::linkaudio::AudioPlatform audioPlatform =
         ableton::linkaudio::AudioPlatform(link);
-
-    std::atomic<int> length {0};
-    std::atomic<double> sampleRate {0};
-    std::atomic<double> lastAudioBufferTime {0};
 
     LinkSession& operator=(const LinkSession&&) = delete;
     LinkSession& operator=(const LinkSession&) = delete;
@@ -64,38 +79,21 @@ struct LinkSession
   private:
     LinkSession()
     {
-        static audio_hook_register_t audio_hook {OnAudioBuffer, 0, 0, 0, 0};
-        Audio_RegHardwareHook(true, &audio_hook);
-        plugin_register("timer", reinterpret_cast<void*>(&activate));
         plugin_register("timer", (void*)audioCallback);
     }
 
     // registered on REAPER audio thread
-    static void OnAudioBuffer(bool isPost, int len, double srate,
-                              struct audio_hook_register_t* reg)
-    {
-        if (!isPost)
-        {
-            LinkSession& instance = getInstance();
-            instance.length = len;
-            instance.sampleRate = srate;
-            instance.lastAudioBufferTime =
-                instance.link.clock().micros().count() / 1.0e6;
-        }
-        (void)reg;
-    }
 
     // register on REAPER timer
     static void audioCallback()
     {
         getInstance().audioPlatform.mEngine.audioCallback(
-            std::chrono::microseconds(llround(
-                (                                     //
-                    getInstance().lastAudioBufferTime //
-                    + GetOutputLatency() +
-                    2 * getInstance().length / getInstance().sampleRate) *
-                1.0e6)),
-            getInstance().length);
+            std::chrono::microseconds(
+                llround(( //
+                            g_abuf_time + GetOutputLatency() +
+                            2.0 * g_abuf_len / g_abuf_srate) *
+                        1.0e6)),
+            g_abuf_len);
     }
 };
 
@@ -113,6 +111,42 @@ double microsToDouble(std::chrono::microseconds time)
 {
     return std::chrono::duration<double>(time).count();
 }
+
+static void OnAudioBuffer(bool isPost, int len, double srate,
+                          struct audio_hook_register_t* reg)
+{
+    static const auto& clock = LinkSession::getInstance().link.clock();
+    if (!isPost)
+    {
+        reablink::g_abuf_len = len;
+        reablink::g_abuf_srate = srate;
+        reablink::g_abuf_time = (double)clock.micros().count() / 1.0e6;
+    }
+    (void)reg;
+}
+
+/*! @brief Get audio buffer timing information.
+ *  Thread-safe: yes
+ *  Realtime-safe: yes
+ */
+void GetAudioBufferTimingInfo(int* lenOut, double* srateOut, double* timeOut)
+{
+    static audio_hook_register_t audio_hook {OnAudioBuffer, 0, 0, 0, 0};
+    static int init = 0;
+    int n = 0;
+    while (init == 0 && n++ < 1000)
+    {
+        init = Audio_RegHardwareHook(true, &audio_hook);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+    *lenOut = g_abuf_len;
+    *srateOut = g_abuf_srate;
+    *timeOut = g_abuf_time;
+}
+
+const char* defstring_GetAudioBufferTimingInfo =
+    "void\0int*,double*,double*\0lenOut,srateOut,timeOut\0"
+    "Get audio buffer timing information.";
 
 /*! @brief Is Link currently enabled?
  *  Thread-safe: yes
@@ -190,7 +224,12 @@ const char* defstring_GetNumPeers =
  */
 double GetClockNow()
 {
-    return LinkSession::getInstance().link.clock().micros().count() / 1.0e6;
+    return (double) //
+           LinkSession::getInstance()
+               .link.clock()
+               .micros()
+               .count() /
+           1.0e6;
 }
 
 const char* defstring_GetClockNow =
@@ -614,6 +653,14 @@ const char* defstring_Blink_GetVersion =
 
 void Register()
 {
+    plugin_register("API_Blink_GetAudioBufferTimingInfo",
+                    (void*)GetAudioBufferTimingInfo);
+    plugin_register("APIdef_Blink_GetAudioBufferTimingInfo",
+                    (void*)defstring_GetAudioBufferTimingInfo);
+    plugin_register("APIvararg_Blink_GetAudioBufferTimingInfo",
+                    reinterpret_cast<void*>(
+                        &InvokeReaScriptAPI<&GetAudioBufferTimingInfo>));
+
     plugin_register("API_Blink_GetVersion", (void*)Blink_GetVersion);
     plugin_register("APIdef_Blink_GetVersion",
                     (void*)defstring_Blink_GetVersion);

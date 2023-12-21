@@ -29,6 +29,7 @@ extern "C" REAPER_PLUGIN_DLL_EXPORT int REAPER_PLUGIN_ENTRYPOINT(
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// NOLINTBEGIN(*)
 #ifndef REAIMGUI_API_VARARG_HPP
 #define REAIMGUI_API_VARARG_HPP
 
@@ -44,7 +45,9 @@ struct ReaScriptAPI<R (*)(Args...)>
                                    const int argc)
     {
         if (static_cast<size_t>(argc) < sizeof...(Args))
+        {
             return nullptr;
+        }
 
         const auto& args {makeTuple(argv, std::index_sequence_for<Args...> {})};
 
@@ -92,3 +95,4 @@ const void* InvokeReaScriptAPI(void** argv, int argc)
 }
 
 #endif
+// NOLINTEND(*)

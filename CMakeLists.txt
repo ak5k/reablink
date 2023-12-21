@@ -60,11 +60,22 @@ else()
     ${PROJECT_NAME}
       PRIVATE
       -Wall -Wextra -Werror -Wpedantic 
-      -Wno-switch -Wno-unused-function -Wno-unused -Wno-sign-compare
-      -Wno-missing-braces -Wno-missing-field-initializers -Wno-unused-parameter
-      -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-label
-      -Wno-unused-value -Wno-shadow -Wno-conversion -Wno-format
-      -Wno-uninitialized -Wno-implicit-fallthrough 
+      -Wno-conversion
+      -Wno-format
+      -Wno-implicit-fallthrough 
+      -Wno-missing-braces
+      -Wno-missing-field-initializers
+      -Wno-shadow
+      -Wno-sign-compare
+      -Wno-switch 
+      -Wno-uninitialized 
+      -Wno-unused 
+      -Wno-unused-but-set-variable
+      -Wno-unused-function 
+      -Wno-unused-label
+      -Wno-unused-parameter
+      -Wno-unused-value
+      -Wno-unused-variable
   )
 endif()
 
