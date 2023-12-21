@@ -200,16 +200,16 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
         }
 
         sessionState.requestBeatAtStartPlayingTime(0, engineData.quantum);
-        // frameCountDown = static_cast<int>(
-        //     (sessionState.timeAtBeat(0, engineData.quantum).count() -
-        //      hostTime.count()) /
-        //     (1.0e6 / frame_time));
         wait_time = ( //
                         sessionState.timeAtBeat(0, engineData.quantum).count() -
                         hostTime.count()) /
                     1.0e6;
         frame_count = wait_time / frame_time;
         auto offset = frame_count * frame_time - wait_time;
+        timepos = timepos + offset; // probably negative offset
+        offset = ((int)(wait_time / (g_abuf_len / g_abuf_srate))) *
+                     (g_abuf_len / g_abuf_srate) -
+                 wait_time;
         timepos = timepos + offset; // probably negative offset
         frame_count = frame_count > 0 ? frame_count : 1;
 
