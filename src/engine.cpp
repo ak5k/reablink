@@ -236,10 +236,23 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
         }
     }
 
+    // set tempo
     if (engineData.requestedTempo > 0)
     {
-        // Set the newly requested tempo from the beginning of this buffer
-        sessionState.setTempo(engineData.requestedTempo, hostTime);
+        // set REAPER if puppet
+        // FrameCount = 0;
+        // if (engineData.isPuppet)
+        // {
+        if (!SetTempoTimeSigMarker(0, ptidx, timepos, measurepos, beatpos,
+                                   engineData.requestedTempo, timesig_num,
+                                   timesig_denom, lineartempo))
+        {
+            sessionState.setTempo(engineData.requestedTempo, hostTime);
+        }
+        //     // set tempo to link session
+        //     sessionState.setTempo(engineData.requestedTempo, hostTime);
+        // }
+        UpdateTimeline();
     }
 
     // Timeline modifications are complete, commit the results
