@@ -102,7 +102,8 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
     (void)numSamples; // unused
 
     const auto engineData = pullEngineData();
-    auto sessionState = mLink.captureAudioSessionState();
+    // auto sessionState = mLink.captureAudioSessionState();
+    auto sessionState = mLink.captureAppSessionState();
 
     // calculate timer interval average
     static std::vector<double> timer_intervals(TIMER_INTERVALS_SIZE, 0.);
@@ -174,7 +175,6 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
     if (!mIsPlaying && sessionState.isPlaying())
     {
         Undo_BeginBlock();
-        OnPlayButton();
         // Reset the timeline so that beat 0 corresponds to the time when
         // transport starts
         // 'quantized launch' madness
@@ -201,15 +201,17 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
 
         sessionState.requestBeatAtStartPlayingTime(0, engineData.quantum);
         wait_time = ( //
-                        sessionState.timeAtBeat(0, engineData.quantum).count() -
+                        sessionState.timeAtBeat(0.00000001, engineData.quantum)
+                            .count() -
                         hostTime.count()) /
                     1.0e6;
         frame_count = wait_time / frame_time;
-        auto offset = frame_count * frame_time - wait_time;
+        auto frame_wait_time = frame_count * frame_time;
+        auto offset = frame_wait_time - wait_time;
         timepos = timepos + offset; // probably negative offset
-        offset = ((int)(wait_time / (g_abuf_len / g_abuf_srate))) *
-                     (g_abuf_len / g_abuf_srate) -
-                 wait_time;
+        auto buffer_count =
+            (int)(frame_wait_time / (g_abuf_len / g_abuf_srate));
+        offset = buffer_count * (g_abuf_len / g_abuf_srate) - frame_wait_time;
         timepos = timepos + offset; // probably negative offset
         frame_count = frame_count > 0 ? frame_count : 1;
 

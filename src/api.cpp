@@ -19,7 +19,7 @@
 namespace reablink
 {
 
-unsigned int g_timer_rate {1};
+unsigned int g_timer_rate {5};
 constexpr unsigned int MISC_TIMER {666};
 
 #ifdef HIRES
@@ -78,6 +78,8 @@ struct LinkSession
     LinkSession()
     {
         plugin_register("timer", (void*)audioCallback);
+        int val = g_timer_rate;
+        SetReaperGoBrrr(&val);
     }
 
     // registered on REAPER audio thread
