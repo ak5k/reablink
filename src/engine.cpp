@@ -23,6 +23,27 @@ AudioEngine::AudioEngine(Link& link)
 {
 }
 
+void AudioEngine::setMaster(bool isMaster)
+{
+    this->isMaster;
+    this->isMaster = isMaster;
+}
+
+void AudioEngine::setPuppet(bool isPuppet)
+{
+    this->isPuppet = isPuppet;
+}
+
+bool AudioEngine::getMaster()
+{
+    return this->isMaster;
+}
+
+bool AudioEngine::getPuppet()
+{
+    return this->isPuppet;
+}
+
 void AudioEngine::startPlaying()
 {
     std::lock_guard<std::mutex> lock(mEngineDataGuard);

@@ -11,6 +11,11 @@ class AudioEngine
 {
   public:
     AudioEngine(Link& link);
+    static void TempoCallback(double bpm);
+    void setMaster(bool isMaster);
+    void setPuppet(bool isPuppet);
+    bool getMaster();
+    bool getPuppet();
     void startPlaying();
     void stopPlaying();
     bool isPlaying() const;
@@ -40,6 +45,9 @@ class AudioEngine
     EngineData mLockfreeEngineData;
     bool mIsPlaying; // NOLINT
     std::mutex mEngineDataGuard;
+
+    std::atomic_bool isPuppet {false};
+    std::atomic_bool isMaster {false};
 
     friend class AudioPlatform;
 };

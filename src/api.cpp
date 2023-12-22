@@ -80,9 +80,17 @@ struct LinkSession
         plugin_register("timer", (void*)audioCallback);
         int val = g_timer_rate;
         SetReaperGoBrrr(&val);
+
+        this->link.setTempoCallback(TempoCallback);
     }
 
-    // registered on REAPER audio thread
+    static void TempoCallback(double bpm)
+    {
+        if (getInstance().audioPlatform.mEngine.getPuppet())
+        {
+            getInstance().audioPlatform.mEngine.setTempo(bpm);
+        }
+    }
 
     // register on REAPER timer
     static void audioCallback()
@@ -517,8 +525,7 @@ const char* defstring_GetQuantum =
 
 void SetMaster(bool enable)
 {
-    (void)enable;
-    // return blinkEngine.SetMaster(enable);
+    LinkSession::getInstance().audioPlatform.mEngine.setMaster(enable);
 }
 
 const char* defstring_SetMaster =
@@ -530,8 +537,7 @@ const char* defstring_SetMaster =
 
 bool GetMaster()
 {
-    // return blinkEngine.GetMaster();
-    return false;
+    return LinkSession::getInstance().audioPlatform.mEngine.getMaster();
 }
 
 const char* defstring_GetMaster =
@@ -540,9 +546,7 @@ const char* defstring_GetMaster =
 
 void SetPuppet(bool enable)
 {
-    (void)enable;
-    // blinkEngine.Initialize(enable);
-    // return blinkEngine.SetPuppet(enable);
+    LinkSession::getInstance().audioPlatform.mEngine.setPuppet(enable);
 }
 
 const char* defstring_SetPuppet =
@@ -556,8 +560,7 @@ const char* defstring_SetPuppet =
 
 bool GetPuppet()
 {
-    // return blinkEngine.GetPuppet();
-    return false;
+    return LinkSession::getInstance().audioPlatform.mEngine.getPuppet();
 }
 
 const char* defstring_GetPuppet =
