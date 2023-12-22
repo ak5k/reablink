@@ -200,11 +200,11 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
         }
 
         sessionState.requestBeatAtStartPlayingTime(0, engineData.quantum);
-        wait_time = ( //
-                        sessionState.timeAtBeat(0.00000001, engineData.quantum)
-                            .count() -
-                        hostTime.count()) /
-                    1.0e6;
+        wait_time =
+            ( //
+                sessionState.timeAtBeat(0.0, engineData.quantum).count() -
+                hostTime.count()) /
+            1.0e6;
         frame_count = wait_time / frame_time;
         auto frame_wait_time = frame_count * frame_time;
         auto offset = frame_wait_time - wait_time;
@@ -215,8 +215,8 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
         timepos = timepos + offset; // probably negative offset
         frame_count = frame_count > 0 ? frame_count : 1;
 
-        OnStopButton();
         SetEditCurPos(timepos, false, false);
+        OnPauseButton();
         mIsPlaying = true;
     }
     else if (mIsPlaying && !sessionState.isPlaying())
