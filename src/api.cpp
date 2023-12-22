@@ -19,7 +19,7 @@
 namespace reablink
 {
 
-unsigned int g_timer_rate {5};
+unsigned int g_timer_rate {12};
 constexpr unsigned int MISC_TIMER {666};
 
 #ifdef HIRES

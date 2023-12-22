@@ -102,8 +102,8 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
     (void)numSamples; // unused
 
     const auto engineData = pullEngineData();
-    // auto sessionState = mLink.captureAudioSessionState();
-    auto sessionState = mLink.captureAppSessionState();
+    auto sessionState = mLink.captureAudioSessionState();
+    // auto sessionState = mLink.captureAppSessionState();
 
     // calculate timer interval average
     static std::vector<double> timer_intervals(TIMER_INTERVALS_SIZE, 0.);
