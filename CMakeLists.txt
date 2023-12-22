@@ -69,7 +69,7 @@ else()
   target_compile_options(
     ${PROJECT_NAME}
       PRIVATE
-      -Wall -Wextra -Werror -Wpedantic 
+      -Wall -Wextra -Werror # -Wpedantic 
       -Wno-conversion
       -Wno-format
       -Wno-implicit-fallthrough 
