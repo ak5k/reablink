@@ -41,12 +41,12 @@ target_link_libraries(${PROJECT_NAME} PRIVATE Ableton::Link)
 FetchContent_Populate(WDL)
 FetchContent_Populate(reaper-sdk)
 
-add_library(header INTERFACE)
-target_include_directories(header
-    INTERFACE 
-    ${PROJECT_LIB_DIR}/reaper-sdk/sdk
+FILE(GLOB header_paths 
+    ${PROJECT_LIB_DIR}/*/include
+    ${PROJECT_LIB_DIR}/*/sdk
     )
-target_link_libraries(${PROJECT_NAME} PRIVATE header)
+
+target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${header_paths})
 
 
 # symlink WDL to reaper-sdk
@@ -69,7 +69,7 @@ else()
   target_compile_options(
     ${PROJECT_NAME}
       PRIVATE
-      -Wall -Wextra -Werror # -Wpedantic 
+      -Wall -Wextra -Werror -Wpedantic 
       -Wno-conversion
       -Wno-format
       -Wno-implicit-fallthrough 
