@@ -15,9 +15,11 @@ namespace ableton::linkaudio
 
 constexpr int TIMER_INTERVALS_SIZE = 512;
 
-AudioEngine::AudioEngine(Link &link)
-  : mLink(link), mSharedEngineData({0., false, false, 4., false}),
-    mLockfreeEngineData(mSharedEngineData), mIsPlaying(false)
+AudioEngine::AudioEngine(Link& link)
+  : mLink(link)
+  , mSharedEngineData({0., false, false, 4., false})
+  , mLockfreeEngineData(mSharedEngineData)
+  , mIsPlaying(false)
 {
 }
 
