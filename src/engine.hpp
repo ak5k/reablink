@@ -59,6 +59,11 @@ private:
   double qLen = 0;
   double syncTolerance;
   double beatTolerance;
+
+  static constexpr auto beatTolerance = 0.02;
+  static constexpr auto playbackFrameSafe = 16;
+  double syncTolerance = 3;
+  static constexpr auto tempoTolerance = 0.001;
 };
 
 class AudioPlatform

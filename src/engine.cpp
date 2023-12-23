@@ -290,7 +290,7 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
       if (sessionState
             .isPlaying() && // playbackFrameCount > playbackFrameSafe &&
           diff > syncTolerance &&
-          diff < qLen - ceil((frameTime.count() / 1.0e3) * 2))
+          diff < qLen - ceil((frame_time.count() / 1.0e3) * 2))
       {
         double pushBeat{0};
         pushBeat = fmod(abs(fmod(TimeMap_timeToQN_abs(0, pos2), 1.) -
