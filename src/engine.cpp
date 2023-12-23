@@ -15,11 +15,9 @@ namespace ableton::linkaudio
 
 constexpr int TIMER_INTERVALS_SIZE = 512;
 
-AudioEngine::AudioEngine(Link& link)
-  : mLink(link)
-  , mSharedEngineData({0., false, false, 4., false})
-  , mLockfreeEngineData(mSharedEngineData)
-  , mIsPlaying(false)
+AudioEngine::AudioEngine(Link &link)
+  : mLink(link), mSharedEngineData({0., false, false, 4., false}),
+    mLockfreeEngineData(mSharedEngineData), mIsPlaying(false)
 {
 }
 
@@ -239,6 +237,15 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
   {
     OnStopButton();
     mIsPlaying = false;
+
+    if (isPuppet)
+    {
+      playbackFrameCount = 0;
+      qnAbs = 0.;
+      qnJumpOffset = 0.;
+      qnLandOffset = 0.;
+      syncCorrection = false;
+    }
     Undo_EndBlock("ReaBlink", -1);
   }
 
@@ -276,8 +283,27 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
 
   if (mIsPlaying)
   {
-    // As long as the engine is playing, generate metronome clicks in
-    // the buffer at the appropriate beats.
+    if (isMaster && !(engineData.requestedTempo > 0))
+    {
+      // try to improve sync if difference greater than 3 ms by forcing
+      // local timeline upon peers
+      if (sessionState
+            .isPlaying() && // playbackFrameCount > playbackFrameSafe &&
+          diff > syncTolerance &&
+          diff < qLen - ceil((frameTime.count() / 1.0e3) * 2))
+      {
+        double pushBeat{0};
+        pushBeat = fmod(abs(fmod(TimeMap_timeToQN_abs(0, pos2), 1.) -
+                            qnLandOffset + qnJumpOffset),
+                        1.);
+        if (abs(pushBeat - 1.) < beatTolerance)
+        {
+          pushBeat = 0.;
+        }
+        pushBeat = pushBeat + floor(sessionState.beatAtTime(hostTime, 1.));
+        sessionState.forceBeatAtTime(pushBeat, hostTime, 1.);
+      }
+    }
   }
 }
 
