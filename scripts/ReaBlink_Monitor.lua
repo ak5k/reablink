@@ -12,11 +12,6 @@ if playrate_state ~= 1 then reaper.Main_OnCommand(40671, 0) end
 reaper.Blink_SetPuppet(true)
 -- reaper.Blink_SetMaster(true)
 
-playrate_state = reaper.GetToggleCommandState(40671)
-if playrate_state ~= 1 then reaper.Main_OnCommand(40671, 0) end
-reaper.Blink_SetPuppet(true)
--- reaper.Blink_SetMaster(true)
-
 local function main()
     if reaper.GetPlayState() & 1 == 1 or reaper.GetPlayState() & 4 == 4 then
         pos = reaper.GetPlayPosition2()

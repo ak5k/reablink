@@ -50,19 +50,16 @@ private:
 
   friend class AudioPlatform;
 
-  int playbackFrameCount = 0;
+  // int playbackFrameCount = 0;
   double qnAbs = 0.;
   double qnJumpOffset = 0.;
   double qnLandOffset = 0.;
-  bool syncCorrection = false;
   double diff = 0;
   double qLen = 0;
-  double syncTolerance;
-  double beatTolerance;
 
   static constexpr auto beatTolerance = 0.02;
   static constexpr auto playbackFrameSafe = 16;
-  double syncTolerance = 3;
+  int syncTolerance = 3;
   static constexpr auto tempoTolerance = 0.001;
 };
 

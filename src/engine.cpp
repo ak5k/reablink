@@ -115,10 +115,14 @@ AudioEngine::EngineData AudioEngine::pullEngineData()
   return engineData;
 }
 
+// NOLINTBEGIN(*complexity)
 void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
                                 const std::size_t numSamples)
 {
   (void)numSamples; // unused
+
+  static bool sync_start{false};
+  static bool syncCorrection = false;
 
   const auto engineData = pullEngineData();
   auto sessionState = mLink.captureAudioSessionState();
@@ -216,10 +220,11 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
     }
 
     sessionState.requestBeatAtStartPlayingTime(0, engineData.quantum);
-    wait_time = ( //
-                  sessionState.timeAtBeat(0.0, engineData.quantum).count() -
-                  hostTime.count()) /
-                1.0e6;
+    wait_time =
+      ( //
+        (double)sessionState.timeAtBeat(0.0, engineData.quantum).count() -
+        (double)hostTime.count()) /
+      1.0e6;
     frame_count = wait_time / frame_time;
     auto frame_wait_time = frame_count * frame_time;
     auto offset = frame_wait_time - wait_time;
@@ -228,9 +233,14 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
     offset = buffer_count * (g_abuf_len / g_abuf_srate) - frame_wait_time;
     timepos = timepos + offset; // probably negative offset
     frame_count = frame_count > 0 ? frame_count : 1;
+    frame_count++;
 
-    SetEditCurPos(timepos, false, false);
+    if (mLink.numPeers() > 0)
+    {
+      SetEditCurPos(timepos, false, false);
+    }
     OnPauseButton();
+    sync_start = true;
     mIsPlaying = true;
   }
   else if (mIsPlaying && !sessionState.isPlaying())
@@ -240,57 +250,91 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
 
     if (isPuppet)
     {
-      playbackFrameCount = 0;
+      // playbackFrameCount = 0;
       qnAbs = 0.;
       qnJumpOffset = 0.;
       qnLandOffset = 0.;
       syncCorrection = false;
+      frame_count = 0;
+      Main_OnCommand(40521, 0);
     }
     Undo_EndBlock("ReaBlink", -1);
   }
 
   // playback countdown and launch
-  if (mIsPlaying && sessionState.isPlaying() && frame_count > 0)
+  // if (mIsPlaying && sessionState.isPlaying() && frame_count > 0 &&
+  //     (GetPlayState() & 2) //
+  // )
+  // {
+  //   frame_count--;
+  //   if (frame_count == 0)
+  //   {
+  //     OnPlayButton();
+  //   }
+  // }
+  if (mIsPlaying && sync_start && (GetPlayState() & 2) &&
+      sessionState.isPlaying() &&
+      mLink.clock().micros().count() / 1.0e6 + frame_time + GetOutputLatency() +
+          (2 * g_abuf_len / g_abuf_srate) >
+        sessionState.timeAtBeat(0, engineData.quantum).count() / 1.0e6)
+
   {
-    frame_count--;
-    if (frame_count == 0)
-    {
-      OnPlayButton();
-    }
+    sync_start = false;
+    OnPlayButton();
   }
 
-  // set tempo
-  if (engineData.requestedTempo > 0)
+  if (mIsPlaying && sessionState.isPlaying()        //
+      && (GetPlayState() & 1 || GetPlayState() & 4) //
+  )
   {
-    // set REAPER if puppet
-    // FrameCount = 0;
-    // if (engineData.isPuppet)
-    // {
-    if (!SetTempoTimeSigMarker(0, ptidx, timepos, measurepos, beatpos,
-                               engineData.requestedTempo, timesig_num,
-                               timesig_denom, lineartempo))
+    frame_count++;
+    if (isPuppet && frame_count % 12 == 0) // NOLINT
     {
-      sessionState.setTempo(engineData.requestedTempo, hostTime);
+      UpdateTimeline();
     }
-    //     // set tempo to link session
-    //     sessionState.setTempo(engineData.requestedTempo, hostTime);
-    // }
-    UpdateTimeline();
-  }
 
-  // Timeline modifications are complete, commit the results
-  mLink.commitAudioSessionState(sessionState);
+    // get current qn position
+    // set offsets if loop or jump
+    auto currentQN = TimeMap_timeToQN_abs(0, pos2);
+    if (mIsPlaying && // playbackFrameCount > playbackFrameSafe &&
+        (currentQN < qnAbs || abs(currentQN - qnAbs) > 1.) // > 1. //
+    )
+    {
+      qnJumpOffset = sessionState.beatAtTime(hostTime, 1.);
+      qnLandOffset = fmod(currentQN, 1.0);
+    }
+    qnAbs = currentQN;
+    double currentHostBpm{0};
+    TimeMap_GetTimeSigAtTime(0, pos2 - frame_time, 0, 0, &currentHostBpm);
 
-  if (mIsPlaying)
-  {
-    if (isMaster && !(engineData.requestedTempo > 0))
+    auto hostBeat =
+      fmod(abs(fmod(qnAbs, 1.0) - qnLandOffset + qnJumpOffset), 1.0);
+
+    auto sessionBeat = sessionState.phaseAtTime(hostTime, 1.);
+
+    auto hostBeatDiff =
+      abs(0.5 - fmod(abs(fmod(qnAbs, 1.0) - qnLandOffset + qnJumpOffset), 1.0));
+
+    auto sessionBeatDiff = abs(0.5 - sessionState.phaseAtTime(hostTime, 1.));
+
+    auto sessionBpm =
+      sessionState.tempo(); // maybe Master has modified sessionState
+
+    auto hostBeatTime = hostBeatDiff * 60. / (hostBpm);
+    auto sessionBeatTime = sessionBeatDiff * 60. / (sessionBpm);
+    auto qLen = floor((60. / sessionBpm) * 1.0e3);
+
+    auto diff = abs(hostBeatTime - sessionBeatTime) * 1.0e3;
+
+    // REAPER is master, unless user has requested tempo change
+    if ((isMaster || mLink.numPeers() == 0) && !(engineData.requestedTempo > 0))
     {
       // try to improve sync if difference greater than 3 ms by forcing
       // local timeline upon peers
       if (sessionState
             .isPlaying() && // playbackFrameCount > playbackFrameSafe &&
           diff > syncTolerance &&
-          diff < qLen - ceil((frame_time.count() / 1.0e3) * 2))
+          diff < qLen - ceil((frame_time / 1.0e3) * 2))
       {
         double pushBeat{0};
         pushBeat = fmod(abs(fmod(TimeMap_timeToQN_abs(0, pos2), 1.) -
@@ -304,7 +348,78 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
         sessionState.forceBeatAtTime(pushBeat, hostTime, 1.);
       }
     }
+
+    // REAPER is puppet, unless user has requested tempo change
+    if (isPuppet && !(engineData.requestedTempo > 0))
+    {
+      if (!syncCorrection &&
+          abs(currentHostBpm - sessionBpm) >
+            sessionBpm * tempoTolerance * 1.5 &&
+          (mIsPlaying || mLink.numPeers() == 0))
+      {
+        if (GetTempoTimeSigMarker(0, ptidx, &timepos, 0, 0, 0, 0, 0, 0))
+        {
+          double pushBeat{0};
+          pushBeat = fmod(abs(fmod(TimeMap_timeToQN_abs(0, timepos), 1.) -
+                              qnLandOffset + qnJumpOffset),
+                          1.);
+          if (abs(pushBeat - 1.) < beatTolerance)
+          {
+            pushBeat = 0.;
+          }
+          pushBeat += floor(sessionState.beatAtTime(hostTime, 1.));
+          sessionState.setTempo(currentHostBpm,
+                                sessionState.timeAtBeat(pushBeat, 1.));
+        }
+      }
+      // try to improve sync with playrate change as long as difference is
+      // greater than 3 ms
+      else if (!isMaster && sessionState.isPlaying() &&
+               // playbackFrameCount > playbackFrameSafe &&
+               diff > syncTolerance && abs(hostBeat - sessionBeat) < 0.5
+               // && diff < qLen - ceil((frameTime.count() / 1.0e3) * 2)
+      )
+      {
+        if (!syncCorrection && frame_count > 12)
+        {
+          syncTolerance--;
+          syncCorrection = true;
+          if (hostBeat - sessionBeat > 0)
+          {
+            // slow_down
+            Main_OnCommand(40525, 0);
+          }
+          else
+          {
+            Main_OnCommand(40524, 0);
+          }
+        }
+      }
+      // reset playback rate if sync corrected
+      else if (syncCorrection && diff < syncTolerance)
+      {
+        Main_OnCommand(40521, 0);
+        syncTolerance++;
+        syncCorrection = false;
+      }
+    }
   }
+
+  // set tempo
+  if (isPuppet && engineData.requestedTempo > 0)
+  {
+    if (!SetTempoTimeSigMarker(0, ptidx, timepos, measurepos, beatpos,
+                               engineData.requestedTempo, timesig_num,
+                               timesig_denom, lineartempo))
+    {
+      sessionState.setTempo(engineData.requestedTempo, hostTime);
+    }
+    UpdateTimeline();
+  }
+
+  // Timeline modifications are complete, commit the results
+  mLink.commitAudioSessionState(sessionState);
 }
 
+// NOLINTEND(*complexity)
 } // namespace ableton::linkaudio
