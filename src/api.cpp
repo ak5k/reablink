@@ -97,7 +97,7 @@ private:
     getInstance().audioPlatform.mEngine.audioCallback(
       std::chrono::microseconds(llround(
         ( //
-          g_abuf_time + GetOutputLatency() + 2.0 * g_abuf_len / g_abuf_srate) *
+          g_abuf_time + GetOutputLatency() + g_abuf_len / g_abuf_srate) *
         1.0e6)),
       g_abuf_len);
   }

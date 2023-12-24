@@ -58,8 +58,8 @@ private:
   double qLen = 0;
 
   static constexpr auto beatTolerance = 0.02;
-  static constexpr auto playbackFrameSafe = 16;
-  int syncTolerance = 3;
+  // static constexpr auto playbackFrameSafe = 16;
+  int syncTolerance = 6;
   static constexpr auto tempoTolerance = 0.001;
 };
 

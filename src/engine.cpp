@@ -130,6 +130,7 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
 
   // calculate timer interval average
   static std::vector<double> timer_intervals(TIMER_INTERVALS_SIZE, 0.);
+
   static double time0 = 0.;
   auto frame_time = 0.;
   auto now = std::chrono::high_resolution_clock::now();
@@ -165,6 +166,13 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
   // auto pos = GetPlayPosition(); // + frameTime.count() / 1.0e6; // =
   // hosttime
   auto pos2 = GetPlayPosition2(); // + frameTime.count() / 1.0e6; // = hosttime
+  static int frame_count{0};
+  if (!(GetPlayState() & 1) || (GetPlayState() & 2) ||
+      (frame_count < 4 && (GetPlayState() & 1)))
+  {
+    pos2 = GetCursorPosition();
+    cpos = GetCursorPosition();
+  }
 
   // find current tempo and time sig
   // and active time sig marker
@@ -191,17 +199,20 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
   }
 
   // static int frameCountDown {0};
-  static int frame_count{0};
   double wait_time{0};
+  static double output_latency{0};
+
   if (!mIsPlaying && sessionState.isPlaying())
   {
     Undo_BeginBlock();
     // Reset the timeline so that beat 0 corresponds to the time when
     // transport starts
     // 'quantized launch' madness
+    output_latency = GetOutputLatency();
     int ms{0};
     int ms_len{0};
-    (void)TimeMap2_timeToBeats(0, cpos, &ms, &ms_len, 0, 0);
+    // (void)TimeMap2_timeToBeats(0, cpos, &ms, &ms_len, 0, 0);
+    (void)TimeMap2_timeToBeats(0, GetCursorPosition(), &ms, &ms_len, 0, 0);
     timepos = TimeMap2_beatsToTime(0, ms_len, &ms);
     TimeMap_GetTimeSigAtTime(0, timepos, &timesig_num, &timesig_denom,
                              &hostBpm);
@@ -280,23 +291,19 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
 
   {
     sync_start = false;
+    frame_count = 0;
     OnPlayButton();
   }
 
-  if (mIsPlaying && sessionState.isPlaying()        //
-      && (GetPlayState() & 1 || GetPlayState() & 4) //
+  if (mIsPlaying && sessionState.isPlaying() //
+        && (GetPlayState() & 1 || GetPlayState() & 4) ||
+      (frame_count > 4 && !sync_start && (engineData.requestedTempo > 0)) //
   )
   {
-    frame_count++;
-    if (isPuppet && frame_count % 12 == 0) // NOLINT
-    {
-      UpdateTimeline();
-    }
-
     // get current qn position
     // set offsets if loop or jump
     auto currentQN = TimeMap_timeToQN_abs(0, pos2);
-    if (mIsPlaying && // playbackFrameCount > playbackFrameSafe &&
+    if (mIsPlaying &&                                      // frame_count > 4 &&
         (currentQN < qnAbs || abs(currentQN - qnAbs) > 1.) // > 1. //
     )
     {
@@ -311,11 +318,20 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
       fmod(abs(fmod(qnAbs, 1.0) - qnLandOffset + qnJumpOffset), 1.0);
 
     auto sessionBeat = sessionState.phaseAtTime(hostTime, 1.);
+    // auto sessionBeat = sessionState.phaseAtTime(
+    //   mLink.clock().micros() -
+    //     std::chrono::microseconds(llround(output_latency)),
+    //   1.);
 
     auto hostBeatDiff =
       abs(0.5 - fmod(abs(fmod(qnAbs, 1.0) - qnLandOffset + qnJumpOffset), 1.0));
 
     auto sessionBeatDiff = abs(0.5 - sessionState.phaseAtTime(hostTime, 1.));
+    // auto sessionBeatDiff =
+    //   abs(0.5 - sessionState.phaseAtTime(
+    //               mLink.clock().micros() -
+    //                 std::chrono::microseconds(llround(output_latency)),
+    //               1.));
 
     auto sessionBpm =
       sessionState.tempo(); // maybe Master has modified sessionState
@@ -325,7 +341,6 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
     auto qLen = floor((60. / sessionBpm) * 1.0e3);
 
     auto diff = abs(hostBeatTime - sessionBeatTime) * 1.0e3;
-
     // REAPER is master, unless user has requested tempo change
     if ((isMaster || mLink.numPeers() == 0) && !(engineData.requestedTempo > 0))
     {
@@ -414,9 +429,13 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
     {
       sessionState.setTempo(engineData.requestedTempo, hostTime);
     }
-    UpdateTimeline();
   }
 
+  frame_count++;
+  if (isPuppet && frame_count % 12 == 0) // NOLINT
+  {
+    UpdateTimeline();
+  }
   // Timeline modifications are complete, commit the results
   mLink.commitAudioSessionState(sessionState);
 }
