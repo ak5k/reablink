@@ -545,15 +545,17 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
   {
     // Reset the timeline so that beat 0 corresponds to the time when transport
     // starts
-    sessionState.requestBeatAtStartPlayingTime(0, engineData.quantum);
+    PreventUIRefresh(1);
     if (mLink.numPeers() > 0)
     {
-      quantized_launch = true;
+      sessionState.requestBeatAtStartPlayingTime(0, engineData.quantum);
       SetEditCurPos(GetNextFullMeasureTimePosition() - 8 * frame_time, false,
                     false);
-      OnPauseButton();
     }
+    OnPauseButton();
     mIsPlaying = true;
+    quantized_launch = true;
+    PreventUIRefresh(-1);
   }
   else if (mIsPlaying && !sessionState.isPlaying())
   {
@@ -589,20 +591,25 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
         reaper_start_time > link_start_time)
 
     {
-      auto launch_offset = reaper_start_time - link_start_time;
-      auto driver_launch_time =
-        g_abuf_time + 2 * g_abuf_len / g_abuf_srate + GetOutputLatency();
-      auto driver_offset =
-        driver_launch_time - mLink.clock().micros().count() / 1.0e6;
-      SetEditCurPos(GetNextFullMeasureTimePosition() - launch_buffer +
-                      launch_offset + driver_offset,
-                    false, false);
+      PreventUIRefresh(1);
+      if (mLink.numPeers() > 0)
+      {
+        auto launch_offset = reaper_start_time - link_start_time;
+        auto driver_launch_time =
+          g_abuf_time + 2 * g_abuf_len / g_abuf_srate + GetOutputLatency();
+        auto driver_offset =
+          driver_launch_time - mLink.clock().micros().count() / 1.0e6;
+        SetEditCurPos(GetNextFullMeasureTimePosition() - launch_buffer +
+                        launch_offset + driver_offset,
+                      false, false);
+      }
       OnPlayButton();
       quantized_launch = false;
+      PreventUIRefresh(-1);
     }
 
     auto pos = GetPlayPosition2();
-    auto reaper_phase_current = TimeMap2_timeToBeats(0, pos, 0, 0, 0, 0);
+    auto reaper_phase_current = TimeMap2_timeToQN(0, pos);
     reaper_phase_current = fmod(reaper_phase_current, 1.0);
     auto link_phase_current = sessionState.phaseAtTime(hostTime, 1.);
     reaper_phase_current = reaper_phase_current * 60. / sessionState.tempo();
@@ -610,13 +617,13 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
 
     auto diff = (reaper_phase_current - link_phase_current);
 
-    ShowConsoleMsg(std::string( //
-                                //  "r: " + std::to_string(reaper_phase) +
-                                //  " l: " + std::to_string(link_phase) +
-                     "diff: " + std::to_string(diff) + "\n")
-                     .c_str());
+    // ShowConsoleMsg(std::string( //
+    //                             //  "r: " + std::to_string(reaper_phase) +
+    //                             //  " l: " + std::to_string(link_phase) +
+    //                  "diff: " + std::to_string(diff) + "\n")
+    //  .c_str());
     auto limit = 0.0015; // seconds
-    if (!quantized_launch &&
+    if (mLink.numPeers() > 0 && !quantized_launch &&
         sessionState.beatAtTime(hostTime, engineData.quantum) > 1.666 &&
         abs(diff) > limit &&
         abs(reaper_phase_current - link_phase_current) < 0.4)
@@ -632,9 +639,16 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
         Main_OnCommand(40524, 0);
       }
     }
-    else if (diff < limit && Master_GetPlayRate(0) != 1)
+    else if (mLink.numPeers() > 0 && abs(diff) < limit &&
+             Master_GetPlayRate(0) != 1)
     {
       Main_OnCommand(40521, 0);
+    }
+    else if (mLink.numPeers() == 0 || isMaster)
+    {
+      // auto beat = (int)sessionState.beatAtTime(hostTime, engineData.quantum);
+      double beats = TimeMap2_timeToQN(0, pos);
+      sessionState.forceBeatAtTime(beats, hostTime, engineData.quantum);
     }
   }
 
