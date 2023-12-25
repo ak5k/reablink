@@ -118,7 +118,7 @@ AudioEngine::EngineData AudioEngine::pullEngineData()
 }
 
 // NOLINTBEGIN(*complexity)
-#ifdef 0
+#ifdef VEKTORBLOERG
 void AudioEngine::audioCallback2(const std::chrono::microseconds hostTime,
                                  const std::size_t numSamples)
 {
