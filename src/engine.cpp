@@ -626,7 +626,7 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
         "diff: " + std::to_string(g_timeline_offset_reablink) + "\n")
         .c_str());
 
-    auto limit = 0.0015; // seconds
+    static auto limit = 0.003; // seconds
 
     if (mLink.numPeers() > 0 && !quantized_launch &&
         sessionState.beatAtTime(hostTime, engineData.quantum) > 1.666 &&
@@ -635,17 +635,20 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
     {
       if (reaper_phase_time > link_phase_time && Master_GetPlayRate(0) >= 1)
       {
+        limit = 0.001;
         Main_OnCommand(40525, 0);
       }
       else if (reaper_phase_time < link_phase_time &&
                Master_GetPlayRate(0) <= 1)
       {
+        limit = 0.001;
         Main_OnCommand(40524, 0);
       }
     }
     else if (mLink.numPeers() > 0 && abs(diff) < limit &&
              Master_GetPlayRate(0) != 1)
     {
+      limit = 0.003;
       Main_OnCommand(40521, 0);
     }
     else if ((mLink.numPeers() == 0 || isMaster) && abs(diff) > limit)
