@@ -17,7 +17,7 @@ namespace ableton::linkaudio
 
 constexpr int TIMER_INTERVALS_SIZE = 512;
 
-AudioEngine::AudioEngine(Link &link)
+AudioEngine::AudioEngine(Link& link)
   : mLink(link), mSharedEngineData({0., false, false, 4., false}),
     mLockfreeEngineData(mSharedEngineData), mIsPlaying(false)
 {
@@ -545,7 +545,8 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
   {
     // Reset the timeline so that beat 0 corresponds to the time when transport
     // starts
-    PreventUIRefresh(1);
+    PreventUIRefresh(3);
+    Undo_BeginBlock();
     if (mLink.numPeers() > 0)
     {
       sessionState.requestBeatAtStartPlayingTime(0, engineData.quantum);
@@ -555,17 +556,14 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
     OnPauseButton();
     mIsPlaying = true;
     quantized_launch = true;
-    PreventUIRefresh(-1);
+    PreventUIRefresh(-3);
   }
   else if (mIsPlaying && !sessionState.isPlaying())
   {
     OnStopButton();
     Main_OnCommand(40521, 0);
-    link_phase0 = 0;
-    link_phase = 0;
-    reaper_phase = 0;
-    reaper_phase0 = 0;
     mIsPlaying = false;
+    Undo_EndBlock("ReaBlink", -1);
   }
 
   if (engineData.requestedTempo > 0)
@@ -600,7 +598,8 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
         auto driver_offset =
           driver_launch_time - mLink.clock().micros().count() / 1.0e6;
         SetEditCurPos(GetNextFullMeasureTimePosition() - launch_buffer +
-                        launch_offset + driver_offset,
+                        launch_offset + driver_offset +
+                        g_launch_offset_reablink,
                       false, false);
       }
       OnPlayButton();
@@ -616,17 +615,21 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
     link_phase_current = link_phase_current * 60. / sessionState.tempo();
 
     auto diff = (reaper_phase_current - link_phase_current);
+    g_timeline_offset_reablink =
+      sessionState.beatAtTime(hostTime, engineData.quantum) < 0 ? 0. : diff;
 
-    // ShowConsoleMsg(std::string( //
-    //                             //  "r: " + std::to_string(reaper_phase) +
-    //                             //  " l: " + std::to_string(link_phase) +
-    //                  "diff: " + std::to_string(diff) + "\n")
-    //  .c_str());
+    ShowConsoleMsg(
+      std::string( //
+                   //  "r: " + std::to_string(reaper_phase) +
+                   //  " l: " + std::to_string(link_phase) +
+        "diff: " + std::to_string(g_timeline_offset_reablink) + "\n")
+        .c_str());
+
     auto limit = 0.0015; // seconds
+
     if (mLink.numPeers() > 0 && !quantized_launch &&
         sessionState.beatAtTime(hostTime, engineData.quantum) > 1.666 &&
-        abs(diff) > limit &&
-        abs(reaper_phase_current - link_phase_current) < 0.4)
+        abs(diff) > limit && abs(diff) < 0.4)
     {
       if (reaper_phase_current > link_phase_current &&
           Master_GetPlayRate(0) >= 1)
@@ -644,9 +647,8 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
     {
       Main_OnCommand(40521, 0);
     }
-    else if (mLink.numPeers() == 0 || isMaster)
+    else if ((mLink.numPeers() == 0 || isMaster) && abs(diff) > limit)
     {
-      // auto beat = (int)sessionState.beatAtTime(hostTime, engineData.quantum);
       double beats = TimeMap2_timeToQN(0, pos);
       sessionState.forceBeatAtTime(beats, hostTime, engineData.quantum);
     }

@@ -1,6 +1,6 @@
 header =
-    "enabled | num peers | quantum | start stop sync | tempo   | beats(QN) | metro\n"
-gfx.init("ReaBlink Monitor", 640, 32)
+    "enabled | num peers | quantum | start stop sync | tempo   | beats(QN) | offset(ms) | metro\n"
+gfx.init("ReaBlink Monitor", 740, 32)
 
 if not reaper.Blink_GetEnabled() then reaper.Blink_SetEnabled(true) end
 
@@ -63,6 +63,7 @@ local function main()
         str = str .. string.format("%11s | ", isPlaying)
         str = str .. string.format("%7.2f | ", reaper.Blink_GetTempo())
         str = str .. string.format("%9.2f | ", beats)
+        str = str .. string.format("%10.1f | ", reaper.Blink_GetTimelineOffset()*1000)
         str = str .. phaseStr .. "\n"
     end
 

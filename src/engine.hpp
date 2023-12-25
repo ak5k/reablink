@@ -74,6 +74,6 @@ public:
 
   AudioEngine mEngine;
 };
-} // namespace ableton::linkaudio
 
+} // namespace ableton::linkaudio
 #endif // REABLINK_ENGINE_HPP
