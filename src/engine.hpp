@@ -4,13 +4,14 @@
 #include <ableton/Link.hpp>
 #include <mutex>
 
-namespace ableton::linkaudio
+namespace reablink
 {
+using namespace ableton;
 
 class AudioEngine
 {
 public:
-  AudioEngine(Link &link);
+  AudioEngine(Link& link);
   static void TempoCallback(double bpm);
   void setMaster(bool isMaster);
   void setPuppet(bool isPuppet);
@@ -41,7 +42,7 @@ private:
   };
 
   EngineData pullEngineData();
-  Link &mLink; // NOLINT
+  Link& mLink; // NOLINT
   EngineData mSharedEngineData;
   EngineData mLockfreeEngineData;
   bool mIsPlaying; // NOLINT
@@ -68,12 +69,11 @@ private:
 class AudioPlatform
 {
 public:
-  AudioPlatform(Link &link) : mEngine(link)
+  AudioPlatform(Link& link) : mEngine(link)
   {
   }
 
   AudioEngine mEngine;
 };
-
-} // namespace ableton::linkaudio
+} // namespace reablink
 #endif // REABLINK_ENGINE_HPP

@@ -18,6 +18,7 @@
 
 namespace reablink
 {
+using namespace ableton;
 unsigned int g_timer_rate{12};
 constexpr unsigned int MISC_TIMER{666};
 
@@ -58,8 +59,9 @@ struct LinkSession
 {
   std::atomic<bool> running = true;
   ableton::Link link = ableton::Link(Master_GetTempo());
-  ableton::linkaudio::AudioPlatform audioPlatform =
-    ableton::linkaudio::AudioPlatform(link);
+  // ableton::linkaudio::AudioPlatform audioPlatform =
+  //   ableton::linkaudio::AudioPlatform(link);
+  AudioPlatform audioPlatform = AudioPlatform(link);
 
   LinkSession& operator=(const LinkSession&&) = delete;
   LinkSession& operator=(const LinkSession&) = delete;

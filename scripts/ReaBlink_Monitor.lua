@@ -1,6 +1,7 @@
+gfx.init("ReaBlink Monitor", 770, 32)
+
 header =
     "enabled | num peers | quantum | start stop sync | tempo   | beats(QN) | offset(ms) | metro\n"
-gfx.init("ReaBlink Monitor", 740, 32)
 
 if not reaper.Blink_GetEnabled() then reaper.Blink_SetEnabled(true) end
 
@@ -13,6 +14,7 @@ reaper.Blink_SetPuppet(true)
 -- reaper.Blink_SetMaster(true)
 
 local function main()
+ 
     if reaper.GetPlayState() & 1 == 1 or reaper.GetPlayState() & 4 == 4 then
         pos = reaper.GetPlayPosition2()
     else

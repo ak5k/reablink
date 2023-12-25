@@ -80,6 +80,8 @@ for:
     artifacts:
       - path: build\reaper_*.dll
       - path: build\reaper_*.pdb
+      - path: scripts\ReaBlink_Monitor.lua
+
 
 environment:
   matrix:

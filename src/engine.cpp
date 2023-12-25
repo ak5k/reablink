@@ -12,8 +12,9 @@
 
 #include <reaper_plugin_functions.h>
 
-namespace ableton::linkaudio
+namespace reablink
 {
+using namespace ableton;
 
 constexpr int TIMER_INTERVALS_SIZE = 512;
 
@@ -611,10 +612,10 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
     auto reaper_phase_current = TimeMap2_timeToQN(0, pos);
     reaper_phase_current = fmod(reaper_phase_current, 1.0);
     auto link_phase_current = sessionState.phaseAtTime(hostTime, 1.);
-    reaper_phase_current = reaper_phase_current * 60. / sessionState.tempo();
-    link_phase_current = link_phase_current * 60. / sessionState.tempo();
+    auto reaper_phase_time = reaper_phase_current * 60. / sessionState.tempo();
+    auto link_phase_time = link_phase_current * 60. / sessionState.tempo();
 
-    auto diff = (reaper_phase_current - link_phase_current);
+    auto diff = (reaper_phase_time - link_phase_time);
     g_timeline_offset_reablink =
       sessionState.beatAtTime(hostTime, engineData.quantum) < 0 ? 0. : diff;
 
@@ -629,14 +630,14 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
 
     if (mLink.numPeers() > 0 && !quantized_launch &&
         sessionState.beatAtTime(hostTime, engineData.quantum) > 1.666 &&
-        abs(diff) > limit && abs(diff) < 0.4)
+        abs(diff) > limit &&
+        abs(reaper_phase_current - link_phase_current) < 0.5)
     {
-      if (reaper_phase_current > link_phase_current &&
-          Master_GetPlayRate(0) >= 1)
+      if (reaper_phase_time > link_phase_time && Master_GetPlayRate(0) >= 1)
       {
         Main_OnCommand(40525, 0);
       }
-      else if (reaper_phase_current < link_phase_current &&
+      else if (reaper_phase_time < link_phase_time &&
                Master_GetPlayRate(0) <= 1)
       {
         Main_OnCommand(40524, 0);
@@ -676,4 +677,4 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
 }
 
 // NOLINTEND(*complexity)
-} // namespace ableton::linkaudio
+} // namespace reablink
