@@ -27,6 +27,8 @@ public:
   void setStartStopSyncEnabled(bool enabled);
   void audioCallback(std::chrono::microseconds hostTime,
                      std::size_t numSamples);
+  void audioCallback2(std::chrono::microseconds hostTime,
+                      std::size_t numSamples);
 
 private:
   struct EngineData
