@@ -118,6 +118,7 @@ AudioEngine::EngineData AudioEngine::pullEngineData()
 }
 
 // NOLINTBEGIN(*complexity)
+#ifdef 0
 void AudioEngine::audioCallback2(const std::chrono::microseconds hostTime,
                                  const std::size_t numSamples)
 {
@@ -448,6 +449,7 @@ void AudioEngine::audioCallback2(const std::chrono::microseconds hostTime,
   // Timeline modifications are complete, commit the results
   mLink.commitAudioSessionState(sessionState);
 }
+#endif
 
 double GetNextFullMeasureTimePosition()
 {
