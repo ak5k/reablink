@@ -455,7 +455,8 @@ void AudioEngine::audioCallback2(const std::chrono::microseconds hostTime,
 double GetNextFullMeasureTimePosition()
 {
   double currentPosition = GetCursorPosition(); // Get the current position
-  int timesig_num, timesig_denom;
+  int timesig_num = 0;
+  int timesig_denom = 0;
 
   int measurePosition =
     TimeMap2_timeToBeats(0, currentPosition, &timesig_num, &timesig_denom, NULL,
@@ -539,7 +540,7 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
   GetTempoTimeSigMarker(0, ptidx, &timepos, 0, 0, 0, 0, 0, 0);
 
   // update local quantum
-  if (quantum() != timesig_num / timesig_denom * 4.)
+  if (quantum() != (double)timesig_num / timesig_denom * 4.)
   {
     setQuantum((double)timesig_num / timesig_denom * 4.);
   }
