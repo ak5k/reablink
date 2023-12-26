@@ -1,6 +1,3 @@
-#ifndef REABLINK_API_HPP
-#define REABLINK_API_HPP
-
 #include "api.hpp"
 #include "ReaBlinkConfig.h"
 
@@ -1070,5 +1067,3 @@ void Unregister()
 }
 
 } // namespace reablink
-
-#endif
