@@ -80,7 +80,6 @@ else()
       -Wno-switch 
       -Wno-uninitialized 
       -Wno-unused 
-      -Wno-unused-but-set-variable
       -Wno-unused-function 
       -Wno-unused-label
       -Wno-unused-parameter
