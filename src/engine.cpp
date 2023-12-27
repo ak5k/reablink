@@ -567,7 +567,7 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
     sessionState.setIsPlaying(false, hostTime);
   }
 
-  if (!mIsPlaying && sessionState.isPlaying())
+  if (isPuppet && !mIsPlaying && sessionState.isPlaying())
   {
     // Reset the timeline so that beat 0 corresponds to the time when transport
     // starts
@@ -575,7 +575,7 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
     PreventUIRefresh(3);
     qn_prev = 0;
     Undo_BeginBlock();
-    if (mLink.numPeers() > 0)
+    if (mLink.numPeers() > 0 && GetToggleCommandState(40620) == 0)
     {
       sessionState.setTempo(sessionState.tempo(), hostTime);
       auto pos_target = GetNextFullMeasureTimePosition();
@@ -652,7 +652,7 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
     launch_cleared = false;
     PreventUIRefresh(-3);
   }
-  else if (mIsPlaying && !sessionState.isPlaying())
+  else if (isPuppet && mIsPlaying && !sessionState.isPlaying())
   {
     // stop stuff
     PreventUIRefresh(3);
@@ -665,6 +665,11 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
     // Undo_DoUndo2(0);
     Undo_EndBlock("ReaBlink", -1);
     PreventUIRefresh(-3);
+  }
+  else if (isPuppet && !mIsPlaying && !sessionState.isPlaying() &&
+           GetPlayState() & 1)
+  {
+    OnStopButton();
   }
 
   bool lineartempo{false};
@@ -828,7 +833,8 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
         (sessionState.beatAtTime(hostTime, engineData.quantum) < 0 ||
          sessionState.beatAtTime(hostTime, engineData.quantum) > 1.666) &&
         abs(diff) > limit &&
-        abs(reaper_phase_current - link_phase_current) < 0.5)
+        abs(reaper_phase_current - link_phase_current) < 0.5 &&
+        GetToggleCommandState(40620) == 0)
     {
       if (reaper_phase_time > link_phase_time && Master_GetPlayRate(0) >= 1)
       {
