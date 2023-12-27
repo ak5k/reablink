@@ -5,7 +5,7 @@ include(FetchContent)
 
 project(reablink VERSION 0.5.0 LANGUAGES C CXX)
 add_library(${PROJECT_NAME} SHARED)
-set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 23)
+set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
 
 if(WIN32)
   target_compile_definitions(${PROJECT_NAME} PRIVATE HIRES=1)
