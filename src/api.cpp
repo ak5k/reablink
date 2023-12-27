@@ -675,6 +675,54 @@ bool runCommand(int command, int flag)
       auto tempo = GetTempo();
       LinkSession::getInstance().audioPlatform.mEngine.setTempo(tempo + 1);
     }
+    if (command == 41135)
+    {
+      res = true;
+      auto tempo = GetTempo();
+      LinkSession::getInstance().audioPlatform.mEngine.setTempo(tempo + 10);
+    }
+    if (command == 41136)
+    {
+      res = true;
+      auto tempo = GetTempo();
+      LinkSession::getInstance().audioPlatform.mEngine.setTempo(tempo - 10);
+    }
+    if (command == 41134)
+    {
+      res = true;
+      auto tempo = GetTempo();
+      LinkSession::getInstance().audioPlatform.mEngine.setTempo(tempo / 2);
+    }
+    if (command == 41133)
+    {
+      res = true;
+      auto tempo = GetTempo();
+      LinkSession::getInstance().audioPlatform.mEngine.setTempo(tempo * 2);
+    }
+    if (command == 41131)
+    {
+      res = true;
+      auto tempo = GetTempo();
+      LinkSession::getInstance().audioPlatform.mEngine.setTempo(tempo * 1.1);
+    }
+    if (command == 41132)
+    {
+      res = true;
+      auto tempo = GetTempo();
+      LinkSession::getInstance().audioPlatform.mEngine.setTempo(tempo * 0.9);
+    }
+    if (command == 41137)
+    {
+      res = true;
+      auto tempo = GetTempo();
+      LinkSession::getInstance().audioPlatform.mEngine.setTempo(tempo + 0.1);
+    }
+    if (command == 41138)
+    {
+      res = true;
+      auto tempo = GetTempo();
+      LinkSession::getInstance().audioPlatform.mEngine.setTempo(tempo - 0.1);
+    }
   }
   return res;
 }
