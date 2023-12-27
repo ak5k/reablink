@@ -26,20 +26,11 @@ void CALLBACK timerCallback(UINT, UINT, DWORD_PTR, DWORD_PTR, DWORD_PTR)
 }
 #endif
 
-void ReaperGoBrrr();
+void MakeReaperGoBrrr();
 
-void SetReaperGoBrrr(const int* rateInOptional)
+void MakeReaperGoBrrr()
 {
-  if (rateInOptional)
-  {
-    g_timer_rate = (unsigned int)*rateInOptional;
-  }
-  plugin_register("timer", reinterpret_cast<void*>(&ReaperGoBrrr));
-}
-
-void ReaperGoBrrr()
-{
-  plugin_register("-timer", reinterpret_cast<void*>(&ReaperGoBrrr));
+  plugin_register("-timer", reinterpret_cast<void*>(&MakeReaperGoBrrr));
 
 #ifdef HIRES
   // REAPER already does timeBeginPeriod(1)
@@ -76,8 +67,8 @@ private:
   LinkSession()
   {
     plugin_register("timer", (void*)audioCallback);
-    int val = g_timer_rate;
-    SetReaperGoBrrr(&val);
+    // int val = g_timer_rate;
+    // SetReaperGoBrrr(&val);
 
     this->link.setTempoCallback(TempoCallback);
   }
@@ -130,6 +121,19 @@ double microsToDouble(std::chrono::microseconds time)
   return std::chrono::duration<double>(time).count();
 }
 
+void SetMakeReaperGoBrrr(const int* rateInOptional)
+{
+  if (rateInOptional)
+  {
+    g_timer_rate = (unsigned int)*rateInOptional;
+  }
+  plugin_register("timer", reinterpret_cast<void*>(&MakeReaperGoBrrr));
+}
+
+const char* defstring_SetMakeReaperGoBrrr =
+  "void\0int*\0rateInOptional\0"
+  "Increases REAPER timer rate. Rate is desired frame time in ms. ";
+
 /*! @brief Get timeline offset.
  *  Thread-safe: yes
  *  Realtime-safe: yes
@@ -172,8 +176,9 @@ bool GetEnabled()
   return LinkSession::getInstance().link.isEnabled();
 }
 
-const char* defstring_GetEnabled = "bool\0\0\0"
-                                   "Is Blink currently enabled?";
+const char* defstring_GetEnabled =
+  "bool\0\0\0"
+  "Is Blink currently enabled?";
 
 /*! @brief Enable/disable Link.
  *  Thread-safe: yes
@@ -226,9 +231,10 @@ int GetNumPeers()
   return (int)LinkSession::getInstance().link.numPeers();
 }
 
-const char* defstring_GetNumPeers = "int\0\0\0"
-                                    "How many peers are currently connected in "
-                                    "Link session?";
+const char* defstring_GetNumPeers =
+  "int\0\0\0"
+  "How many peers are currently connected in "
+  "Link session?";
 
 /*! @brief The clock used by Link.
  *  Thread-safe: yes
@@ -248,8 +254,9 @@ double GetClockNow()
          1.0e6;
 }
 
-const char* defstring_GetClockNow = "double\0\0\0"
-                                    "Clock used by Blink.";
+const char* defstring_GetClockNow =
+  "double\0\0\0"
+  "Clock used by Blink.";
 
 /*! @brief: The tempo of the timeline, in Beats
  * Per Minute.
@@ -264,9 +271,10 @@ double GetTempo()
   return LinkSession::getInstance().link.captureAppSessionState().tempo();
 }
 
-const char* defstring_GetTempo = "double\0\0\0"
-                                 "Tempo of timeline, in quarter note Beats Per "
-                                 "Minute.";
+const char* defstring_GetTempo =
+  "double\0\0\0"
+  "Tempo of timeline, in quarter note Beats Per "
+  "Minute.";
 
 /*! @brief: Set the timeline tempo to the given
  * bpm value.
@@ -278,8 +286,9 @@ void SetTempo(double bpm)
   LinkSession::getInstance().link.commitAppSessionState(sessionState);
 }
 
-const char* defstring_SetTempo = "void\0double\0bpm\0"
-                                 "Set timeline tempo to given bpm value.";
+const char* defstring_SetTempo =
+  "void\0double\0bpm\0"
+  "Set timeline tempo to given bpm value.";
 
 /*! @brief: Set the timeline tempo to the given
  * bpm value, taking effect at the given time.
@@ -452,9 +461,10 @@ void SetPlaying(bool playing, double time)
   LinkSession::getInstance().link.commitAppSessionState(sessionState);
 }
 
-const char* defstring_SetPlaying = "void\0bool,double\0playing,time\0"
-                                   "Set if transport should be playing or "
-                                   "stopped, taking effect at given time.";
+const char* defstring_SetPlaying =
+  "void\0bool,double\0playing,time\0"
+  "Set if transport should be playing or "
+  "stopped, taking effect at given time.";
 
 /*! @brief: Is transport playing? */
 bool GetPlaying()
@@ -462,8 +472,9 @@ bool GetPlaying()
   return LinkSession::getInstance().link.captureAppSessionState().isPlaying();
 }
 
-const char* defstring_GetPlaying = "bool\0\0\0"
-                                   "Is transport playing?";
+const char* defstring_GetPlaying =
+  "bool\0\0\0"
+  "Is transport playing?";
 
 /*! @brief: Get the time at which a transport
  * start/stop occurs */
@@ -536,25 +547,28 @@ void startStop()
   }
 }
 
-const char* defstring_startStop = "void\0\0\0"
-                                  "Transport start/stop.";
+const char* defstring_startStop =
+  "void\0\0\0"
+  "Transport start/stop.";
 
 void SetQuantum(double quantum)
 {
   LinkSession::getInstance().audioPlatform.mEngine.setQuantum(quantum);
 }
 
-const char* defstring_SetQuantum = "void\0double\0quantum\0"
-                                   "Set quantum. Usually this is set to length "
-                                   "of one measure/bar in quarter notes.";
+const char* defstring_SetQuantum =
+  "void\0double\0quantum\0"
+  "Set quantum. Usually this is set to length "
+  "of one measure/bar in quarter notes.";
 
 double GetQuantum()
 {
   return LinkSession::getInstance().audioPlatform.mEngine.quantum();
 }
 
-const char* defstring_GetQuantum = "double\0\0\0"
-                                   "Get quantum.";
+const char* defstring_GetQuantum =
+  "double\0\0\0"
+  "Get quantum.";
 
 void SetLaunchOffset(double offset)
 {
@@ -586,8 +600,9 @@ bool GetMaster()
   return LinkSession::getInstance().audioPlatform.mEngine.getMaster();
 }
 
-const char* defstring_GetMaster = "bool\0\0\0"
-                                  "Is Blink Master?";
+const char* defstring_GetMaster =
+  "bool\0\0\0"
+  "Is Blink Master?";
 
 void SetPuppet(bool enable)
 {
@@ -613,8 +628,9 @@ bool GetPuppet()
   return LinkSession::getInstance().audioPlatform.mEngine.getPuppet();
 }
 
-const char* defstring_GetPuppet = "bool\0\0\0"
-                                  "Is Blink Puppet?";
+const char* defstring_GetPuppet =
+  "bool\0\0\0"
+  "Is Blink Puppet?";
 
 bool runCommand(int command, int flag)
 {
@@ -694,13 +710,21 @@ double Blink_GetVersion()
     std::string(std::to_string(major) + "." + std::to_string(minor)));
 }
 
-const char* defstring_Blink_GetVersion = "double\0\0\0"
-                                         "Get Blink version.";
+const char* defstring_Blink_GetVersion =
+  "double\0\0\0"
+  "Get Blink version.";
 
 void Init()
 {
   static audio_hook_register_t audio_hook{OnAudioBuffer, 0, 0, 0, 0};
   Audio_RegHardwareHook(true, &audio_hook);
+
+  plugin_register("API_Blink_SetMakeReaperGoBrrr", (void*)SetMakeReaperGoBrrr);
+  plugin_register("APIdef_Blink_SetMakeReaperGoBrrr",
+                  (void*)defstring_SetMakeReaperGoBrrr);
+  plugin_register(
+    "APIvararg_Blink_SetMakeReaperGoBrrr",
+    reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetMakeReaperGoBrrr>));
 
   plugin_register("API_Blink_GetTimelineOffset", (void*)GetTimelineOffset);
   plugin_register("APIdef_Blink_GetTimelineOffset",
@@ -871,20 +895,23 @@ void Init()
                   (void*)SetPlayingAndBeatAtTimeRequest);
   plugin_register("APIdef_Blink_SetPlayingAndBeatAtTimeRequest",
                   (void*)defstring_SetPlayingAndBeatAtTimeRequest);
-  plugin_register("APIvararg_Blink_"
-                  "SetPlayingAndBeatAtTimeRequest",
-                  reinterpret_cast<void*>(
-                    &InvokeReaScriptAPI<&SetPlayingAndBeatAtTimeRequest>));
+  plugin_register(
+    "APIvararg_Blink_"
+    "SetPlayingAndBeatAtTimeRequest",
+    reinterpret_cast<void*>(
+      &InvokeReaScriptAPI<&SetPlayingAndBeatAtTimeRequest>));
 
   plugin_register("API_Blink_SetBeatAtStartPlayingTimeRequest",
                   (void*)SetBeatAtStartPlayingTimeRequest);
-  plugin_register("APIdef_Blink_"
-                  "SetBeatAtStartPlayingTimeRequest",
-                  (void*)defstring_SetBeatAtStartPlayingTimeRequest);
-  plugin_register("APIvararg_Blink_"
-                  "SetBeatAtStartPlayingTimeRequest",
-                  reinterpret_cast<void*>(
-                    &InvokeReaScriptAPI<&SetBeatAtStartPlayingTimeRequest>));
+  plugin_register(
+    "APIdef_Blink_"
+    "SetBeatAtStartPlayingTimeRequest",
+    (void*)defstring_SetBeatAtStartPlayingTimeRequest);
+  plugin_register(
+    "APIvararg_Blink_"
+    "SetBeatAtStartPlayingTimeRequest",
+    reinterpret_cast<void*>(
+      &InvokeReaScriptAPI<&SetBeatAtStartPlayingTimeRequest>));
 
   plugin_register("API_Blink_SetCaptureTransportCommands",
                   (void*)SetCaptureTransportCommands);
@@ -895,175 +922,180 @@ void Init()
     reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetCaptureTransportCommands>));
 }
 
-void Unregister()
-{
-  plugin_register("-API_Blink_SetPlayingAndBeatAtTimeRequest",
-                  (void*)SetPlayingAndBeatAtTimeRequest);
-  plugin_register("-APIdef_Blink_"
-                  "SetPlayingAndBeatAtTimeRequest",
-                  (void*)defstring_SetPlayingAndBeatAtTimeRequest);
-  plugin_register("-APIvararg_Blink_"
-                  "SetPlayingAndBeatAtTimeRequest",
-                  reinterpret_cast<void*>(
-                    &InvokeReaScriptAPI<&SetPlayingAndBeatAtTimeRequest>));
+// void Unregister()
+// {
+//   plugin_register("-API_Blink_SetPlayingAndBeatAtTimeRequest",
+//                   (void*)SetPlayingAndBeatAtTimeRequest);
+//   plugin_register(
+//     "-APIdef_Blink_"
+//     "SetPlayingAndBeatAtTimeRequest",
+//     (void*)defstring_SetPlayingAndBeatAtTimeRequest);
+//   plugin_register(
+//     "-APIvararg_Blink_"
+//     "SetPlayingAndBeatAtTimeRequest",
+//     reinterpret_cast<void*>(
+//       &InvokeReaScriptAPI<&SetPlayingAndBeatAtTimeRequest>));
 
-  plugin_register("-API_Blink_SetPlaying", (void*)SetPlaying);
-  plugin_register("-APIdef_Blink_SetPlaying", (void*)defstring_SetPlaying);
-  plugin_register("-APIvararg_Blink_SetPlaying",
-                  reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetPlaying>));
+//   plugin_register("-API_Blink_SetPlaying", (void*)SetPlaying);
+//   plugin_register("-APIdef_Blink_SetPlaying", (void*)defstring_SetPlaying);
+//   plugin_register("-APIvararg_Blink_SetPlaying",
+//                   reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetPlaying>));
 
-  plugin_register("-API_Blink_SetBeatAtTimeRequest",
-                  (void*)SetBeatAtTimeRequest);
-  plugin_register("-APIdef_Blink_SetBeatAtTimeRequest",
-                  (void*)defstring_SetBeatAtTimeRequest);
-  plugin_register(
-    "-APIvararg_Blink_SetBeatAtTimeRequest",
-    reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetBeatAtTimeRequest>));
+//   plugin_register("-API_Blink_SetBeatAtTimeRequest",
+//                   (void*)SetBeatAtTimeRequest);
+//   plugin_register("-APIdef_Blink_SetBeatAtTimeRequest",
+//                   (void*)defstring_SetBeatAtTimeRequest);
+//   plugin_register(
+//     "-APIvararg_Blink_SetBeatAtTimeRequest",
+//     reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetBeatAtTimeRequest>));
 
-  plugin_register("-API_Blink_SetBeatAtTimeForce", (void*)SetBeatAtTimeForce);
-  plugin_register("-APIdef_Blink_SetBeatAtTimeForce",
-                  (void*)defstring_SetBeatAtTimeForce);
-  plugin_register(
-    "-APIvararg_Blink_SetBeatAtTimeForce",
-    reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetBeatAtTimeForce>));
+//   plugin_register("-API_Blink_SetBeatAtTimeForce",
+//   (void*)SetBeatAtTimeForce);
+//   plugin_register("-APIdef_Blink_SetBeatAtTimeForce",
+//                   (void*)defstring_SetBeatAtTimeForce);
+//   plugin_register(
+//     "-APIvararg_Blink_SetBeatAtTimeForce",
+//     reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetBeatAtTimeForce>));
 
-  plugin_register("-API_Blink_SetEnabled", (void*)SetEnabled);
-  plugin_register("-APIdef_Blink_SetEnabled", (void*)defstring_SetEnabled);
-  plugin_register("-APIvararg_Blink_SetEnabled",
-                  reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetEnabled>));
+//   plugin_register("-API_Blink_SetEnabled", (void*)SetEnabled);
+//   plugin_register("-APIdef_Blink_SetEnabled", (void*)defstring_SetEnabled);
+//   plugin_register("-APIvararg_Blink_SetEnabled",
+//                   reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetEnabled>));
 
-  plugin_register("-API_Blink_GetEnabled", (void*)GetEnabled);
-  plugin_register("-APIdef_Blink_GetEnabled", (void*)defstring_GetEnabled);
-  plugin_register("-APIvararg_Blink_GetEnabled",
-                  reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetEnabled>));
+//   plugin_register("-API_Blink_GetEnabled", (void*)GetEnabled);
+//   plugin_register("-APIdef_Blink_GetEnabled", (void*)defstring_GetEnabled);
+//   plugin_register("-APIvararg_Blink_GetEnabled",
+//                   reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetEnabled>));
 
-  plugin_register("-API_Blink_GetStartStopSyncEnabled",
-                  (void*)GetStartStopSyncEnabled);
-  plugin_register("-APIdef_Blink_GetStartStopSyncEnabled",
-                  (void*)defstring_GetStartStopSyncEnabled);
-  plugin_register(
-    "-APIvararg_Blink_GetStartStopSyncEnabled",
-    reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetStartStopSyncEnabled>));
+//   plugin_register("-API_Blink_GetStartStopSyncEnabled",
+//                   (void*)GetStartStopSyncEnabled);
+//   plugin_register("-APIdef_Blink_GetStartStopSyncEnabled",
+//                   (void*)defstring_GetStartStopSyncEnabled);
+//   plugin_register(
+//     "-APIvararg_Blink_GetStartStopSyncEnabled",
+//     reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetStartStopSyncEnabled>));
 
-  plugin_register("-API_Blink_SetStartStopSyncEnabled",
-                  (void*)SetStartStopSyncEnabled);
-  plugin_register("-APIdef_Blink_SetStartStopSyncEnabled",
-                  (void*)defstring_SetStartStopSyncEnabled);
-  plugin_register(
-    "-APIvararg_Blink_SetStartStopSyncEnabled",
-    reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetStartStopSyncEnabled>));
+//   plugin_register("-API_Blink_SetStartStopSyncEnabled",
+//                   (void*)SetStartStopSyncEnabled);
+//   plugin_register("-APIdef_Blink_SetStartStopSyncEnabled",
+//                   (void*)defstring_SetStartStopSyncEnabled);
+//   plugin_register(
+//     "-APIvararg_Blink_SetStartStopSyncEnabled",
+//     reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetStartStopSyncEnabled>));
 
-  plugin_register("-API_Blink_GetNumPeers", (void*)GetNumPeers);
-  plugin_register("-APIdef_Blink_GetNumPeers", (void*)defstring_GetNumPeers);
-  plugin_register("-APIvararg_Blink_GetNumPeers",
-                  reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetNumPeers>));
+//   plugin_register("-API_Blink_GetNumPeers", (void*)GetNumPeers);
+//   plugin_register("-APIdef_Blink_GetNumPeers", (void*)defstring_GetNumPeers);
+//   plugin_register("-APIvararg_Blink_GetNumPeers",
+//                   reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetNumPeers>));
 
-  plugin_register("-API_Blink_GetClockNow", (void*)GetClockNow);
-  plugin_register("-APIdef_Blink_GetClockNow", (void*)defstring_GetClockNow);
-  plugin_register("-APIvararg_Blink_GetClockNow",
-                  reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetClockNow>));
+//   plugin_register("-API_Blink_GetClockNow", (void*)GetClockNow);
+//   plugin_register("-APIdef_Blink_GetClockNow", (void*)defstring_GetClockNow);
+//   plugin_register("-APIvararg_Blink_GetClockNow",
+//                   reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetClockNow>));
 
-  plugin_register("-API_Blink_GetTempo", (void*)GetTempo);
-  plugin_register("-APIdef_Blink_GetTempo", (void*)defstring_GetTempo);
-  plugin_register("-APIvararg_Blink_GetTempo",
-                  reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetTempo>));
+//   plugin_register("-API_Blink_GetTempo", (void*)GetTempo);
+//   plugin_register("-APIdef_Blink_GetTempo", (void*)defstring_GetTempo);
+//   plugin_register("-APIvararg_Blink_GetTempo",
+//                   reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetTempo>));
 
-  plugin_register("-API_Blink_GetBeatAtTime", (void*)GetBeatAtTime);
-  plugin_register("-APIdef_Blink_GetBeatAtTime",
-                  (void*)defstring_GetBeatAtTime);
-  plugin_register("-APIvararg_Blink_GetBeatAtTime",
-                  reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetBeatAtTime>));
+//   plugin_register("-API_Blink_GetBeatAtTime", (void*)GetBeatAtTime);
+//   plugin_register("-APIdef_Blink_GetBeatAtTime",
+//                   (void*)defstring_GetBeatAtTime);
+//   plugin_register("-APIvararg_Blink_GetBeatAtTime",
+//                   reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetBeatAtTime>));
 
-  plugin_register("-API_Blink_GetPhaseAtTime", (void*)GetPhaseAtTime);
-  plugin_register("-APIdef_Blink_GetPhaseAtTime",
-                  (void*)defstring_GetPhaseAtTime);
-  plugin_register(
-    "-APIvararg_Blink_GetPhaseAtTime",
-    reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetPhaseAtTime>));
+//   plugin_register("-API_Blink_GetPhaseAtTime", (void*)GetPhaseAtTime);
+//   plugin_register("-APIdef_Blink_GetPhaseAtTime",
+//                   (void*)defstring_GetPhaseAtTime);
+//   plugin_register(
+//     "-APIvararg_Blink_GetPhaseAtTime",
+//     reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetPhaseAtTime>));
 
-  plugin_register("-API_Blink_GetTimeAtBeat", (void*)GetTimeAtBeat);
-  plugin_register("-APIdef_Blink_GetTimeAtBeat",
-                  (void*)defstring_GetTimeAtBeat);
-  plugin_register("-APIvararg_Blink_GetTimeAtBeat",
-                  reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetTimeAtBeat>));
+//   plugin_register("-API_Blink_GetTimeAtBeat", (void*)GetTimeAtBeat);
+//   plugin_register("-APIdef_Blink_GetTimeAtBeat",
+//                   (void*)defstring_GetTimeAtBeat);
+//   plugin_register("-APIvararg_Blink_GetTimeAtBeat",
+//                   reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetTimeAtBeat>));
 
-  plugin_register("-API_Blink_GetTimeForPlaying", (void*)GetTimeForPlaying);
-  plugin_register("-APIdef_Blink_GetTimeForPlaying",
-                  (void*)defstring_GetTimeForPlaying);
-  plugin_register(
-    "-APIvararg_Blink_GetTimeForPlaying",
-    reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetTimeForPlaying>));
+//   plugin_register("-API_Blink_GetTimeForPlaying", (void*)GetTimeForPlaying);
+//   plugin_register("-APIdef_Blink_GetTimeForPlaying",
+//                   (void*)defstring_GetTimeForPlaying);
+//   plugin_register(
+//     "-APIvararg_Blink_GetTimeForPlaying",
+//     reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetTimeForPlaying>));
 
-  plugin_register("-API_Blink_GetPlaying", (void*)GetPlaying);
-  plugin_register("-APIdef_Blink_GetPlaying", (void*)defstring_GetPlaying);
-  plugin_register("-APIvararg_Blink_GetPlaying",
-                  reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetPlaying>));
+//   plugin_register("-API_Blink_GetPlaying", (void*)GetPlaying);
+//   plugin_register("-APIdef_Blink_GetPlaying", (void*)defstring_GetPlaying);
+//   plugin_register("-APIvararg_Blink_GetPlaying",
+//                   reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetPlaying>));
 
-  plugin_register("-API_Blink_StartStop", (void*)startStop);
-  plugin_register("-APIdef_Blink_StartStop", (void*)defstring_startStop);
-  plugin_register("-APIvararg_Blink_StartStop",
-                  reinterpret_cast<void*>(&InvokeReaScriptAPI<&startStop>));
+//   plugin_register("-API_Blink_StartStop", (void*)startStop);
+//   plugin_register("-APIdef_Blink_StartStop", (void*)defstring_startStop);
+//   plugin_register("-APIvararg_Blink_StartStop",
+//                   reinterpret_cast<void*>(&InvokeReaScriptAPI<&startStop>));
 
-  plugin_register("-API_Blink_SetTempo", (void*)SetTempo);
-  plugin_register("-APIdef_Blink_SetTempo", (void*)defstring_SetTempo);
-  plugin_register("-APIvararg_Blink_SetTempo",
-                  reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetTempo>));
+//   plugin_register("-API_Blink_SetTempo", (void*)SetTempo);
+//   plugin_register("-APIdef_Blink_SetTempo", (void*)defstring_SetTempo);
+//   plugin_register("-APIvararg_Blink_SetTempo",
+//                   reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetTempo>));
 
-  plugin_register("-API_Blink_SetQuantum", (void*)SetQuantum);
-  plugin_register("-APIdef_Blink_SetQuantum", (void*)defstring_SetQuantum);
-  plugin_register("-APIvararg_Blink_SetQuantum",
-                  reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetQuantum>));
+//   plugin_register("-API_Blink_SetQuantum", (void*)SetQuantum);
+//   plugin_register("-APIdef_Blink_SetQuantum", (void*)defstring_SetQuantum);
+//   plugin_register("-APIvararg_Blink_SetQuantum",
+//                   reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetQuantum>));
 
-  plugin_register("-API_Blink_GetQuantum", (void*)GetQuantum);
-  plugin_register("-APIdef_Blink_GetQuantum", (void*)defstring_GetQuantum);
-  plugin_register("-APIvararg_Blink_GetQuantum",
-                  reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetQuantum>));
+//   plugin_register("-API_Blink_GetQuantum", (void*)GetQuantum);
+//   plugin_register("-APIdef_Blink_GetQuantum", (void*)defstring_GetQuantum);
+//   plugin_register("-APIvararg_Blink_GetQuantum",
+//                   reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetQuantum>));
 
-  plugin_register("-API_Blink_GetMaster", (void*)GetMaster);
-  plugin_register("-APIdef_Blink_GetMaster", (void*)defstring_GetMaster);
-  plugin_register("-APIvararg_Blink_GetMaster",
-                  reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetMaster>));
+//   plugin_register("-API_Blink_GetMaster", (void*)GetMaster);
+//   plugin_register("-APIdef_Blink_GetMaster", (void*)defstring_GetMaster);
+//   plugin_register("-APIvararg_Blink_GetMaster",
+//                   reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetMaster>));
 
-  plugin_register("-API_Blink_SetMaster", (void*)SetMaster);
-  plugin_register("-APIdef_Blink_SetMaster", (void*)defstring_SetMaster);
-  plugin_register("-APIvararg_Blink_SetMaster",
-                  reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetMaster>));
+//   plugin_register("-API_Blink_SetMaster", (void*)SetMaster);
+//   plugin_register("-APIdef_Blink_SetMaster", (void*)defstring_SetMaster);
+//   plugin_register("-APIvararg_Blink_SetMaster",
+//                   reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetMaster>));
 
-  plugin_register("-API_Blink_GetPuppet", (void*)GetPuppet);
-  plugin_register("-APIdef_Blink_GetPuppet", (void*)defstring_GetPuppet);
-  plugin_register("-APIvararg_Blink_GetPuppet",
-                  reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetPuppet>));
+//   plugin_register("-API_Blink_GetPuppet", (void*)GetPuppet);
+//   plugin_register("-APIdef_Blink_GetPuppet", (void*)defstring_GetPuppet);
+//   plugin_register("-APIvararg_Blink_GetPuppet",
+//                   reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetPuppet>));
 
-  plugin_register("-API_Blink_SetPuppet", (void*)SetPuppet);
-  plugin_register("-APIdef_Blink_SetPuppet", (void*)defstring_SetPuppet);
-  plugin_register("-APIvararg_Blink_SetPuppet",
-                  reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetPuppet>));
+//   plugin_register("-API_Blink_SetPuppet", (void*)SetPuppet);
+//   plugin_register("-APIdef_Blink_SetPuppet", (void*)defstring_SetPuppet);
+//   plugin_register("-APIvararg_Blink_SetPuppet",
+//                   reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetPuppet>));
 
-  plugin_register("-API_Blink_SetTempoAtTime", (void*)SetTempoAtTime);
-  plugin_register("-APIdef_Blink_SetTempoAtTime",
-                  (void*)defstring_SetTempoAtTime);
-  plugin_register(
-    "-APIvararg_Blink_SetTempoAtTime",
-    reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetTempoAtTime>));
+//   plugin_register("-API_Blink_SetTempoAtTime", (void*)SetTempoAtTime);
+//   plugin_register("-APIdef_Blink_SetTempoAtTime",
+//                   (void*)defstring_SetTempoAtTime);
+//   plugin_register(
+//     "-APIvararg_Blink_SetTempoAtTime",
+//     reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetTempoAtTime>));
 
-  plugin_register("-API_Blink_SetBeatAtStartPlayingTimeRequest",
-                  (void*)SetBeatAtStartPlayingTimeRequest);
-  plugin_register("-APIdef_Blink_"
-                  "SetBeatAtStartPlayingTimeRequest",
-                  (void*)defstring_SetBeatAtStartPlayingTimeRequest);
-  plugin_register("-APIvararg_Blink_"
-                  "SetBeatAtStartPlayingTimeRequest",
-                  reinterpret_cast<void*>(
-                    &InvokeReaScriptAPI<&SetBeatAtStartPlayingTimeRequest>));
+//   plugin_register("-API_Blink_SetBeatAtStartPlayingTimeRequest",
+//                   (void*)SetBeatAtStartPlayingTimeRequest);
+//   plugin_register(
+//     "-APIdef_Blink_"
+//     "SetBeatAtStartPlayingTimeRequest",
+//     (void*)defstring_SetBeatAtStartPlayingTimeRequest);
+//   plugin_register(
+//     "-APIvararg_Blink_"
+//     "SetBeatAtStartPlayingTimeRequest",
+//     reinterpret_cast<void*>(
+//       &InvokeReaScriptAPI<&SetBeatAtStartPlayingTimeRequest>));
 
-  plugin_register("-API_Blink_GetVersion", (void*)Blink_GetVersion);
-  plugin_register("-APIdef_Blink_GetVersion",
-                  (void*)defstring_Blink_GetVersion);
-  plugin_register(
-    "-APIvararg_Blink_GetVersion",
-    reinterpret_cast<void*>(&InvokeReaScriptAPI<&Blink_GetVersion>));
+//   plugin_register("-API_Blink_GetVersion", (void*)Blink_GetVersion);
+//   plugin_register("-APIdef_Blink_GetVersion",
+//                   (void*)defstring_Blink_GetVersion);
+//   plugin_register(
+//     "-APIvararg_Blink_GetVersion",
+//     reinterpret_cast<void*>(&InvokeReaScriptAPI<&Blink_GetVersion>));
 
-  plugin_register("-hookcommand", (void*)runCommand);
-}
+//   plugin_register("-hookcommand", (void*)runCommand);
+// }
 
 } // namespace reablink
