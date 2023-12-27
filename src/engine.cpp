@@ -499,10 +499,7 @@ double GetNextFullMeasureTimePosition()
 
   if (currentPosition == firstBeatPosition)
   {
-    if (currentPosition > 0. || GetProjectTimeOffset(0, false) < 0.)
-    {
-      return currentPosition;
-    }
+    return currentPosition;
   }
 
   int measures3 = 0;
