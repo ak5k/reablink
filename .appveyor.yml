@@ -9,7 +9,7 @@ build_script:
   - cmake --build build
 
 for:
-  - matrix: { only: [ appveyor_build_worker_image: &linux Ubuntu2204 ] }
+  - matrix: { only: [ appveyor_build_worker_image: &linux Ubuntu1604 ] }
     cache:
       - build/vcpkg_installed -> vcpkg.json, cmake/vcpkg-triplets/arch-env.cmake
     install: |-
@@ -29,7 +29,7 @@ for:
         sudo aptitude install -yR ${native[@]} ${target[@]/%/:$arch} > /dev/null
       }
 
-      # sudo update-alternatives --set gcc /usr/bin/gcc-9
+      sudo update-alternatives --set gcc /usr/bin/gcc-7
 
       case $ARCH in
       x86_64)
