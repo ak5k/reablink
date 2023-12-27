@@ -108,6 +108,6 @@ deploy:
   force_update: true
   auth_token:
     secure: Rk8do2Q/etdabjwIABBRdTJu1a4wYVu9Ltz8HJuC0wc3rz+hHUMGa3N7vTlsrd7z
-  artifact: /.*\.(dll|dylib|so)/
+  artifact: /.*\.(dll|dylib|so|lua)/
   on:
     APPVEYOR_REPO_TAG: true
