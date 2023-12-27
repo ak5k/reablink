@@ -76,7 +76,15 @@ for:
 
       # don't use LibXml2/SQLite3 from Mono
       - sudo rm -r /Library/Frameworks/Mono.framework
+      - |-
+        if [ "$appveyor_build_worker_image" = "macos-mojave" ]; then
+          # https://letsencrypt.org/docs/dst-root-ca-x3-expiration-september-2021/
+          sudo curl -k https://curl.se/ca/cacert.pem -o /etc/ssl/cert.pem
 
+          # # update to Catch2 v3
+          # git -C ~/vcpkg fetch
+          # git -C ~/vcpkg restore -s 50fe35a3c3ca43ffe3b436380cf563100406459a ports/catch2
+        fi
     artifacts:
       - path: build/reaper_*.dylib
 
