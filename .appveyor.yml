@@ -55,8 +55,8 @@ for:
       - path: build/reaper_*.so
 
   - matrix: { only: [ appveyor_build_worker_image: macos, appveyor_build_worker_image: macos-mojave ] }
-    # cache:
-    #   - build/vcpkg_installed -> vcpkg.json, cmake/vcpkg-triplets/arch-env.cmake
+    cache:
+      # - build/vcpkg_installed -> vcpkg.json, cmake/vcpkg-triplets/arch-env.cmake
     install:
       - |-
         case $ARCH in
@@ -80,15 +80,15 @@ for:
     artifacts:
       - path: build/reaper_*.dylib
 
-  - matrix: { only: [ appveyor_build_worker_image: &windows Visual Studio 2017 ] }
+  - matrix: { only: [ appveyor_build_worker_image: &windows Visual Studio 2022 ] }
 
     cache:
       - build\vcpkg_installed -> vcpkg.json
     install:
-      # - if "%ARCH%" == "x64" call "%ProgramFiles%\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
-      # - if "%ARCH%" == "x86" call "%ProgramFiles%\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars32.bat"
+      - if "%ARCH%" == "x64" call "%ProgramFiles%\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat"
+      - if "%ARCH%" == "x86" call "%ProgramFiles%\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars32.bat"
     build_script:
-      - cmake -B build -G "Visual Studio 15 2017" -T v141_xp -DCMAKE_BUILD_TYPE=Release
+      - cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
         -DVCPKG_TARGET_TRIPLET=%ARCH%-windows-static
         -DCMAKE_TOOLCHAIN_FILE=C:\Tools\vcpkg\scripts\buildsystems\vcpkg.cmake
       - cmake --build build
