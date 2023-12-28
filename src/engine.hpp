@@ -1,9 +1,6 @@
 #ifndef REABLINK_ENGINE_HPP
 #define REABLINK_ENGINE_HPP
 
-#ifdef _WIN32
-#include <Winsock2.h>
-#endif
 #include <ableton/Link.hpp>
 #include <mutex>
 
