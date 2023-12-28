@@ -1,11 +1,14 @@
 cmake_minimum_required(VERSION 3.15)
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 include(CheckCXXCompilerFlag)
 include(FetchContent)
 
 project(reablink VERSION 0.5.0 LANGUAGES C CXX)
 add_library(${PROJECT_NAME} SHARED)
-set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
 
 if(WIN32)
   target_compile_definitions(${PROJECT_NAME} PRIVATE HIRES=1)
