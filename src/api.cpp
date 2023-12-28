@@ -7,11 +7,11 @@
 
 #include <reaper_plugin_functions.h>
 
-#include "reascript_vararg.hpp"
-
 #ifdef _WIN32
-#include <mmiscapi.h>
+#include <mmiscapi2.h>
 #endif
+
+#include "reascript_vararg.hpp"
 
 namespace reablink
 {
