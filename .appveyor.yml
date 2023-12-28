@@ -97,7 +97,7 @@ for:
       - cmake -B build -G "Visual Studio 15 2017" -DCMAKE_BUILD_TYPE=Release
         -DVCPKG_TARGET_TRIPLET=%ARCH%-windows-static
         -DCMAKE_TOOLCHAIN_FILE=C:\Tools\vcpkg\scripts\buildsystems\vcpkg.cmake
-      - cmake --build build
+      - cmake --build build --config Release
     artifacts:
       - path: build\reaper_*.dll
       - path: build\reaper_*.pdb
