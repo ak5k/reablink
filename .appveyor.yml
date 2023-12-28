@@ -98,7 +98,7 @@ for:
       - if "%ARCH%" == "x64" call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
       - if "%ARCH%" == "x86" call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars32.bat"
     build_script:
-      - cmake -B build -G "Visual Studio 2017" -T v141_xp -DCMAKE_BUILD_TYPE=Release
+      - cmake -B build -G "Visual Studio 2017 Win64" -T v141_xp -DCMAKE_BUILD_TYPE=Release
         -DVCPKG_TARGET_TRIPLET=%ARCH%-windows-static
         -DCMAKE_TOOLCHAIN_FILE=C:\Tools\vcpkg\scripts\buildsystems\vcpkg.cmake
       - cmake --build build
