@@ -99,8 +99,8 @@ for:
         -DCMAKE_TOOLCHAIN_FILE=C:\Tools\vcpkg\scripts\buildsystems\vcpkg.cmake
       - cmake --build build --config Release
     artifacts:
-      - path: build\reaper_*.dll
-      - path: build\reaper_*.pdb
+      - path: build\**\reaper_*.dll
+      - path: build\**\reaper_*.pdb
       - path: scripts\ReaBlink_Monitor.lua
 
 
