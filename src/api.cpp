@@ -10,7 +10,7 @@
 #include "reascript_vararg.hpp"
 
 #ifdef _WIN32
-#include <mmiscapi2.h>
+#include <mmiscapi.h>
 #endif
 
 namespace reablink
