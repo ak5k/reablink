@@ -297,8 +297,8 @@ void SetTempoAtTime(double bpm, double time)
 
 const char* defstring_SetTempoAtTime =
   "void\0double,double\0bpm,time\0"
-  "Set tempo to given bpm value, taking effect "
-  "at given time.";
+  "Set tempo to given bpm value, taking effect (heard from speakers)"
+  "at given wall clock time.";
 
 /*! @brief: Get the beat value corresponding to
  * the given time for the given quantum.
@@ -731,7 +731,7 @@ const char* defstring_SetCaptureTransportCommands =
   "void\0bool\0enable\0"
   "Captures REAPER Transport commands and "
   "'Tempo: Increase/Decrease current "
-  "project tempo by 01 BPM' commands and "
+  "project tempo by' commands and "
   "broadcasts them into Link session. "
   "When used with Master or Puppet mode "
   "enabled, provides better integration "
