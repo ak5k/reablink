@@ -19,7 +19,7 @@ using namespace ableton;
 unsigned int g_timer_rate{12};
 constexpr unsigned int MISC_TIMER{666};
 
-#ifdef HIRES
+#ifdef HIRES_TIMER_REABLINK
 void CALLBACK timerCallback(UINT, UINT, DWORD_PTR, DWORD_PTR, DWORD_PTR)
 {
   SendMessage(GetMainHwnd(), WM_TIMER, MISC_TIMER, 0);
@@ -32,7 +32,7 @@ void MakeReaperGoBrrr()
 {
   plugin_register("-timer", reinterpret_cast<void*>(&MakeReaperGoBrrr));
 
-#ifdef HIRES
+#ifdef HIRES_TIMER_REABLINK
   // REAPER already does timeBeginPeriod(1)
   if (timeSetEvent(g_timer_rate, 1, &timerCallback, 0, TIME_PERIODIC))
   {
