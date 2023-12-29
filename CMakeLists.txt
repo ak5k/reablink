@@ -10,9 +10,9 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
 
 if(WIN32)
   set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-  # target_compile_definitions(${PROJECT_NAME} PRIVATE WIN32_MEAN_AND_LEAN=1)
-  target_compile_definitions(${PROJECT_NAME} PRIVATE HIRES_TIMER_REABLINK=1 WIN32_MEAN_AND_LEAN=1)
-  target_link_libraries(${PROJECT_NAME} PRIVATE User32.lib Winmm.lib)
+  target_compile_definitions(${PROJECT_NAME} PRIVATE WIN32_MEAN_AND_LEAN=1)
+  # target_compile_definitions(${PROJECT_NAME} PRIVATE HIRES_TIMER_REABLINK=1 WIN32_MEAN_AND_LEAN=1)
+  # target_link_libraries(${PROJECT_NAME} PRIVATE Winmm.lib)
 endif()
 
 
