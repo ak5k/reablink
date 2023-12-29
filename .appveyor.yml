@@ -104,6 +104,9 @@ for:
 
 environment:
   matrix:
+    - job_name: Windows 64-bit
+      appveyor_build_worker_image: *windows
+      ARCH: x64
     - job_name: Windows 32-bit
       appveyor_build_worker_image: *windows
       ARCH: x86
@@ -128,9 +131,6 @@ environment:
     - job_name: Linux ARM 64-bit
       appveyor_build_worker_image: *linux
       ARCH: aarch64
-    - job_name: Windows 64-bit
-      appveyor_build_worker_image: *windows
-      ARCH: x64
 
 deploy:
   provider: GitHub
