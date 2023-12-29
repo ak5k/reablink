@@ -92,7 +92,7 @@ for:
       - if "%ARCH%" == "x64" call "%ProgramFiles%\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat"
       - if "%ARCH%" == "x86" call "%ProgramFiles%\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars32.bat"
     build_script:
-      - cmake -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release
+      - cmake -B build -G "Ninja" -DCMAKE_BUILD_TYPE=RelWithDebInfo
         -DVCPKG_TARGET_TRIPLET=%ARCH%-windows-static
         -DCMAKE_TOOLCHAIN_FILE=C:\Tools\vcpkg\scripts\buildsystems\vcpkg.cmake
       - cmake --build build
