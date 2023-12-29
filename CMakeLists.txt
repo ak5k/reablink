@@ -10,11 +10,12 @@ include(FindGit)
 include(FindThreads)
 
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_CXX_STANDARD 17)
+# set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_VISIBILITY_PRESET "hidden")
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 
 # path for external 3rd party library dependencies 
 set(PROJECT_LIB_DIR ${PROJECT_SOURCE_DIR}/lib)
@@ -130,6 +131,7 @@ endif()
 # endif()
 
 add_library(${PROJECT_NAME} SHARED)
+set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
 add_subdirectory(src)
 
 target_link_libraries(${PROJECT_NAME} reaper_plugin)
