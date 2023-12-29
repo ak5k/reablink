@@ -6,11 +6,8 @@ include(FetchContent)
 include(CheckCompilerFlag)
 include(CheckIncludeFileCXX)
 include(CheckLinkerFlag)
-include(FindGit)
-include(FindThreads)
 
 set(CMAKE_CXX_EXTENSIONS OFF)
-# set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_VISIBILITY_PRESET "hidden")
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
@@ -39,7 +36,6 @@ FetchContent_Declare(reaper-sdk
     )
 
 FetchContent_Populate(link)
-include(${PROJECT_LIB_DIR}/link/AbletonLinkConfig.cmake)
 FetchContent_Populate(WDL)
 FetchContent_Populate(reaper-sdk)
 
@@ -135,6 +131,7 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
 add_subdirectory(src)
 
 target_link_libraries(${PROJECT_NAME} reaper_plugin)
+include(${PROJECT_LIB_DIR}/link/AbletonLinkConfig.cmake)
 target_link_libraries(${PROJECT_NAME} Ableton::Link)
 
 if(WIN32)
