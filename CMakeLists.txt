@@ -10,6 +10,7 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
 
 if(WIN32)
   set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+  # target_compile_definitions(${PROJECT_NAME} PRIVATE WIN32_MEAN_AND_LEAN=1)
   target_compile_definitions(${PROJECT_NAME} PRIVATE HIRES_TIMER_REABLINK=1 WIN32_MEAN_AND_LEAN=1)
   target_link_libraries(${PROJECT_NAME} PRIVATE User32.lib Winmm.lib)
 endif()
@@ -20,7 +21,7 @@ set(PROJECT_LIB_DIR ${PROJECT_SOURCE_DIR}/lib)
 
 FetchContent_Declare(link SYSTEM 
     GIT_REPOSITORY https://github.com/Ableton/link
-    GIT_TAG        "Link-3.0.6" # or specify a tag or branch here
+    GIT_TAG        "Link-3.1.0" # or specify a tag or branch here
     SOURCE_DIR     "${PROJECT_LIB_DIR}/link"
     )
 
