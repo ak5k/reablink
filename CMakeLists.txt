@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 
-project(reablink VERSION 0.5.0 LANGUAGES CXX)
+project(reablink VERSION 0.5.0 LANGUAGES C CXX)
 
 include(FetchContent)
 include(CheckCompilerFlag)
