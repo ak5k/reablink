@@ -19,19 +19,19 @@ endif()
 # path for external 3rd party library dependencies 
 set(PROJECT_LIB_DIR ${PROJECT_SOURCE_DIR}/lib)
 
-FetchContent_Declare(link SYSTEM 
+FetchContent_Declare(link 
     GIT_REPOSITORY https://github.com/Ableton/link
     GIT_TAG        "Link-3.1.0" # or specify a tag or branch here
     SOURCE_DIR     "${PROJECT_LIB_DIR}/link"
     )
 
-FetchContent_Declare(WDL SYSTEM 
+FetchContent_Declare(WDL 
     GIT_REPOSITORY https://github.com/justinfrankel/WDL
     GIT_TAG        "origin/main" # or specify a tag or branch here
     SOURCE_DIR     "${PROJECT_LIB_DIR}/WDL"
     )
 
-FetchContent_Declare(reaper-sdk SYSTEM
+FetchContent_Declare(reaper-sdk 
     GIT_REPOSITORY https://github.com/justinfrankel/reaper-sdk
     GIT_TAG        "origin/main" # or specify a tag or branch here
     SOURCE_DIR     "${PROJECT_LIB_DIR}/reaper-sdk"
