@@ -54,7 +54,7 @@ for:
     artifacts:
       - path: build/reaper_*.so
 
-  - matrix: { only: [ appveyor_build_worker_image: macos, appveyor_build_worker_image: macos-mojave ] }
+  - matrix: { only: [ appveyor_build_worker_image: macos-catalina, appveyor_build_worker_image: macos-mojave ] }
     cache:
       # - build/vcpkg_installed -> vcpkg.json, cmake/vcpkg-triplets/arch-env.cmake
     install:
@@ -104,6 +104,9 @@ for:
 
 environment:
   matrix:
+    - job_name: macOS ARM 64-bit
+      appveyor_build_worker_image: macos-catalina
+      ARCH: arm64
     - job_name: Windows 64-bit
       appveyor_build_worker_image: *windows
       ARCH: x64
@@ -122,9 +125,6 @@ environment:
     - job_name: macOS x86 64-bit
       appveyor_build_worker_image: macos-mojave
       ARCH: x86_64
-    - job_name: macOS ARM 64-bit
-      appveyor_build_worker_image: macos-catalina
-      ARCH: arm64
     - job_name: Linux x86 64-bit
       appveyor_build_worker_image: *linux
       ARCH: x86_64
