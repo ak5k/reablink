@@ -32,7 +32,7 @@ for:
         sudo aptitude install -yR ${native[@]} ${target[@]/%/:$arch} > /dev/null
       }
 
-      sudo update-alternatives --set gcc /usr/bin/gcc-7
+      sudo update-alternatives --set gcc /usr/bin/gcc-8
 
       case $ARCH in
       x86_64)
