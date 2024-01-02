@@ -5,6 +5,7 @@
 #include "global_vars.hpp"
 #include <atomic>
 #include <filesystem>
+#include <stdio.h>
 
 #include <reaper_plugin_functions.h>
 
@@ -962,19 +963,27 @@ void Init()
     std::transform(version.begin(), version.end(), version.begin(),
                    [](unsigned char c) { return std::tolower(c); });
 
-    std::filesystem::path path = GetResourcePath();
+    std::string path = GetResourcePath();
     if (version.find("osx") != std::string::npos ||
         version.find("macos") != std::string::npos)
     {
       path = "/Library/Application Support/REAPER";
     }
-    path /= "UserPlugins";
-    path /= "ReaBlink_Monitor_init.lua";
-    if (std::filesystem::exists(path))
+    std::string delim = "/";
+    if (version.find("windows") != std::string::npos)
     {
-      AddRemoveReaScript(true, 0, path.string().c_str(), true);
+      delim = "\\";
+    }
+    path += delim;
+    path += "UserPlugins";
+    path += delim;
+    path += "ReaBlink_Monitor_init.lua";
+    FILE* file = fopen(path.c_str(), "r");
+    if (file != NULL)
+    {
+      fclose(file);
+      AddRemoveReaScript(true, 0, path.c_str(), true);
     }
   }
 }
-
 } // namespace reablink

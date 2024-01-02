@@ -55,37 +55,39 @@ for:
     artifacts:
       - path: build/reaper_*.so
 
-  - matrix: { only: [ appveyor_build_worker_image: macos-bigsur ] }
+  - matrix: { only: [ appveyor_build_worker_image: macos-catalina,
+                      appveyor_build_worker_image: macos-mojave ] }
     cache:
       # - build/vcpkg_installed -> vcpkg.json, cmake/vcpkg-triplets/arch-env.cmake
     install:
       - |-
         case $ARCH in
-              arm64)
-                DEPLOY_TARGET=11.0
-                sudo xcode-select -s /Applications/Xcode-12.3.app
-                ;;
-              *)
-                DEPLOY_TARGET=10.9
-                export SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX10.10.sdk
-                curl -fsSLO https://github.com/phracker/MacOSX-SDKs/releases/download/11.0-11.1/MacOSX10.15.sdk.tar.xz
-                sudo tar xf MacOSX10.15.sdk.tar.xz -C /Library/Developer/CommandLineTools/SDKs
-                sudo xcode-select -s /Library/Developer/CommandLineTools
-                ;;
-              esac
+        arm64)
+          DEPLOY_TARGET=11.0
+          sudo xcode-select -s /Applications/Xcode-12.3.app
+          ;;
+        *)
+          DEPLOY_TARGET=10.9
+          export SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX10.10.sdk
+          curl -fsSLO https://github.com/phracker/MacOSX-SDKs/releases/download/10.15/MacOSX10.10.sdk.tar.xz
+          echo 608a89db8b4be150a945871230b5ba5d4767a8500bc5fe76ddf10f5cec5ef513 MacOSX10.10.sdk.tar.xz | sha256sum -c
+          sudo tar xf MacOSX10.10.sdk.tar.xz -C /Library/Developer/CommandLineTools/SDKs
+          sudo xcode-select -s /Library/Developer/CommandLineTools
+          ;;
+        esac
 
-            # don't use LibXml2/SQLite3 from Mono
-            - sudo rm -r /Library/Frameworks/Mono.framework
+      # don't use LibXml2/SQLite3 from Mono
+      - sudo rm -r /Library/Frameworks/Mono.framework
 
-            - |-
-              if [ "$appveyor_build_worker_image" = "macos-mojave" ]; then
-                # https://letsencrypt.org/docs/dst-root-ca-x3-expiration-september-2021/
-                sudo curl -k https://curl.se/ca/cacert.pem -o /etc/ssl/cert.pem
+      - |-
+        if [ "$appveyor_build_worker_image" = "macos-mojave" ]; then
+          # https://letsencrypt.org/docs/dst-root-ca-x3-expiration-september-2021/
+          sudo curl -k https://curl.se/ca/cacert.pem -o /etc/ssl/cert.pem
 
-                # update to Catch2 v3
-                git -C ~/vcpkg fetch
-                git -C ~/vcpkg restore -s 50fe35a3c3ca43ffe3b436380cf563100406459a ports/catch2
-              fi
+          # update to Catch2 v3
+          git -C ~/vcpkg fetch
+          git -C ~/vcpkg restore -s 50fe35a3c3ca43ffe3b436380cf563100406459a ports/catch2
+        fi
     artifacts:
       - path: build/reaper_*.dylib
       - path: build/*.pkg
@@ -117,7 +119,7 @@ environment:
 
   matrix:
     - job_name: macOS x86 32-bit
-      appveyor_build_worker_image: macos-bigsur
+      appveyor_build_worker_image: macos-mojave
       ARCH: i386
     - job_name: Linux ARM 32-bit
       appveyor_build_worker_image: *linux
@@ -126,13 +128,13 @@ environment:
       appveyor_build_worker_image: *windows
       ARCH: x64
     - job_name: macOS universal 64-bit
-      appveyor_build_worker_image: macos-bigsur
+      appveyor_build_worker_image: macos-catalina
       ARCH: arm64;x86_64
     - job_name: macOS ARM 64-bit
-      appveyor_build_worker_image: macos-bigsur
+      appveyor_build_worker_image: macos-catalina
       ARCH: arm64
     - job_name: macOS x86 64-bit
-      appveyor_build_worker_image: macos-bigsur
+      appveyor_build_worker_image: macos-catalina
       ARCH: x86_64
     - job_name: Windows 32-bit
       appveyor_build_worker_image: *windows

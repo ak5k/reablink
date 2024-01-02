@@ -164,6 +164,7 @@ if(WIN32)
     ${PROJECT_NAME} 
       PRIVATE 
       /W3 /WX
+      /wd4996
       )
 else()
   target_compile_options(
