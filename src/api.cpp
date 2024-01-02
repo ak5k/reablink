@@ -1,5 +1,5 @@
 #include "api.hpp"
-#include "ReaBlinkConfig.h"
+#include "config.h"
 
 #include "engine.hpp"
 #include "global_vars.hpp"
@@ -740,8 +740,8 @@ const char* defstring_SetCaptureTransportCommands =
 
 double Blink_GetVersion()
 {
-  auto major = reablink_VERSION_MAJOR;
-  auto minor = reablink_VERSION_MINOR;
+  auto major = PROJECT_VERSION_MAJOR;
+  auto minor = PROJECT_VERSION_MINOR;
   return std::stod(
     std::string(std::to_string(major) + "." + std::to_string(minor)));
 }
@@ -751,7 +751,7 @@ const char* defstring_Blink_GetVersion = "double\0\0\0"
 
 void Init()
 {
-  static audio_hook_register_t audio_hook{OnAudioBuffer, 0,0,0,0,0};
+  static audio_hook_register_t audio_hook{OnAudioBuffer, 0, 0, 0, 0, 0};
   Audio_RegHardwareHook(true, &audio_hook);
 
   plugin_register("API_Blink_SetMakeReaperGoBrrr", (void*)SetMakeReaperGoBrrr);

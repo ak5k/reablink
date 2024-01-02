@@ -13,8 +13,3 @@ if (WIN32)
     set(LINK_WINDOWS_SETTHREADDESCRIPTION 1)
   endif()
 endif()
-
-configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/ReaBlinkConfig.h.in
-    ${CMAKE_CURRENT_SOURCE_DIR}/ReaBlinkConfig.h
-)
