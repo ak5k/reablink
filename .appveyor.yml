@@ -68,9 +68,8 @@ for:
               *)
                 DEPLOY_TARGET=10.9
                 export SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX10.10.sdk
-                curl -fsSLO https://github.com/phracker/MacOSX-SDKs/releases/download/11.0-11.1/MacOSX10.10.sdk.tar.xz
-                echo 608a89db8b4be150a945871230b5ba5d4767a8500bc5fe76ddf10f5cec5ef513 MacOSX10.10.sdk.tar.xz | sha256sum -c
-                sudo tar xf MacOSX10.10.sdk.tar.xz -C /Library/Developer/CommandLineTools/SDKs
+                curl -fsSLO https://github.com/phracker/MacOSX-SDKs/releases/download/11.0-11.1/MacOSX10.15.sdk.tar.xz
+                sudo tar xf MacOSX10.15.sdk.tar.xz -C /Library/Developer/CommandLineTools/SDKs
                 sudo xcode-select -s /Library/Developer/CommandLineTools
                 ;;
               esac
