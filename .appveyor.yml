@@ -31,6 +31,8 @@ for:
         sudo apt-get install -qq aptitude > /dev/null
         sudo aptitude install -yR ${native[@]} ${target[@]/%/:$arch} > /dev/null
       }
+      
+      sudo update-alternatives --set gcc /usr/bin/gcc-7
 
       case $ARCH in
       x86_64)
