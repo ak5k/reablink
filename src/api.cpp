@@ -4,7 +4,6 @@
 #include "engine.hpp"
 #include "global_vars.hpp"
 #include <atomic>
-#include <filesystem>
 #include <stdio.h>
 
 #include <reaper_plugin_functions.h>
