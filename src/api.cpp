@@ -981,7 +981,7 @@ void Init()
     if (file != NULL)
     {
       fclose(file);
-      AddRemoveReaScript(true, 0, path.c_str(), true);
+      AddRemoveReaScript(true, 0, path.c_str(), false);
     }
   }
 }
