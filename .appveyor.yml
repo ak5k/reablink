@@ -70,7 +70,7 @@ for:
           DEPLOY_TARGET=10.9
           ;;
         esac
-        sudo xcode-select -s /Applications/Xcode-13.4.1
+        sudo xcode-select -s /Applications/Xcode-13.4.1.app
 
     artifacts:
       - path: build/reaper_*.dylib
