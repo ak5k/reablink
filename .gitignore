@@ -4,4 +4,4 @@
 **/_CPack_Packages
 /package
 ReaBlinkConfig.h
-link*.txt
+ReaBlink_Monitor_installer.lua

@@ -207,6 +207,17 @@ install(TARGETS ${PROJECT_NAME}
   LIBRARY DESTINATION "${REAPER_USER_PLUGINS}" # Linux .so/macOS .dylib
 )
 
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/scripts/ReaBlink_Monitor.lua 
+  ${CMAKE_CURRENT_BINARY_DIR}/ReaBlink_Monitor_init.lua 
+  COPYONLY
+  )
+install(
+    FILES "${CMAKE_CURRENT_BINARY_DIR}/ReaBlink_Monitor_init.lua"
+    COMPONENT ${PROJECT_NAME}
+    DESTINATION "${REAPER_USER_PLUGINS}"
+)
+
 # Set the component as required
 set(CPACK_COMPONENT_${PROJECT_NAME}_REQUIRED ON)
 if(WIN32)
@@ -245,8 +256,8 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
                 # source
                 "${CMAKE_CURRENT_SOURCE_DIR}/README.md"
                 # target
-                "${CMAKE_CURRENT_SOURCE_DIR}/link_readme.txt")
-    set(CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_SOURCE_DIR}/link_readme.txt")
+                "${CMAKE_CURRENT_BINARY_DIR}/link_readme.txt")
+    set(CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_BINARY_DIR}/link_readme.txt")
 endif()
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
     execute_process(
@@ -254,9 +265,10 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
                 # source
                 "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE"
                 # target
-                "${CMAKE_CURRENT_SOURCE_DIR}/link_license.txt")
-    set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/link_license.txt")
+                "${CMAKE_CURRENT_BINARY_DIR}/link_license.txt")
+    set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_BINARY_DIR}/link_license.txt")
 endif()
+
 
 set(CPACK_NSIS_PACKAGE_NAME "${PROJECT_NAME}")
 set(CPACK_NSIS_CPUBITS ${CPUBITS})

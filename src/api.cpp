@@ -4,6 +4,7 @@
 #include "engine.hpp"
 #include "global_vars.hpp"
 #include <atomic>
+#include <filesystem>
 
 #include <reaper_plugin_functions.h>
 
@@ -952,6 +953,28 @@ void Init()
   plugin_register(
     "APIvararg_Blink_SetCaptureTransportCommands",
     reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetCaptureTransportCommands>));
+
+  std::string init = GetExtState("ak5k", "reablink_init");
+  if (init.empty())
+  {
+    SetExtState("ak5k", "reablink_init", "1", true);
+    std::string version = GetAppVersion();
+    std::transform(version.begin(), version.end(), version.begin(),
+                   [](unsigned char c) { return std::tolower(c); });
+
+    std::filesystem::path path = GetResourcePath();
+    if (version.find("osx") != std::string::npos ||
+        version.find("macos") != std::string::npos)
+    {
+      path = "/Library/Application Support/REAPER";
+    }
+    path /= "UserPlugins";
+    path /= "ReaBlink_Monitor_init.lua";
+    if (std::filesystem::exists(path))
+    {
+      AddRemoveReaScript(true, 0, path.string().c_str(), true);
+    }
+  }
 }
 
 } // namespace reablink
