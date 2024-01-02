@@ -751,7 +751,7 @@ const char* defstring_Blink_GetVersion = "double\0\0\0"
 
 void Init()
 {
-  static audio_hook_register_t audio_hook{OnAudioBuffer, 0, 0, 0, 0};
+  static audio_hook_register_t audio_hook{OnAudioBuffer, 0,0,0,0,0};
   Audio_RegHardwareHook(true, &audio_hook);
 
   plugin_register("API_Blink_SetMakeReaperGoBrrr", (void*)SetMakeReaperGoBrrr);

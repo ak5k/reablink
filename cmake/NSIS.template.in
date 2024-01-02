@@ -1,0 +1,69 @@
+!include MUI2.nsh
+!include Sections.nsh
+
+!ifndef NSIS_UNICODE
+  Unicode true
+!endif
+
+AllowSkipFiles off
+Name "@CPACK_NSIS_PACKAGE_NAME@"
+OutFile "@CPACK_TOPLEVEL_DIRECTORY@\@CPACK_OUTPUT_FILE_NAME@"
+RequestExecutionLevel highest
+SetCompressor @CPACK_NSIS_COMPRESSOR@
+
+!insertmacro MUI_PAGE_LICENSE "@CPACK_RESOURCE_FILE_LICENSE@"
+!define MUI_DIRECTORYPAGE_TEXT_TOP "Please select a valid REAPER installation folder."
+!define MUI_DIRECTORYPAGE_TEXT_DESTINATION "REAPER Installation Folder"
+!define MUI_PAGE_CUSTOMFUNCTION_LEAVE SetOutputDir
+!insertmacro MUI_PAGE_DIRECTORY
+;!define MUI_COMPONENTSPAGE_SMALLDESC
+;!insertmacro MUI_PAGE_COMPONENTS
+!insertmacro MUI_PAGE_INSTFILES
+
+!insertmacro MUI_LANGUAGE "English"
+
+Section 
+  File /r "@CPACK_TEMPORARY_DIRECTORY@\*.*"
+SectionEnd
+
+Function .onInit
+  StrCmp $INSTDIR "" 0 +2
+    Call GuessInstallDir
+
+  SetOutPath "" ; enables "Output folder" lines in the log
+
+  IfSilent 0 NotSilent
+    IfFileExists $INSTDIR\reaper.exe ValidInstDir
+      MessageBox MB_OK "Cannot find a valid install of REAPER in $INSTDIR. Aborting."
+      Abort
+    ValidInstDir:
+      Call SetOutputDir
+  NotSilent:
+    IntOp $0 ${SF_SELECTED} | ${SF_RO}
+
+FunctionEnd
+
+Function .onVerifyInstDir
+  IfFileExists $INSTDIR\reaper.exe ValidInstDir
+    Abort ; if $INSTDIR is not a reaper install directory
+  ValidInstDir:
+FunctionEnd
+
+Function GuessInstallDir
+  SetRegView @CPACK_NSIS_CPUBITS@
+  ReadRegStr $0 HKLM Software\REAPER ""
+
+  StrCmp $0 "" 0 FoundREAPER
+    StrCpy $INSTDIR "$PROGRAMFILES@CPACK_NSIS_CPUBITS@\REAPER\"
+    Goto +2
+  FoundREAPER:
+    StrCpy $INSTDIR $0
+FunctionEnd
+
+Function SetOutputDir
+  IfFileExists $INSTDIR\reaper.ini PortableInstall
+    StrCpy $OUTDIR $APPDATA\REAPER
+    Return
+  PortableInstall:
+    StrCpy $OUTDIR $INSTDIR
+FunctionEnd

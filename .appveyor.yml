@@ -6,7 +6,10 @@ build_script:
     -DCMAKE_TOOLCHAIN_FILE=~/vcpkg/scripts/buildsystems/vcpkg.cmake
     -DVCPKG_TARGET_TRIPLET=arch-env -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=$TOOLCHAIN
     -DCMAKE_OSX_ARCHITECTURES=$ARCH -DCMAKE_OSX_DEPLOYMENT_TARGET=$DEPLOY_TARGET
+    -DBUILD_NUMBER=$BUILD_NUMBER
   - cmake --build build
+  - cd build 
+  - if [ "$ARCH" == "arm64;x86_64" ]; then sudo cpack && rm *.dylib; fi
 
 for:
   - matrix: { only: [ appveyor_build_worker_image: &linux Ubuntu1804 ] }
@@ -54,15 +57,25 @@ for:
     artifacts:
       - path: build/reaper_*.so
 
-  - matrix: { only: [ appveyor_build_worker_image: macos, appveyor_build_worker_image: macos-mojave ] }
+  - matrix: { only: [ appveyor_build_worker_image: macos-bigsur, 
+                      appveyor_build_worker_image: macos-catalina,
+                      appveyor_build_worker_image: macos-mojave,
+                       ] }
     cache:
       # - build/vcpkg_installed -> vcpkg.json, cmake/vcpkg-triplets/arch-env.cmake
     install:
       - |-
+        # case $ARCH in
+        # arm64)  export MACOSX_DEPLOYMENT_TARGET=11.0 XCODE_VERSION=14.1   ;;
+        # x86_64) export MACOSX_DEPLOYMENT_TARGET=10.9 XCODE_VERSION=13.2.1 ;;
+        # i386)   export MACOSX_DEPLOYMENT_TARGET=10.9 XCODE_VERSION=9.4.1  ;;
+        # esac
+        # sudo xcode-select -s /Applications/Xcode-$XCODE_VERSION.app
+
         case $ARCH in
-        arm64)
+        *arm64*)
           DEPLOY_TARGET=11.0
-          sudo xcode-select -s /Applications/Xcode-12.3.app
+          # sudo xcode-select -s /Applications/Xcode-12.3.app
           ;;
         *)
           DEPLOY_TARGET=10.9
@@ -74,15 +87,9 @@ for:
           ;;
         esac
 
-      # don't use LibXml2/SQLite3 from Mono
-      - sudo rm -r /Library/Frameworks/Mono.framework
-      - |-
-        if [ "$appveyor_build_worker_image" = "macos-mojave" ]; then
-          sudo curl -k https://curl.se/ca/cacert.pem -o /etc/ssl/cert.pem
-
-        fi
     artifacts:
       - path: build/reaper_*.dylib
+      - path: build/*.pkg
 
   - matrix: { only: [ appveyor_build_worker_image: &windows Visual Studio 2022 ] }
 
@@ -92,39 +99,48 @@ for:
       - if "%ARCH%" == "x64" call "%ProgramFiles%\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat"
       - if "%ARCH%" == "x86" call "%ProgramFiles%\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars32.bat"
     build_script:
-      - cmake -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release
+      - cmake -B build -G "Ninja" -DCMAKE_BUILD_TYPE=RelWithDebInfo
         -DVCPKG_TARGET_TRIPLET=%ARCH%-windows-static
         -DCMAKE_TOOLCHAIN_FILE=C:\Tools\vcpkg\scripts\buildsystems\vcpkg.cmake
+        -DBUILD_NUMBER=%BUILD_NUMBER%
       - cmake --build build
+      - cd build
+      - if "%ARCH%" == "x64" cpack
     artifacts:
-      - path: build\**\reaper_*.dll
-      - path: build\**\reaper_*.pdb
+      - path: build\reaper_*.dll
+      - path: build\*.exe
+      - path: build\reaper_*64.pdb
       - path: scripts\ReaBlink_Monitor.lua
 
-
 environment:
+  BUILD_NUMBER: $(APPVEYOR_BUILD_NUMBER)
+  GIT_COMMIT: $(APPVEYOR_REPO_COMMIT)
+
   matrix:
     - job_name: Windows 64-bit
       appveyor_build_worker_image: *windows
       ARCH: x64
+    - job_name: macOS universal 64-bit
+      appveyor_build_worker_image: macos-bigsur
+      ARCH: arm64;x86_64
+    - job_name: macOS x86 32-bit
+      appveyor_build_worker_image: macos-bigsur
+      ARCH: i386
+    - job_name: macOS ARM 64-bit
+      appveyor_build_worker_image: macos-bigsur
+      ARCH: arm64
+    - job_name: macOS x86 64-bit
+      appveyor_build_worker_image: macos-bigsur
+      ARCH: x86_64
     - job_name: Windows 32-bit
       appveyor_build_worker_image: *windows
       ARCH: x86
     - job_name: Linux x86 32-bit
       appveyor_build_worker_image: *linux
       ARCH: i686
-    - job_name: macOS x86 32-bit
-      appveyor_build_worker_image: macos-mojave
-      ARCH: i386
     - job_name: Linux ARM 32-bit
       appveyor_build_worker_image: *linux
       ARCH: armv7l
-    - job_name: macOS x86 64-bit
-      appveyor_build_worker_image: macos-mojave
-      ARCH: x86_64
-    - job_name: macOS ARM 64-bit
-      appveyor_build_worker_image: macos-catalina
-      ARCH: arm64
     - job_name: Linux x86 64-bit
       appveyor_build_worker_image: *linux
       ARCH: x86_64
@@ -139,6 +155,6 @@ deploy:
   force_update: true
   auth_token:
     secure: Rk8do2Q/etdabjwIABBRdTJu1a4wYVu9Ltz8HJuC0wc3rz+hHUMGa3N7vTlsrd7z
-  artifact: /.*\.(dll|dylib|so|lua)/
+  artifact: /.*\.(dll|dylib|so|lua|exe|pkg|pdb)/
   on:
     APPVEYOR_REPO_TAG: true
