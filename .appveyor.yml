@@ -12,7 +12,7 @@ build_script:
   - if [ "$ARCH" == "arm64;x86_64" ]; then sudo cpack && rm *.dylib; fi
 
 for:
-  - matrix: { only: [ appveyor_build_worker_image: &linux Ubuntu1804 ] }
+  - matrix: { only: [ appveyor_build_worker_image: &linux Ubuntu2004 ] }
     cache:
       - build/vcpkg_installed -> vcpkg.json, cmake/vcpkg-triplets/arch-env.cmake
     install: |-
@@ -57,36 +57,20 @@ for:
     artifacts:
       - path: build/reaper_*.so
 
-  - matrix: { only: [ appveyor_build_worker_image: macos-bigsur, 
-                      appveyor_build_worker_image: macos-catalina,
-                      appveyor_build_worker_image: macos-mojave,
-                       ] }
+  - matrix: { only: [ appveyor_build_worker_image: macos-monterey ] }
     cache:
       # - build/vcpkg_installed -> vcpkg.json, cmake/vcpkg-triplets/arch-env.cmake
     install:
       - |-
-        # case $ARCH in
-        # arm64)  export MACOSX_DEPLOYMENT_TARGET=11.0 XCODE_VERSION=14.1   ;;
-        # x86_64) export MACOSX_DEPLOYMENT_TARGET=10.9 XCODE_VERSION=13.2.1 ;;
-        # i386)   export MACOSX_DEPLOYMENT_TARGET=10.9 XCODE_VERSION=9.4.1  ;;
-        # esac
-        # sudo xcode-select -s /Applications/Xcode-$XCODE_VERSION.app
-
         case $ARCH in
         *arm64*)
           DEPLOY_TARGET=11.0
-          # sudo xcode-select -s /Applications/Xcode-12.3.app
           ;;
         *)
           DEPLOY_TARGET=10.9
-          # export SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX10.10.sdk
-          # curl -fsSLO https://github.com/phracker/MacOSX-SDKs/releases/download/10.15/MacOSX10.10.sdk.tar.xz
-          # echo 608a89db8b4be150a945871230b5ba5d4767a8500bc5fe76ddf10f5cec5ef513 MacOSX10.10.sdk.tar.xz | sha256sum -c
-          # sudo tar xf MacOSX10.10.sdk.tar.xz -C /Library/Developer/CommandLineTools/SDKs
-          # sudo xcode-select -s /Library/Developer/CommandLineTools
-          sudo xcode-select -s /Applications/Xcode-13.4.1
           ;;
         esac
+        sudo xcode-select -s /Applications/Xcode-13.4.1
 
     artifacts:
       - path: build/reaper_*.dylib
@@ -122,16 +106,16 @@ environment:
       appveyor_build_worker_image: *windows
       ARCH: x64
     - job_name: macOS universal 64-bit
-      appveyor_build_worker_image: macos-bigsur
+      appveyor_build_worker_image: macos-monterey
       ARCH: arm64;x86_64
     - job_name: macOS x86 32-bit
-      appveyor_build_worker_image: macos-bigsur
+      appveyor_build_worker_image: macos-monterey
       ARCH: i386
     - job_name: macOS ARM 64-bit
-      appveyor_build_worker_image: macos-bigsur
+      appveyor_build_worker_image: macos-monterey
       ARCH: arm64
     - job_name: macOS x86 64-bit
-      appveyor_build_worker_image: macos-bigsur
+      appveyor_build_worker_image: macos-monterey
       ARCH: x86_64
     - job_name: Windows 32-bit
       appveyor_build_worker_image: *windows
