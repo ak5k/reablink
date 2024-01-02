@@ -12,7 +12,7 @@ build_script:
   - if [ "$ARCH" == "arm64;x86_64" ]; then sudo cpack && rm *.dylib; fi
 
 for:
-  - matrix: { only: [ appveyor_build_worker_image: &linux Ubuntu2004 ] }
+  - matrix: { only: [ appveyor_build_worker_image: &linux Ubuntu1604 ] }
     cache:
       - build/vcpkg_installed -> vcpkg.json, cmake/vcpkg-triplets/arch-env.cmake
     install: |-
