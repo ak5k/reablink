@@ -117,9 +117,6 @@ environment:
   GIT_COMMIT: $(APPVEYOR_REPO_COMMIT)
 
   matrix:
-    - job_name: macOS ARM 64-bit
-      appveyor_build_worker_image: macos-catalina
-      ARCH: arm64
     - job_name: Windows 64-bit
       appveyor_build_worker_image: *windows
       ARCH: x64
