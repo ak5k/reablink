@@ -57,7 +57,7 @@ for:
     artifacts:
       - path: build/reaper_*.so
 
-  - matrix: { only: [ appveyor_build_worker_image: macos-monterey ] }
+  - matrix: { only: [ appveyor_build_worker_image: macos-bigsur ] }
     cache:
       # - build/vcpkg_installed -> vcpkg.json, cmake/vcpkg-triplets/arch-env.cmake
     install:
@@ -70,7 +70,7 @@ for:
           DEPLOY_TARGET=10.9
           ;;
         esac
-        sudo xcode-select -s /Applications/Xcode-13.4.1.app
+        sudo xcode-select -s /Applications/Xcode-13.2.1.app
 
     artifacts:
       - path: build/reaper_*.dylib
@@ -103,7 +103,7 @@ environment:
 
   matrix:
     - job_name: macOS x86 32-bit
-      appveyor_build_worker_image: macos-monterey
+      appveyor_build_worker_image: macos-bigsur
       ARCH: i386
     - job_name: Linux ARM 32-bit
       appveyor_build_worker_image: *linux
@@ -112,13 +112,13 @@ environment:
       appveyor_build_worker_image: *windows
       ARCH: x64
     - job_name: macOS universal 64-bit
-      appveyor_build_worker_image: macos-monterey
+      appveyor_build_worker_image: macos-bigsur
       ARCH: arm64;x86_64
     - job_name: macOS ARM 64-bit
-      appveyor_build_worker_image: macos-monterey
+      appveyor_build_worker_image: macos-bigsur
       ARCH: arm64
     - job_name: macOS x86 64-bit
-      appveyor_build_worker_image: macos-monterey
+      appveyor_build_worker_image: macos-bigsur
       ARCH: x86_64
     - job_name: Windows 32-bit
       appveyor_build_worker_image: *windows
