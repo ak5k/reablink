@@ -62,6 +62,10 @@ private:
 
 void CALLBACK timerTick(HWND hwnd, UINT msg, UINT_PTR timerId, DWORD time)
 {
+  (void)hwnd;
+  (void)msg;
+  (void)timerId;
+  (void)time;
   LinkSession::getInstance().audioCallback();
 }
 
