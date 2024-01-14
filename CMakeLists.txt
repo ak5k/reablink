@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(reablink VERSION 0.5.0 LANGUAGES C CXX)
+project(reablink VERSION 0.5.1 LANGUAGES C CXX)
 
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -72,15 +72,15 @@ if(SWELL_FOUND)
   target_link_libraries(reaper-sdk INTERFACE SWELL::swell)
 
   # Transpile the Win32 resource file
-  find_package(PHP REQUIRED)
-  add_custom_command(
-    OUTPUT  resource.rc_mac_dlg resource.rc_mac_menu
-    COMMAND ${CMAKE_COMMAND} -E copy
-      ${CMAKE_CURRENT_SOURCE_DIR}/resource.rc ${CMAKE_CURRENT_BINARY_DIR}
-    COMMAND ${PHP_EXECUTABLE} ${SWELL_RESGEN} --quiet resource.rc
-    DEPENDS ${SWELL_RESGEN}
-    MAIN_DEPENDENCY resource.rc
-  )
+  # find_package(PHP REQUIRED)
+  # add_custom_command(
+  #   OUTPUT  resource.rc_mac_dlg resource.rc_mac_menu
+  #   COMMAND ${CMAKE_COMMAND} -E copy
+  #     ${CMAKE_CURRENT_SOURCE_DIR}/resource.rc ${CMAKE_CURRENT_BINARY_DIR}
+  #   COMMAND ${PHP_EXECUTABLE} ${SWELL_RESGEN} --quiet resource.rc
+  #   DEPENDS ${SWELL_RESGEN}
+  #   MAIN_DEPENDENCY resource.rc
+  # )
 endif()
 
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_MINSIZEREL     ON)
