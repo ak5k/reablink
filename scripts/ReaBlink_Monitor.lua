@@ -5,8 +5,6 @@ header =
 
 if not reaper.Blink_GetEnabled() then reaper.Blink_SetEnabled(true) end
 
-reaper.Blink_SetMakeReaperGoBrrr()
-
 reaper.Blink_SetStartStopSyncEnabled(true)
 reaper.Blink_SetCaptureTransportCommands(true)
 

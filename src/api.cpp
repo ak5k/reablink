@@ -8,41 +8,11 @@
 
 #include <reaper_plugin_functions.h>
 
-#ifdef _WIN32
-#include <mmsystem.h> // Include the necessary header file
-#endif
-
 #include "reascript_vararg.hpp"
 
 namespace reablink
 {
 using namespace ableton;
-unsigned int g_timer_rate{12};
-constexpr unsigned int MISC_TIMER{666};
-
-#ifdef HIRES_TIMER_REABLINK
-void CALLBACK timerCallback(UINT, UINT, DWORD_PTR, DWORD_PTR, DWORD_PTR)
-{
-  SendMessage(GetMainHwnd(), WM_TIMER, MISC_TIMER, 0);
-}
-#endif
-
-void MakeReaperGoBrrr();
-
-void MakeReaperGoBrrr()
-{
-  plugin_register("-timer", reinterpret_cast<void*>(&MakeReaperGoBrrr));
-
-#ifdef HIRES_TIMER_REABLINK
-  // REAPER already does timeBeginPeriod(1)
-  if (timeSetEvent(g_timer_rate, 1, &timerCallback, 0, TIME_PERIODIC))
-  {
-    KillTimer(GetMainHwnd(), MISC_TIMER);
-  }
-#else
-  SetTimer(GetMainHwnd(), MISC_TIMER, g_timer_rate, nullptr);
-#endif
-}
 
 struct LinkSession
 {
@@ -64,16 +34,6 @@ struct LinkSession
     return *instance;
   }
 
-private:
-  LinkSession()
-  {
-    plugin_register("timer", (void*)audioCallback);
-    // int val = g_timer_rate;
-    // SetReaperGoBrrr(&val);
-
-    this->link.setTempoCallback(TempoCallback);
-  }
-
   static void TempoCallback(double bpm)
   {
     if (getInstance().audioPlatform.mEngine.getPuppet())
@@ -92,7 +52,18 @@ private:
         1.0e6)),
       g_abuf_len);
   }
+
+private:
+  LinkSession()
+  {
+    this->link.setTempoCallback(TempoCallback);
+  }
 };
+
+void CALLBACK timerTick(HWND hwnd, UINT msg, UINT_PTR timerId, DWORD time)
+{
+  LinkSession::getInstance().audioCallback();
+}
 
 static void OnAudioBuffer(bool isPost, int len, double srate,
                           struct audio_hook_register_t* reg)
@@ -120,15 +91,6 @@ std::chrono::microseconds doubleToMicros(double time)
 double microsToDouble(std::chrono::microseconds time)
 {
   return std::chrono::duration<double>(time).count();
-}
-
-void SetMakeReaperGoBrrr(const int* rateInOptional)
-{
-  if (rateInOptional)
-  {
-    g_timer_rate = (unsigned int)*rateInOptional;
-  }
-  plugin_register("timer", reinterpret_cast<void*>(&MakeReaperGoBrrr));
 }
 
 const char* defstring_SetMakeReaperGoBrrr =
@@ -188,6 +150,15 @@ void SetEnabled(bool enable)
 {
   LinkSession::getInstance().running = enable;
   LinkSession::getInstance().link.enable(enable);
+  static UINT_PTR timerId;
+  if (enable)
+  {
+    timerId = SetTimer(nullptr, 0, 12, &timerTick);
+  }
+  else
+  {
+    KillTimer(nullptr, timerId);
+  }
 }
 
 const char* defstring_SetEnabled =
@@ -754,13 +725,6 @@ void Init()
 {
   static audio_hook_register_t audio_hook{OnAudioBuffer, 0, 0, 0, 0, 0};
   Audio_RegHardwareHook(true, &audio_hook);
-
-  plugin_register("API_Blink_SetMakeReaperGoBrrr", (void*)SetMakeReaperGoBrrr);
-  plugin_register("APIdef_Blink_SetMakeReaperGoBrrr",
-                  (void*)defstring_SetMakeReaperGoBrrr);
-  plugin_register(
-    "APIvararg_Blink_SetMakeReaperGoBrrr",
-    reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetMakeReaperGoBrrr>));
 
   plugin_register("API_Blink_GetTimelineOffset", (void*)GetTimelineOffset);
   plugin_register("APIdef_Blink_GetTimelineOffset",
