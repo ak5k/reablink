@@ -60,13 +60,17 @@ private:
   }
 };
 
-void CALLBACK timerTick(HWND hwnd, UINT msg, UINT_PTR timerId, DWORD time)
+UINT_PTR timerId;
+
+void CALLBACK timerTick(HWND hwnd, UINT msg, UINT_PTR timerIdIn, DWORD time)
 {
   (void)hwnd;
   (void)msg;
-  (void)timerId;
   (void)time;
-  LinkSession::getInstance().audioCallback();
+  if (timerIdIn == timerId)
+  {
+    LinkSession::getInstance().audioCallback();
+  }
 }
 
 static void OnAudioBuffer(bool isPost, int len, double srate,
@@ -154,7 +158,6 @@ void SetEnabled(bool enable)
 {
   LinkSession::getInstance().running = enable;
   LinkSession::getInstance().link.enable(enable);
-  static UINT_PTR timerId;
   if (enable)
   {
     timerId = SetTimer(nullptr, 0, 12, &timerTick);
