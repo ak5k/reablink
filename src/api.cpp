@@ -156,14 +156,17 @@ const char* defstring_GetEnabled = "bool\0\0\0"
  */
 void SetEnabled(bool enable)
 {
+  static audio_hook_register_t audio_hook{OnAudioBuffer, 0, 0, 0, 0, 0};
   LinkSession::getInstance().running = enable;
   LinkSession::getInstance().link.enable(enable);
   if (enable)
   {
+    Audio_RegHardwareHook(true, &audio_hook);
     timerId = SetTimer(nullptr, 0, 12, &timerTick);
   }
   else
   {
+    Audio_RegHardwareHook(false, &audio_hook);
     KillTimer(nullptr, timerId);
   }
 }
@@ -730,9 +733,6 @@ const char* defstring_Blink_GetVersion = "double\0\0\0"
 
 void Init()
 {
-  static audio_hook_register_t audio_hook{OnAudioBuffer, 0, 0, 0, 0, 0};
-  Audio_RegHardwareHook(true, &audio_hook);
-
   plugin_register("API_Blink_GetTimelineOffset", (void*)GetTimelineOffset);
   plugin_register("APIdef_Blink_GetTimelineOffset",
                   (void*)defstring_GetTimelineOffset);
