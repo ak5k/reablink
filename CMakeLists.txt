@@ -62,9 +62,9 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 find_package(WDL REQUIRED)
 
-if(NOT WIN32)
-  find_package(SWELL REQUIRED)
-endif()
+# if(NOT WIN32)
+#   find_package(SWELL REQUIRED)
+# endif()
 
 target_link_libraries(reaper-sdk INTERFACE WDL::WDL)
 
