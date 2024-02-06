@@ -81,7 +81,7 @@ for:
         esac
 
       # don't use LibXml2/SQLite3 from Mono
-      - sudo rm -r /Library/Frameworks/Mono.framework
+      # - sudo rm -r /Library/Frameworks/Mono.framework
 
       - |-
         if [ "$appveyor_build_worker_image" = "macos-mojave" ]; then
