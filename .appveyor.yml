@@ -87,10 +87,6 @@ for:
         if [ "$appveyor_build_worker_image" = "macos-mojave" ]; then
           # https://letsencrypt.org/docs/dst-root-ca-x3-expiration-september-2021/
           sudo curl -k https://curl.se/ca/cacert.pem -o /etc/ssl/cert.pem
-
-          # update to Catch2 v3
-          git -C ~/vcpkg fetch
-          git -C ~/vcpkg restore -s 50fe35a3c3ca43ffe3b436380cf563100406459a ports/catch2
         fi
     artifacts:
       - path: build/reaper_*.dylib
@@ -125,6 +121,9 @@ environment:
   REPO_TAG: $(APPVEYOR_REPO_TAG_NAME)
 
   matrix:
+    - job_name: macOS x86 64-bit
+      appveyor_build_worker_image: macos-mojave
+      ARCH: x86_64
     - job_name: Linux ARM 32-bit
       appveyor_build_worker_image: *linux
       ARCH: armv7l
@@ -140,9 +139,6 @@ environment:
     - job_name: macOS ARM 64-bit
       appveyor_build_worker_image: macos-catalina
       ARCH: arm64
-    - job_name: macOS x86 64-bit
-      appveyor_build_worker_image: macos-catalina
-      ARCH: x86_64
     - job_name: Windows 32-bit
       appveyor_build_worker_image: *windows
       ARCH: x86
