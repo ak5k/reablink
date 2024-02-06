@@ -71,6 +71,7 @@ for:
           sudo xcode-select -s /Applications/Xcode-12.3.app
           ;;
         *)
+          brew install llvm
           DEPLOY_TARGET=10.9
           TOOLCHAIN=cmake/brew-llvm.cmake
           export SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX10.10.sdk
