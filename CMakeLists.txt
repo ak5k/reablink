@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.15)
 project(reablink VERSION 0.5.2 LANGUAGES C CXX)
 
-# set(CMAKE_CXX_EXTENSIONS OFF)
-# set(CMAKE_CXX_STANDARD_REQUIRED ON)
-# set(CMAKE_CXX_VISIBILITY_PRESET "hidden")
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_VISIBILITY_PRESET "hidden")
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
@@ -167,11 +167,11 @@ if(WIN32)
       /wd4996
       )
 else()
-  # target_compile_options(
-  #   ${PROJECT_NAME}
-  #     PRIVATE
-  #     -Wall -Wextra -Wpedantic # -Werror 
-  # )
+  target_compile_options(
+    ${PROJECT_NAME}
+      PRIVATE
+      -Wall -Wextra -Wpedantic -Werror 
+  )
 endif()
 
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)

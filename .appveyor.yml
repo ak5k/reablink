@@ -64,16 +64,21 @@ for:
     cache:
       # - build/vcpkg_installed -> vcpkg.json, cmake/vcpkg-triplets/arch-env.cmake
     install:
-      # - TRIPLET=arch-env TOOLCHAIN=~/vcpkg/scripts/buildsystems/vcpkg.cmake
-      # - export VCPKG_OVERLAY_TRIPLETS=cmake/vcpkg-triplets
-
       - |-
         case $ARCH in
-        *arm64*) export DEPLOY_TARGET=11.0 XCODE_VERSION=12.3  ;;
-        *)     export DEPLOY_TARGET=10.9 XCODE_VERSION=9.4.1 ;;
+        *arm64*)
+          DEPLOY_TARGET=11.0
+          sudo xcode-select -s /Applications/Xcode-12.3.app
+          ;;
+        *)
+          DEPLOY_TARGET=10.9
+          export SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX10.10.sdk
+          curl -fsSLO https://github.com/phracker/MacOSX-SDKs/releases/download/10.15/MacOSX10.10.sdk.tar.xz
+          echo 608a89db8b4be150a945871230b5ba5d4767a8500bc5fe76ddf10f5cec5ef513 MacOSX10.10.sdk.tar.xz | sha256sum -c
+          sudo tar xf MacOSX10.10.sdk.tar.xz -C /Library/Developer/CommandLineTools/SDKs
+          sudo xcode-select -s /Library/Developer/CommandLineTools
+          ;;
         esac
-
-      - sudo xcode-select -s /Applications/Xcode-$XCODE_VERSION.app
 
       - |-
         if [ "$appveyor_build_worker_image" = "macos-mojave" ]; then
