@@ -167,11 +167,11 @@ if(WIN32)
       /wd4996
       )
 else()
-  target_compile_options(
-    ${PROJECT_NAME}
-      PRIVATE
-      -Wall -Wextra -Wpedantic # -Werror 
-  )
+  # target_compile_options(
+  #   ${PROJECT_NAME}
+  #     PRIVATE
+  #     -Wall -Wextra -Wpedantic # -Werror 
+  # )
 endif()
 
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
