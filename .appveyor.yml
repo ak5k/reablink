@@ -69,7 +69,7 @@ for:
 
       - |-
         case $ARCH in
-        arm64) export DEPLOY_TARGET=11.0 XCODE_VERSION=12.3  ;;
+        *arm64*) export DEPLOY_TARGET=11.0 XCODE_VERSION=12.3  ;;
         *)     export DEPLOY_TARGET=10.9 XCODE_VERSION=9.4.1 ;;
         esac
 
