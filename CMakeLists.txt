@@ -62,26 +62,26 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 find_package(WDL REQUIRED)
 
-# if(NOT WIN32)
-#   find_package(SWELL REQUIRED)
-# endif()
+if(NOT WIN32)
+  find_package(SWELL REQUIRED)
+endif()
 
 target_link_libraries(reaper-sdk INTERFACE WDL::WDL)
 
-# if(SWELL_FOUND)
-#   target_link_libraries(reaper-sdk INTERFACE SWELL::swell)
+if(SWELL_FOUND)
+  target_link_libraries(reaper-sdk INTERFACE SWELL::swell)
 
-#   # Transpile the Win32 resource file
-#   # find_package(PHP REQUIRED)
-#   # add_custom_command(
-#   #   OUTPUT  resource.rc_mac_dlg resource.rc_mac_menu
-#   #   COMMAND ${CMAKE_COMMAND} -E copy
-#   #     ${CMAKE_CURRENT_SOURCE_DIR}/resource.rc ${CMAKE_CURRENT_BINARY_DIR}
-#   #   COMMAND ${PHP_EXECUTABLE} ${SWELL_RESGEN} --quiet resource.rc
-#   #   DEPENDS ${SWELL_RESGEN}
-#   #   MAIN_DEPENDENCY resource.rc
-#   # )
-# endif()
+  # Transpile the Win32 resource file
+  # find_package(PHP REQUIRED)
+  # add_custom_command(
+  #   OUTPUT  resource.rc_mac_dlg resource.rc_mac_menu
+  #   COMMAND ${CMAKE_COMMAND} -E copy
+  #     ${CMAKE_CURRENT_SOURCE_DIR}/resource.rc ${CMAKE_CURRENT_BINARY_DIR}
+  #   COMMAND ${PHP_EXECUTABLE} ${SWELL_RESGEN} --quiet resource.rc
+  #   DEPENDS ${SWELL_RESGEN}
+  #   MAIN_DEPENDENCY resource.rc
+  # )
+endif()
 
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_MINSIZEREL     ON)
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE        ON)
