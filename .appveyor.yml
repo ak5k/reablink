@@ -68,15 +68,15 @@ for:
         case $ARCH in
         *arm64*)
           DEPLOY_TARGET=11.0
-          # sudo xcode-select -s /Applications/Xcode-12.3.app
+          sudo xcode-select -s /Applications/Xcode-12.3.app
           ;;
         *)
           DEPLOY_TARGET=10.9
-          # export SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX10.10.sdk
-          # curl -fsSLO https://github.com/phracker/MacOSX-SDKs/releases/download/10.15/MacOSX10.10.sdk.tar.xz
-          # echo 608a89db8b4be150a945871230b5ba5d4767a8500bc5fe76ddf10f5cec5ef513 MacOSX10.10.sdk.tar.xz | sha256sum -c
-          # sudo tar xf MacOSX10.10.sdk.tar.xz -C /Library/Developer/CommandLineTools/SDKs
-          # sudo xcode-select -s /Library/Developer/CommandLineTools
+          export SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX10.10.sdk
+          curl -fsSLO https://github.com/phracker/MacOSX-SDKs/releases/download/10.15/MacOSX10.10.sdk.tar.xz
+          echo 608a89db8b4be150a945871230b5ba5d4767a8500bc5fe76ddf10f5cec5ef513 MacOSX10.10.sdk.tar.xz | sha256sum -c
+          sudo tar xf MacOSX10.10.sdk.tar.xz -C /Library/Developer/CommandLineTools/SDKs
+          sudo xcode-select -s /Library/Developer/CommandLineTools
           ;;
         esac
 
