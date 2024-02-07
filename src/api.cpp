@@ -2,6 +2,7 @@
 #include "config.h"
 
 #include "engine.hpp"
+
 #include "global_vars.hpp"
 #include <atomic>
 #include <stdio.h>
@@ -731,8 +732,10 @@ double Blink_GetVersion()
 const char* defstring_Blink_GetVersion = "double\0\0\0"
                                          "Get Blink version.";
 
-void Init()
+void Init(void* ptr)
 {
+  auto rec = (reaper_plugin_info_t*)ptr;
+
   plugin_register("API_Blink_GetTimelineOffset", (void*)GetTimelineOffset);
   plugin_register("APIdef_Blink_GetTimelineOffset",
                   (void*)defstring_GetTimelineOffset);
@@ -952,8 +955,10 @@ void Init()
     if (file != NULL)
     {
       fclose(file);
-      AddRemoveReaScript(true, 0, path.c_str(), false);
+      AddRemoveReaScript(false, 0, path.c_str(), false);
     }
   }
+
+  (void)rec;
 }
 } // namespace reablink
