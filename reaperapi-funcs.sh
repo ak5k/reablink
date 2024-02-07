@@ -1,6 +1,5 @@
 #!/bin/bash
-
-source_path="./src"
+source_path="$1"
 
 reaperapi_header_path=$(find . -name reaper_plugin_functions.h | head -n 1)
 
