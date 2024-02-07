@@ -27,7 +27,7 @@ static bool loadAPI(void* (*getFunc)(const char*))
 
   const ApiFunc funcs[]{REQUIRED_API(AddProjectMarker),
                         REQUIRED_API(AddProjectMarker2),
-                        OPTIONAL_API(AddRemoveReaScript),
+                        REQUIRED_API(AddRemoveReaScript),
                         REQUIRED_API(Audio_RegHardwareHook),
                         REQUIRED_API(CountMediaItems),
                         REQUIRED_API(CountProjectMarkers),
