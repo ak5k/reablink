@@ -3,8 +3,8 @@
 
 namespace reablink
 {
-void Init();
-void Unregister();
+void Init(void* rec);
+// void Unregister();
 } // namespace reablink
 
 #endif // API_HPP

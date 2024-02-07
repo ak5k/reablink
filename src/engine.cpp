@@ -187,30 +187,6 @@ double GetFrameTime()
   auto now = std::chrono::high_resolution_clock::now();
   auto now_double =
     std::chrono::duration<double>(now.time_since_epoch()).count();
-  // if (time0 > 0.)
-  // {
-  //   timer_intervals.push_back(now_double - time0);
-  //   double sum = 0.0;
-  //   int count = TIMER_INTERVALS_SIZE / 2;
-  //   int num = 0;
-  //   std::sort(timer_intervals.begin(), timer_intervals.end(),
-  //             std::greater<double>());
-  //   while (count > 0)
-  //   {
-  //     auto temp = timer_intervals.at(count + (TIMER_INTERVALS_SIZE / 4) - 1);
-  //     if (temp > 0.0)
-  //     {
-  //       sum += temp;
-  //       num++;
-  //     }
-  //     count--;
-  //   }
-
-  //   timer_intervals.pop_back();
-
-  //   frame_time = sum / num;
-  // }
-  // return frame_time;
   static RollingAverage frame_time_avg(512);
   frame_time_avg.add(now_double - time0);
   time0 = now_double;
@@ -304,14 +280,11 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
   auto frame_time = GetFrameTime();
   static int frame_count{0};
   static double qn_prev{0};
-  // static MediaItem *preroll_midi_item{nullptr};
   static int preroll_region_idx{0};
   static int target_region_idx{0};
-  // static int preroll_tempo_idx{0};
   static double jump_offset{0};
   static double land_offset{0};
   static bool launch_cleared{false};
-  static std::string audio_device_mode;
 
   const auto engineData = pullEngineData();
 
@@ -329,13 +302,7 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
 
   if (isPuppet && !mIsPlaying && sessionState.isPlaying())
   {
-    // Reset the timeline so that beat 0 corresponds to the time when transport
-    // starts
-    // auto time0 = time_precise();
     PreventUIRefresh(3);
-    char buf[BUFSIZ];
-    GetAudioDeviceInfo("MODE", buf, BUFSIZ);
-    audio_device_mode = buf;
     qn_prev = 0;
     Undo_BeginBlock();
     if (mLink.numPeers() > 0 && GetToggleCommandState(40620) == 0)
@@ -359,9 +326,6 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
       auto beat_now = sessionState.beatAtTime(hostTime, engineData.quantum);
       auto beat_offset = engineData.quantum - abs(beat_now);
       double pos_preroll{0};
-      // int markers{0};
-      // int regions{0};
-      // CountProjectMarkers(0, &markers, &regions);
       for (int i = 0; i < CountProjectMarkers(0, 0, 0); i++)
       {
         int region_idx{0};
@@ -375,14 +339,12 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
 
       SetTempoTimeSigMarker(0, -1, pos_preroll, 0, 0, sessionState.tempo(),
                             timesig_num, timesig_denom, false);
-      // preroll_tempo_idx = FindTempoTimeSigMarker(0, pos_preroll);
       FindTempoTimeSigMarker(0, pos_preroll);
 
       MediaTrack* track = GetTrack(0, 0); // Get the first track
 
       // Create the new MIDI item
 
-      // preroll_midi_item = CreateNewMIDIItemInProj(
       CreateNewMIDIItemInProj(
         track, pos_preroll,
         pos_preroll + (60. / sessionState.tempo() * engineData.quantum), 0);
@@ -400,7 +362,6 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime,
     OnPlayButton();
     jump_offset = 0;
     land_offset = 0;
-    // auto time1 = time_precise();
     mIsPlaying = true;
     launch_cleared = false;
     PreventUIRefresh(-3);
