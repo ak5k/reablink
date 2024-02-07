@@ -1,115 +1,154 @@
 #include "api.hpp"
+#include <stdio.h>
 
-#define REAPERAPI_WANT_AddProjectMarker
-#define REAPERAPI_WANT_AddProjectMarker2
-#define REAPERAPI_WANT_AddRemoveReaScript
-#define REAPERAPI_WANT_Audio_RegHardwareHook
-#define REAPERAPI_WANT_CountMediaItems
-#define REAPERAPI_WANT_CountProjectMarkers
-#define REAPERAPI_WANT_CreateNewMIDIItemInProj
-#define REAPERAPI_WANT_DeleteProjectMarker
-#define REAPERAPI_WANT_DeleteProjectMarkerByIndex
-#define REAPERAPI_WANT_DeleteTempoTimeSigMarker
-#define REAPERAPI_WANT_DeleteTrack
-#define REAPERAPI_WANT_DeleteTrackMediaItem
-#define REAPERAPI_WANT_EnumProjectMarkers
-#define REAPERAPI_WANT_EnumProjectMarkers2
-#define REAPERAPI_WANT_FindTempoTimeSigMarker
-#define REAPERAPI_WANT_GetAppVersion
-#define REAPERAPI_WANT_GetAudioDeviceInfo
-#define REAPERAPI_WANT_GetCursorPosition
-#define REAPERAPI_WANT_GetExtState
-#define REAPERAPI_WANT_GetLastMarkerAndCurRegion
-#define REAPERAPI_WANT_GetMediaItem
-#define REAPERAPI_WANT_GetMediaItem_Track
-#define REAPERAPI_WANT_GetMediaItemInfo_Value
-#define REAPERAPI_WANT_GetOutputLatency
-#define REAPERAPI_WANT_GetPlayPosition
-#define REAPERAPI_WANT_GetPlayPosition2
-#define REAPERAPI_WANT_GetPlayState
-#define REAPERAPI_WANT_GetProjectLength
-#define REAPERAPI_WANT_GetResourcePath
-#define REAPERAPI_WANT_GetSet_LoopTimeRange
-#define REAPERAPI_WANT_GetSetRepeat
-#define REAPERAPI_WANT_GetTempoTimeSigMarker
-#define REAPERAPI_WANT_GetToggleCommandState
-#define REAPERAPI_WANT_GetTrack
-#define REAPERAPI_WANT_GoToRegion
-#define REAPERAPI_WANT_Main_OnCommand
-#define REAPERAPI_WANT_Master_GetPlayRate
-#define REAPERAPI_WANT_Master_GetTempo
-#define REAPERAPI_WANT_OnPlayButton
-#define REAPERAPI_WANT_OnStopButton
-#define REAPERAPI_WANT_plugin_register
-#define REAPERAPI_WANT_PreventUIRefresh
-#define REAPERAPI_WANT_SetEditCurPos
-#define REAPERAPI_WANT_SetExtState
-#define REAPERAPI_WANT_SetTempoTimeSigMarker
-#define REAPERAPI_WANT_time_precise
-#define REAPERAPI_WANT_TimeMap2_beatsToTime
-#define REAPERAPI_WANT_TimeMap2_timeToBeats
-#define REAPERAPI_WANT_TimeMap2_timeToQN
-#define REAPERAPI_WANT_TimeMap_GetTimeSigAtTime
-#define REAPERAPI_WANT_Undo_BeginBlock
-#define REAPERAPI_WANT_Undo_EndBlock
-#define REAPERAPI_WANT_UpdateTimeline
-#define REAPERAPI_WANT_AddProjectMarker
-#define REAPERAPI_WANT_AddProjectMarker2
-#define REAPERAPI_WANT_AddRemoveReaScript
-#define REAPERAPI_WANT_Audio_RegHardwareHook
-#define REAPERAPI_WANT_CountMediaItems
-#define REAPERAPI_WANT_CountProjectMarkers
-#define REAPERAPI_WANT_CreateNewMIDIItemInProj
-#define REAPERAPI_WANT_DeleteProjectMarker
-#define REAPERAPI_WANT_DeleteProjectMarkerByIndex
-#define REAPERAPI_WANT_DeleteTempoTimeSigMarker
-#define REAPERAPI_WANT_DeleteTrack
-#define REAPERAPI_WANT_DeleteTrackMediaItem
-#define REAPERAPI_WANT_EnumProjectMarkers
-#define REAPERAPI_WANT_EnumProjectMarkers2
-#define REAPERAPI_WANT_FindTempoTimeSigMarker
-#define REAPERAPI_WANT_GetAppVersion
-#define REAPERAPI_WANT_GetAudioDeviceInfo
-#define REAPERAPI_WANT_GetCursorPosition
-#define REAPERAPI_WANT_GetExtState
-#define REAPERAPI_WANT_GetLastMarkerAndCurRegion
-#define REAPERAPI_WANT_GetMediaItem
-#define REAPERAPI_WANT_GetMediaItem_Track
-#define REAPERAPI_WANT_GetMediaItemInfo_Value
-#define REAPERAPI_WANT_GetOutputLatency
-#define REAPERAPI_WANT_GetPlayPosition
-#define REAPERAPI_WANT_GetPlayPosition2
-#define REAPERAPI_WANT_GetPlayState
-#define REAPERAPI_WANT_GetProjectLength
-#define REAPERAPI_WANT_GetResourcePath
-#define REAPERAPI_WANT_GetSet_LoopTimeRange
-#define REAPERAPI_WANT_GetSetRepeat
-#define REAPERAPI_WANT_GetTempoTimeSigMarker
-#define REAPERAPI_WANT_GetToggleCommandState
-#define REAPERAPI_WANT_GetTrack
-#define REAPERAPI_WANT_GoToRegion
-#define REAPERAPI_WANT_Main_OnCommand
-#define REAPERAPI_WANT_Master_GetPlayRate
-#define REAPERAPI_WANT_Master_GetTempo
-#define REAPERAPI_WANT_OnPlayButton
-#define REAPERAPI_WANT_OnStopButton
-#define REAPERAPI_WANT_plugin_register
-#define REAPERAPI_WANT_PreventUIRefresh
-#define REAPERAPI_WANT_SetEditCurPos
-#define REAPERAPI_WANT_SetExtState
-#define REAPERAPI_WANT_SetTempoTimeSigMarker
-#define REAPERAPI_WANT_time_precise
-#define REAPERAPI_WANT_TimeMap2_beatsToTime
-#define REAPERAPI_WANT_TimeMap2_timeToBeats
-#define REAPERAPI_WANT_TimeMap2_timeToQN
-#define REAPERAPI_WANT_TimeMap_GetTimeSigAtTime
-#define REAPERAPI_WANT_Undo_BeginBlock
-#define REAPERAPI_WANT_Undo_EndBlock
-#define REAPERAPI_WANT_UpdateTimeline
-
-#define REAPERAPI_MINIMAL
 #define REAPERAPI_IMPLEMENT
 #include <reaper_plugin_functions.h>
+
+#define REQUIRED_API(name)                                                     \
+  {                                                                            \
+    (void**)&name, #name, true                                                 \
+  }
+#define OPTIONAL_API(name)                                                     \
+  {                                                                            \
+    (void**)&name, #name, false                                                \
+  }
+
+static bool loadAPI(void* (*getFunc)(const char*))
+{
+  if (!getFunc)
+    return false;
+
+  struct ApiFunc
+  {
+    void** ptr;
+    const char* name;
+    bool required;
+  };
+
+  const ApiFunc funcs[]{REQUIRED_API(AddProjectMarker),
+                        REQUIRED_API(AddProjectMarker2),
+                        REQUIRED_API(AddRemoveReaScript),
+                        REQUIRED_API(Audio_RegHardwareHook),
+                        REQUIRED_API(CountMediaItems),
+                        REQUIRED_API(CountProjectMarkers),
+                        REQUIRED_API(CreateNewMIDIItemInProj),
+                        REQUIRED_API(DeleteProjectMarker),
+                        REQUIRED_API(DeleteProjectMarkerByIndex),
+                        REQUIRED_API(DeleteTempoTimeSigMarker),
+                        REQUIRED_API(DeleteTrack),
+                        REQUIRED_API(DeleteTrackMediaItem),
+                        REQUIRED_API(EnumProjectMarkers),
+                        REQUIRED_API(EnumProjectMarkers2),
+                        REQUIRED_API(FindTempoTimeSigMarker),
+                        REQUIRED_API(GetAppVersion),
+                        REQUIRED_API(GetAudioDeviceInfo),
+                        REQUIRED_API(GetCursorPosition),
+                        REQUIRED_API(GetExtState),
+                        REQUIRED_API(GetLastMarkerAndCurRegion),
+                        REQUIRED_API(GetMediaItem),
+                        REQUIRED_API(GetMediaItem_Track),
+                        REQUIRED_API(GetMediaItemInfo_Value),
+                        REQUIRED_API(GetOutputLatency),
+                        REQUIRED_API(GetPlayPosition),
+                        REQUIRED_API(GetPlayPosition2),
+                        REQUIRED_API(GetPlayState),
+                        REQUIRED_API(GetProjectLength),
+                        REQUIRED_API(GetResourcePath),
+                        REQUIRED_API(GetSet_LoopTimeRange),
+                        REQUIRED_API(GetSetRepeat),
+                        REQUIRED_API(GetTempoTimeSigMarker),
+                        REQUIRED_API(GetToggleCommandState),
+                        REQUIRED_API(GetTrack),
+                        REQUIRED_API(GoToRegion),
+                        REQUIRED_API(Main_OnCommand),
+                        REQUIRED_API(Master_GetPlayRate),
+                        REQUIRED_API(Master_GetTempo),
+                        REQUIRED_API(OnPlayButton),
+                        REQUIRED_API(OnStopButton),
+                        REQUIRED_API(plugin_register),
+                        REQUIRED_API(PreventUIRefresh),
+                        REQUIRED_API(SetEditCurPos),
+                        REQUIRED_API(SetExtState),
+                        REQUIRED_API(SetTempoTimeSigMarker),
+                        REQUIRED_API(ShowConsoleMsg),
+                        REQUIRED_API(time_precise),
+                        REQUIRED_API(TimeMap2_beatsToTime),
+                        REQUIRED_API(TimeMap2_timeToBeats),
+                        REQUIRED_API(TimeMap2_timeToQN),
+                        REQUIRED_API(TimeMap_GetTimeSigAtTime),
+                        REQUIRED_API(Undo_BeginBlock),
+                        REQUIRED_API(Undo_EndBlock),
+                        REQUIRED_API(UpdateTimeline),
+                        REQUIRED_API(AddProjectMarker),
+                        REQUIRED_API(AddProjectMarker2),
+                        REQUIRED_API(AddRemoveReaScript),
+                        REQUIRED_API(Audio_RegHardwareHook),
+                        REQUIRED_API(CountMediaItems),
+                        REQUIRED_API(CountProjectMarkers),
+                        REQUIRED_API(CreateNewMIDIItemInProj),
+                        REQUIRED_API(DeleteProjectMarker),
+                        REQUIRED_API(DeleteProjectMarkerByIndex),
+                        REQUIRED_API(DeleteTempoTimeSigMarker),
+                        REQUIRED_API(DeleteTrack),
+                        REQUIRED_API(DeleteTrackMediaItem),
+                        REQUIRED_API(EnumProjectMarkers),
+                        REQUIRED_API(EnumProjectMarkers2),
+                        REQUIRED_API(FindTempoTimeSigMarker),
+                        REQUIRED_API(GetAppVersion),
+                        REQUIRED_API(GetAudioDeviceInfo),
+                        REQUIRED_API(GetCursorPosition),
+                        REQUIRED_API(GetExtState),
+                        REQUIRED_API(GetLastMarkerAndCurRegion),
+                        REQUIRED_API(GetMediaItem),
+                        REQUIRED_API(GetMediaItem_Track),
+                        REQUIRED_API(GetMediaItemInfo_Value),
+                        REQUIRED_API(GetOutputLatency),
+                        REQUIRED_API(GetPlayPosition),
+                        REQUIRED_API(GetPlayPosition2),
+                        REQUIRED_API(GetPlayState),
+                        REQUIRED_API(GetProjectLength),
+                        REQUIRED_API(GetResourcePath),
+                        REQUIRED_API(GetSet_LoopTimeRange),
+                        REQUIRED_API(GetSetRepeat),
+                        REQUIRED_API(GetTempoTimeSigMarker),
+                        REQUIRED_API(GetToggleCommandState),
+                        REQUIRED_API(GetTrack),
+                        REQUIRED_API(GoToRegion),
+                        REQUIRED_API(Main_OnCommand),
+                        REQUIRED_API(Master_GetPlayRate),
+                        REQUIRED_API(Master_GetTempo),
+                        REQUIRED_API(OnPlayButton),
+                        REQUIRED_API(OnStopButton),
+                        REQUIRED_API(plugin_register),
+                        REQUIRED_API(PreventUIRefresh),
+                        REQUIRED_API(SetEditCurPos),
+                        REQUIRED_API(SetExtState),
+                        REQUIRED_API(SetTempoTimeSigMarker),
+                        REQUIRED_API(ShowConsoleMsg),
+                        REQUIRED_API(time_precise),
+                        REQUIRED_API(TimeMap2_beatsToTime),
+                        REQUIRED_API(TimeMap2_timeToBeats),
+                        REQUIRED_API(TimeMap2_timeToQN),
+                        REQUIRED_API(TimeMap_GetTimeSigAtTime),
+                        REQUIRED_API(Undo_BeginBlock),
+                        REQUIRED_API(Undo_EndBlock),
+                        REQUIRED_API(UpdateTimeline)};
+
+  for (const ApiFunc& func : funcs)
+  {
+    *func.ptr = getFunc(func.name);
+
+    if (func.required && !*func.ptr)
+    {
+      fprintf(stderr,
+              "[ReaBlink] Unable to import the following API function: %s\n",
+              func.name);
+      return false;
+    }
+  }
+
+  return true;
+}
 
 extern "C"
 {
@@ -117,12 +156,13 @@ REAPER_PLUGIN_DLL_EXPORT int REAPER_PLUGIN_ENTRYPOINT(
   REAPER_PLUGIN_HINSTANCE hInstance, reaper_plugin_info_t* rec)
 {
   (void)hInstance;
-  if (rec != nullptr && REAPERAPI_LoadAPI(rec->GetFunc) == 0)
+  // if (rec != nullptr && REAPERAPI_LoadAPI(rec->GetFunc) == 0)
+  if (rec != nullptr && loadAPI(rec->GetFunc))
   {
-    return 1;
     reablink::Init();
+    return 1;
   }
-  // reablink::Unregister();
+
   return 0;
 }
 }
