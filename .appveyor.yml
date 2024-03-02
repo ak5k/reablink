@@ -11,7 +11,7 @@ build_script:
     -DREPO_TAG=$REPO_TAG
   - cmake --build build
   - cd build 
-  - if [ "$ARCH" == "arm64;x86_64" ]; then sudo cpack && rm *.dylib; fi
+  # - if [ "$ARCH" == "arm64;x86_64" ]; then sudo cpack && rm *.dylib; fi
 
 for:
   - matrix: { only: [ appveyor_build_worker_image: &linux Ubuntu1804 ] }
@@ -108,7 +108,7 @@ for:
         -DREPO_TAG=%REPO_TAG%
       - cmake --build build
       - cd build
-      - if "%ARCH%" == "x64" cpack
+      # - if "%ARCH%" == "x64" cpack
     artifacts:
       - path: build\reaper_*.dll
       - path: build\*.exe
