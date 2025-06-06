@@ -4,14 +4,16 @@
 #endif
 
 #include "engine.hpp"
+
 #include "RollingAverage.hpp"
 #include "global_vars.hpp"
+
+#include <WDL/wdltypes.h>
 #include <algorithm>
 #include <deque>
 #include <numeric>
-#include <vector>
-
 #include <reaper_plugin_functions.h>
+#include <vector>
 
 namespace reablink
 {
@@ -67,9 +69,7 @@ bool AudioEngine::isPlaying() const
 double AudioEngine::beatTime() const
 {
     const auto sessionState = mLink.captureAppSessionState();
-    return sessionState.beatAtTime(
-        mLink.clock().micros(), mSharedEngineData.quantum
-    );
+    return sessionState.beatAtTime(mLink.clock().micros(), mSharedEngineData.quantum);
 }
 
 void AudioEngine::setTempo(double tempo)
@@ -134,17 +134,7 @@ int FindTempoTimeSigMarkerByPosition(ReaProject* proj, double targetPos)
 
     while (true)
     {
-        if (!GetTempoTimeSigMarker(
-                proj,
-                idx,
-                &pos,
-                &measure,
-                &beat,
-                &bpm,
-                &timesig_num,
-                &timesig_denom,
-                &lineartempo
-            ))
+        if (!GetTempoTimeSigMarker(proj, idx, &pos, &measure, &beat, &bpm, &timesig_num, &timesig_denom, &lineartempo))
             break; // No more tempo/time signature markers
 
         if (pos == targetPos)
@@ -157,9 +147,7 @@ int FindTempoTimeSigMarkerByPosition(ReaProject* proj, double targetPos)
 }
 
 // Function to find a region or marker by name containing a specific substring
-int FindRegionOrMarkerByNameContaining(
-    ReaProject* proj, const std::string& substring
-)
+int FindRegionOrMarkerByNameContaining(ReaProject* proj, const std::string& substring)
 {
     int idx = 0;
     bool isRegion;
@@ -170,12 +158,8 @@ int FindRegionOrMarkerByNameContaining(
     while (true)
     {
         const char* namebuf;
-        if (!EnumProjectMarkers2(
-                proj, idx, &isRegion, &pos, &regEnd, &namebuf, &markerId
-            ))
-        {
+        if (!EnumProjectMarkers2(proj, idx, &isRegion, &pos, &regEnd, &namebuf, &markerId))
             break; // No more markers or regions
-        }
 
         regionName = namebuf;
         if (isRegion && regionName.find(substring) != std::string::npos)
@@ -195,8 +179,7 @@ double GetFrameTime()
     static double time0 = 0.;
     // auto frame_time = 0.;
     auto now = std::chrono::high_resolution_clock::now();
-    auto now_double =
-        std::chrono::duration<double>(now.time_since_epoch()).count();
+    auto now_double = std::chrono::duration<double>(now.time_since_epoch()).count();
     static RollingAverage frame_time_avg(512);
     frame_time_avg.add(now_double - time0);
     time0 = now_double;
@@ -227,11 +210,8 @@ double GetNextFullMeasureTimePosition()
         NULL
     ); // Convert the current position to beats
     (void)measurePosition;
-    return TimeMap2_beatsToTime(
-        0,
-        beats3,
-        &measures3
-    ); // Convert the next full measure position to time
+    return TimeMap2_beatsToTime(0, beats3,
+                                &measures3); // Convert the next full measure position to time
 }
 
 int SetLaunchPrerollRegion()
@@ -265,9 +245,7 @@ int SetLaunchPrerollRegion()
     // Add the region to the project
     int isRegion = true; // We want to create a region, not a marker
     int color = 0;       // The color of the region (0 = default color)
-    return AddProjectMarker2(
-        0, isRegion, region_start, region_end, "reablink pre-roll", -1, color
-    );
+    return AddProjectMarker2(0, isRegion, region_start, region_end, "reablink pre-roll", -1, color);
 }
 
 void ClearReablinkDummyObjects()
@@ -281,12 +259,9 @@ void ClearReablinkDummyObjects()
         const char* namebuf;
         double pos{0};
         EnumProjectMarkers(idx, NULL, &pos, NULL, &namebuf, NULL);
-        if (namebuf != nullptr &&
-            strstr(namebuf, "reablink pre-roll") != nullptr)
+        if (namebuf != nullptr && strstr(namebuf, "reablink pre-roll") != nullptr)
         {
-            DeleteTempoTimeSigMarker(
-                0, FindTempoTimeSigMarkerByPosition(0, pos)
-            );
+            DeleteTempoTimeSigMarker(0, FindTempoTimeSigMarkerByPosition(0, pos));
             for (int i = CountMediaItems(0); i > -1; i--)
             {
                 auto item = GetMediaItem(0, i);
@@ -298,9 +273,7 @@ void ClearReablinkDummyObjects()
     }
 }
 
-void AudioEngine::audioCallback(
-    const std::chrono::microseconds hostTime, const std::size_t numSamples
-)
+void AudioEngine::audioCallback(const std::chrono::microseconds hostTime, const std::size_t numSamples)
 {
     static bool quantized_launch{false};
     auto frame_time = GetFrameTime();
@@ -334,9 +307,7 @@ void AudioEngine::audioCallback(
             int timesig_num = 0;
             int timesig_denom = 0;
             double tempo = 0;
-            TimeMap_GetTimeSigAtTime(
-                0, pos_target, &timesig_num, &timesig_denom, &tempo
-            );
+            TimeMap_GetTimeSigAtTime(0, pos_target, &timesig_num, &timesig_denom, &tempo);
             target_region_idx = AddProjectMarker2(
                 0,
                 true,
@@ -360,32 +331,19 @@ void AudioEngine::audioCallback(
             );
             preroll_region_idx = SetLaunchPrerollRegion();
             sessionState.requestBeatAtStartPlayingTime(0, engineData.quantum);
-            auto beat_now =
-                sessionState.beatAtTime(hostTime, engineData.quantum);
+            auto beat_now = sessionState.beatAtTime(hostTime, engineData.quantum);
             auto beat_offset = engineData.quantum - abs(beat_now);
             double pos_preroll{0};
             for (int i = 0; i < CountProjectMarkers(0, 0, 0); i++)
             {
                 int region_idx{0};
                 bool isRegion{false};
-                EnumProjectMarkers(
-                    i, &isRegion, &pos_preroll, NULL, NULL, &region_idx
-                );
+                EnumProjectMarkers(i, &isRegion, &pos_preroll, NULL, NULL, &region_idx);
                 if (isRegion && region_idx == preroll_region_idx)
                     break;
             }
 
-            SetTempoTimeSigMarker(
-                0,
-                -1,
-                pos_preroll,
-                0,
-                0,
-                sessionState.tempo(),
-                timesig_num,
-                timesig_denom,
-                false
-            );
+            SetTempoTimeSigMarker(0, -1, pos_preroll, 0, 0, sessionState.tempo(), timesig_num, timesig_denom, false);
             FindTempoTimeSigMarker(0, pos_preroll);
 
             MediaTrack* track = GetTrack(0, 0); // Get the first track
@@ -401,14 +359,8 @@ void AudioEngine::audioCallback(
 
             int measures{0};
             TimeMap2_timeToBeats(0, pos_preroll, &measures, 0, 0, 0);
-            auto pos_preroll_start =
-                TimeMap2_beatsToTime(0, beat_offset, &measures);
-            SetEditCurPos(
-                pos_preroll_start +
-                    (hostTime - mLink.clock().micros()).count() / 1.0e6,
-                false,
-                false
-            );
+            auto pos_preroll_start = TimeMap2_beatsToTime(0, beat_offset, &measures);
+            SetEditCurPos(pos_preroll_start + (hostTime - mLink.clock().micros()).count() / 1.0e6, false, false);
 
             quantized_launch = true;
         }
@@ -479,8 +431,7 @@ void AudioEngine::audioCallback(
 
         // set tempo if host /
         //   timeline has changed it
-        if (sessionState.beatAtTime(hostTime, engineData.quantum) > 0. &&
-            hostBpm != sessionState.tempo() &&
+        if (sessionState.beatAtTime(hostTime, engineData.quantum) > 0. && hostBpm != sessionState.tempo() &&
             !(engineData.requestedTempo > 0.))
         {
             sessionState.setTempo(hostBpm, hostTime);
@@ -489,15 +440,12 @@ void AudioEngine::audioCallback(
         // get current qn/beat position
         auto pos = GetPlayPosition2();
         int measures{0};
-        auto beat = TimeMap2_timeToBeats(
-            0, pos, &measures, &timesig_num, 0, &timesig_denom
-        );
+        auto beat = TimeMap2_timeToBeats(0, pos, &measures, &timesig_num, 0, &timesig_denom);
 
         auto qn_abs = TimeMap2_timeToQN(0, pos);
 
         // handle looping/jumps
-        if (abs(qn_abs - qn_prev) > 0.5 &&
-            sessionState.beatAtTime(hostTime, engineData.quantum) > 1.)
+        if (abs(qn_abs - qn_prev) > 0.5 && sessionState.beatAtTime(hostTime, engineData.quantum) > 1.)
         {
             if (GetSetRepeat(-1) == 1)
             {
@@ -506,32 +454,24 @@ void AudioEngine::audioCallback(
                 GetSet_LoopTimeRange(false, false, &start_pos, &end_pos, false);
                 if (pos > start_pos && pos < end_pos)
                 {
-                    auto start_beat =
-                        TimeMap2_timeToBeats(0, start_pos, &measures, 0, 0, 0);
-                    auto end_beat =
-                        TimeMap2_timeToBeats(0, end_pos, &measures, 0, 0, 0);
+                    auto start_beat = TimeMap2_timeToBeats(0, start_pos, &measures, 0, 0, 0);
+                    auto end_beat = TimeMap2_timeToBeats(0, end_pos, &measures, 0, 0, 0);
                     jump_offset = fmod(jump_offset + end_beat, 1.0);
                     land_offset = fmod(land_offset + start_beat, 1.0);
                 }
             }
             else
             {
-                sessionState.requestBeatAtTime(
-                    fmod(beat, 1.), hostTime, 4. / timesig_denom
-                );
+                sessionState.requestBeatAtTime(fmod(beat, 1.), hostTime, 4. / timesig_denom);
             }
         }
         qn_prev = qn_abs;
         auto reaper_phase_current = fmod(beat - land_offset + jump_offset, 1.0);
 
         // sync
-        auto link_phase_current =
-            sessionState.phaseAtTime(hostTime, 4. / timesig_denom) *
-            (timesig_denom / 4);
-        auto reaper_phase_time =
-            reaper_phase_current * 60. / sessionState.tempo();
-        auto link_phase_time =
-            fmod(link_phase_current, 1.0) * 60. / sessionState.tempo();
+        auto link_phase_current = sessionState.phaseAtTime(hostTime, 4. / timesig_denom) * (timesig_denom / 4);
+        auto reaper_phase_time = reaper_phase_current * 60. / sessionState.tempo();
+        auto link_phase_time = fmod(link_phase_current, 1.0) * 60. / sessionState.tempo();
 
         auto diff = (reaper_phase_time - link_phase_time);
         static RollingAverage diff_avg(8);
@@ -543,25 +483,18 @@ void AudioEngine::audioCallback(
         double limit_denom = 8.;
         if (buf_len_time / (numSamples / g_abuf_srate) > 3)
             limit_denom = 1.0;
-        static auto limit = std::max(
-            frame_time / limit_denom,
-            buf_len_time / limit_denom
-        ); // seconds
+        static auto limit = std::max(frame_time / limit_denom,
+                                     buf_len_time / limit_denom); // seconds
 
-        if (!isMaster && isPuppet && mLink.numPeers() > 0 &&
-            !quantized_launch &&
+        if (!isMaster && isPuppet && mLink.numPeers() > 0 && !quantized_launch &&
             (sessionState.beatAtTime(hostTime, engineData.quantum) < 0 ||
              sessionState.beatAtTime(hostTime, engineData.quantum) > 1.666) &&
-            abs(diff) > limit &&
-            abs(reaper_phase_current - link_phase_current) < 0.5 &&
+            abs(diff) > limit && abs(reaper_phase_current - link_phase_current) < 0.5 &&
             GetToggleCommandState(40620) == 0)
         {
-            limit = std::max(
-                frame_time / limit_denom / 2,
-                buf_len_time / limit_denom / 2
-            ); // seconds
-            if (reaper_phase_time > link_phase_time &&
-                Master_GetPlayRate(0) >= 1)
+            limit = std::max(frame_time / limit_denom / 2,
+                             buf_len_time / limit_denom / 2); // seconds
+            if (reaper_phase_time > link_phase_time && Master_GetPlayRate(0) >= 1)
             {
                 Main_OnCommand(40525, 0);
                 Main_OnCommand(40525, 0);
@@ -574,10 +507,8 @@ void AudioEngine::audioCallback(
         }
         else if (!isMaster && isPuppet && mLink.numPeers() > 0 && abs(diff) < limit && Master_GetPlayRate(0) != 1)
         {
-            limit = std::max(
-                frame_time / limit_denom,
-                buf_len_time / limit_denom
-            ); // seconds
+            limit = std::max(frame_time / limit_denom,
+                             buf_len_time / limit_denom); // seconds
             Main_OnCommand(40521, 0);
         }
         else if ((mLink.numPeers() == 0 || isMaster) && abs(diff) > limit)
@@ -605,27 +536,12 @@ void AudioEngine::audioCallback(
             GetSet_LoopTimeRange(false, false, &loop_start, &loop_end, false);
             auto loop_end_beat = TimeMap2_timeToBeats(0, loop_end, 0, 0, 0, 0);
             auto beat = TimeMap2_timeToBeats(0, r_pos, 0, 0, 0, 0);
-            if ((r_pos > loop_start && r_pos < loop_end) &&
-                abs(beat - loop_end_beat) < 1)
-            {
+            if ((r_pos > loop_start && r_pos < loop_end) && abs(beat - loop_end_beat) < 1)
                 new_tempo = hostBpm;
-            }
             (void)measures;
         }
-        if (!SetTempoTimeSigMarker(
-                0,
-                ptidx,
-                timepos,
-                measurepos,
-                beatpos,
-                new_tempo,
-                timesig_num,
-                timesig_denom,
-                0
-            ))
-        {
+        if (!SetTempoTimeSigMarker(0, ptidx, timepos, measurepos, beatpos, new_tempo, timesig_num, timesig_denom, 0))
             sessionState.setTempo(new_tempo, hostTime);
-        }
     }
 
     frame_count++;

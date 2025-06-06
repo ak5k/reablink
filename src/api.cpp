@@ -1,15 +1,14 @@
 #include "api.hpp"
+
 #include "config.h"
-
 #include "engine.hpp"
-
 #include "global_vars.hpp"
-#include <atomic>
-#include <stdio.h>
-
-#include <reaper_plugin_functions.h>
-
 #include "reascript_vararg.hpp"
+
+#include <WDL/wdltypes.h>
+#include <atomic>
+#include <reaper_plugin_functions.h>
+#include <stdio.h>
 
 namespace reablink
 {
@@ -17,74 +16,72 @@ using namespace ableton;
 
 struct LinkSession
 {
-  std::atomic<bool> running = true;
-  ableton::Link link = ableton::Link(Master_GetTempo());
-  // ableton::linkaudio::AudioPlatform audioPlatform =
-  //   ableton::linkaudio::AudioPlatform(link);
-  AudioPlatform audioPlatform = AudioPlatform(link);
+    std::atomic<bool> running = true;
+    ableton::Link link = ableton::Link(Master_GetTempo());
+    // ableton::linkaudio::AudioPlatform audioPlatform =
+    //   ableton::linkaudio::AudioPlatform(link);
+    AudioPlatform audioPlatform = AudioPlatform(link);
 
-  LinkSession& operator=(const LinkSession&&) = delete;
-  LinkSession& operator=(const LinkSession&) = delete;
-  LinkSession(const LinkSession&&) = delete;
-  LinkSession(const LinkSession&) = delete;
+    LinkSession& operator=(const LinkSession&&) = delete;
+    LinkSession& operator=(const LinkSession&) = delete;
+    LinkSession(const LinkSession&&) = delete;
+    LinkSession(const LinkSession&) = delete;
 
-  // singleton
-  static LinkSession& getInstance()
-  {
-    static LinkSession* instance = new LinkSession(); // NOLINT
-    return *instance;
-  }
-
-  static void TempoCallback(double bpm)
-  {
-    if (getInstance().audioPlatform.mEngine.getPuppet())
+    // singleton
+    static LinkSession& getInstance()
     {
-      getInstance().audioPlatform.mEngine.setTempo(bpm);
+        static LinkSession* instance = new LinkSession(); // NOLINT
+        return *instance;
     }
-  }
 
-  // register on REAPER timer
-  static void audioCallback()
-  {
-    getInstance().audioPlatform.mEngine.audioCallback(
-      std::chrono::microseconds(llround(
-        ( //
-          g_abuf_time + GetOutputLatency() + g_abuf_len / g_abuf_srate) *
-        1.0e6)),
-      g_abuf_len);
-  }
+    static void TempoCallback(double bpm)
+    {
+        if (getInstance().audioPlatform.mEngine.getPuppet())
+            getInstance().audioPlatform.mEngine.setTempo(bpm);
+    }
+
+    // register on REAPER timer
+    static void audioCallback()
+    {
+        getInstance().audioPlatform.mEngine.audioCallback(
+            std::chrono::microseconds(llround(
+                ( //
+                    g_abuf_time + GetOutputLatency() + g_abuf_len / g_abuf_srate
+                ) *
+                1.0e6
+            )),
+            g_abuf_len
+        );
+    }
 
 private:
-  LinkSession()
-  {
-    this->link.setTempoCallback(TempoCallback);
-  }
+    LinkSession()
+    {
+        this->link.setTempoCallback(TempoCallback);
+    }
 };
 
 UINT_PTR timerId;
 
 void CALLBACK timerTick(HWND hwnd, UINT msg, UINT_PTR timerIdIn, DWORD time)
 {
-  (void)hwnd;
-  (void)msg;
-  (void)time;
-  if (timerIdIn == timerId)
-  {
-    LinkSession::getInstance().audioCallback();
-  }
+    (void)hwnd;
+    (void)msg;
+    (void)time;
+    if (timerIdIn == timerId)
+        LinkSession::getInstance().audioCallback();
 }
 
-static void OnAudioBuffer(bool isPost, int len, double srate,
-                          struct audio_hook_register_t* reg)
+static void OnAudioBuffer(bool isPost, int len, double srate, struct audio_hook_register_t* reg)
 {
-  static const auto& clock = LinkSession::getInstance().link.clock();
-  if (!isPost)
-  {
-    g_abuf_len = len;
-    g_abuf_srate = srate;
-    g_abuf_time = (double)clock.micros().count() / 1.0e6;
-  }
-  (void)reg;
+    static const auto& clock = LinkSession::getInstance().link.clock();
+    if (!isPost)
+    {
+        g_abuf_len = len;
+        g_abuf_srate = srate;
+        g_abuf_time = (double)clock.micros().count() / 1.0e6;
+    }
+    (void)reg;
 }
 
 LinkSession* link_session{nullptr};
@@ -94,17 +91,17 @@ std::mutex m;
 
 std::chrono::microseconds doubleToMicros(double time)
 {
-  return std::chrono::microseconds(llround(time * 1.0e6));
+    return std::chrono::microseconds(llround(time * 1.0e6));
 }
 
 double microsToDouble(std::chrono::microseconds time)
 {
-  return std::chrono::duration<double>(time).count();
+    return std::chrono::duration<double>(time).count();
 }
 
 const char* defstring_SetMakeReaperGoBrrr =
-  "void\0int*\0rateInOptional\0"
-  "Increases REAPER timer rate. Rate is desired frame time in ms. ";
+    "void\0int*\0rateInOptional\0"
+    "Increases REAPER timer rate. Rate is desired frame time in ms. ";
 
 /*! @brief Get timeline offset.
  *  Thread-safe: yes
@@ -113,13 +110,13 @@ const char* defstring_SetMakeReaperGoBrrr =
 // NOLINTNEXTLINE
 double GetTimelineOffset()
 {
-  return g_timeline_offset_reablink;
+    return g_timeline_offset_reablink;
 }
 
 const char* defstring_GetTimelineOffset =
-  "double\0\0\0"
-  "Get timeline offset. This is the offset between "
-  "REAPER timeline and Link session timeline.";
+    "double\0\0\0"
+    "Get timeline offset. This is the offset between "
+    "REAPER timeline and Link session timeline.";
 
 /*! @brief Get audio buffer timing information.
  *  Thread-safe: yes
@@ -128,16 +125,16 @@ const char* defstring_GetTimelineOffset =
 // NOLINTNEXTLINE
 void GetAudioBufferTimingInfo(int* lenOut, double* srateOut, double* timeOut)
 {
-  *lenOut = g_abuf_len;
-  *srateOut = g_abuf_srate;
-  *timeOut = g_abuf_time;
+    *lenOut = g_abuf_len;
+    *srateOut = g_abuf_srate;
+    *timeOut = g_abuf_time;
 }
 
 const char* defstring_GetAudioBufferTimingInfo =
-  "void\0int*,double*,double*\0lenOut,srateOut,timeOut\0"
-  "Get audio buffer timing information. This is the length (size) of audio "
-  "buffer in samples, sample rate and 'latest audio buffer switch wall clock "
-  "time' in seconds.";
+    "void\0int*,double*,double*\0lenOut,srateOut,timeOut\0"
+    "Get audio buffer timing information. This is the length (size) of audio "
+    "buffer in samples, sample rate and 'latest audio buffer switch wall clock "
+    "time' in seconds.";
 
 /*! @brief Is Link currently enabled?
  *  Thread-safe: yes
@@ -145,11 +142,12 @@ const char* defstring_GetAudioBufferTimingInfo =
  */
 bool GetEnabled()
 {
-  return LinkSession::getInstance().link.isEnabled();
+    return LinkSession::getInstance().link.isEnabled();
 }
 
-const char* defstring_GetEnabled = "bool\0\0\0"
-                                   "Is Blink currently enabled?";
+const char* defstring_GetEnabled =
+    "bool\0\0\0"
+    "Is Blink currently enabled?";
 
 /*! @brief Enable/disable Link.
  *  Thread-safe: yes
@@ -157,26 +155,26 @@ const char* defstring_GetEnabled = "bool\0\0\0"
  */
 void SetEnabled(bool enable)
 {
-  static audio_hook_register_t audio_hook{OnAudioBuffer, 0, 0, 0, 0, 0};
-  LinkSession::getInstance().running = enable;
-  LinkSession::getInstance().link.enable(enable);
-  if (enable)
-  {
-    Audio_RegHardwareHook(true, &audio_hook);
-    timerId = SetTimer(nullptr, 0, 12, &timerTick);
-  }
-  else
-  {
-    Audio_RegHardwareHook(false, &audio_hook);
-    KillTimer(nullptr, timerId);
-  }
+    static audio_hook_register_t audio_hook{OnAudioBuffer, 0, 0, 0, 0, 0};
+    LinkSession::getInstance().running = enable;
+    LinkSession::getInstance().link.enable(enable);
+    if (enable)
+    {
+        Audio_RegHardwareHook(true, &audio_hook);
+        timerId = SetTimer(nullptr, 0, 12, &timerTick);
+    }
+    else
+    {
+        Audio_RegHardwareHook(false, &audio_hook);
+        KillTimer(nullptr, timerId);
+    }
 }
 
 const char* defstring_SetEnabled =
-  "void\0bool\0enable\0"
-  "Enable/disable Blink. In Blink methods "
-  "transport, tempo and timeline refer "
-  "to Link session, not local REAPER instance.";
+    "void\0bool\0enable\0"
+    "Enable/disable Blink. In Blink methods "
+    "transport, tempo and timeline refer "
+    "to Link session, not local REAPER instance.";
 
 /*! @brief: Is start/stop synchronization enabled?
  *  Thread-safe: yes
@@ -184,12 +182,12 @@ const char* defstring_SetEnabled =
  */
 bool GetStartStopSyncEnabled()
 {
-  return LinkSession::getInstance().link.isStartStopSyncEnabled();
+    return LinkSession::getInstance().link.isStartStopSyncEnabled();
 }
 
 const char* defstring_GetStartStopSyncEnabled =
-  "bool\0\0\0"
-  "Is start/stop synchronization enabled?";
+    "bool\0\0\0"
+    "Is start/stop synchronization enabled?";
 
 /*! @brief: Enable start/stop synchronization.
  *  Thread-safe: yes
@@ -197,12 +195,12 @@ const char* defstring_GetStartStopSyncEnabled =
  */
 void SetStartStopSyncEnabled(bool enable)
 {
-  LinkSession::getInstance().link.enableStartStopSync(enable);
+    LinkSession::getInstance().link.enableStartStopSync(enable);
 }
 
 const char* defstring_SetStartStopSyncEnabled =
-  "void\0bool\0enable\0"
-  "Enable start/stop synchronization.";
+    "void\0bool\0enable\0"
+    "Enable start/stop synchronization.";
 
 /*! @brief How many peers are currently connected
  * in a Link session? Thread-safe: yes
@@ -210,12 +208,13 @@ const char* defstring_SetStartStopSyncEnabled =
  */
 int GetNumPeers()
 {
-  return (int)LinkSession::getInstance().link.numPeers();
+    return (int)LinkSession::getInstance().link.numPeers();
 }
 
-const char* defstring_GetNumPeers = "int\0\0\0"
-                                    "How many peers are currently connected in "
-                                    "Link session?";
+const char* defstring_GetNumPeers =
+    "int\0\0\0"
+    "How many peers are currently connected in "
+    "Link session?";
 
 /*! @brief The clock used by Link.
  *  Thread-safe: yes
@@ -227,16 +226,17 @@ const char* defstring_GetNumPeers = "int\0\0\0"
  */
 double GetClockNow()
 {
-  return (double) //
-         LinkSession::getInstance()
-           .link.clock()
-           .micros()
-           .count() /
-         1.0e6;
+    return (double) //
+           LinkSession::getInstance()
+               .link.clock()
+               .micros()
+               .count() /
+           1.0e6;
 }
 
-const char* defstring_GetClockNow = "double\0\0\0"
-                                    "Clock used by Blink.";
+const char* defstring_GetClockNow =
+    "double\0\0\0"
+    "Clock used by Blink.";
 
 /*! @brief: The tempo of the timeline, in Beats
  * Per Minute.
@@ -248,40 +248,42 @@ const char* defstring_GetClockNow = "double\0\0\0"
  */
 double GetTempo()
 {
-  return LinkSession::getInstance().link.captureAppSessionState().tempo();
+    return LinkSession::getInstance().link.captureAppSessionState().tempo();
 }
 
-const char* defstring_GetTempo = "double\0\0\0"
-                                 "Tempo of timeline, in quarter note Beats Per "
-                                 "Minute.";
+const char* defstring_GetTempo =
+    "double\0\0\0"
+    "Tempo of timeline, in quarter note Beats Per "
+    "Minute.";
 
 /*! @brief: Set the timeline tempo to the given
  * bpm value.
  */
 void SetTempo(double bpm)
 {
-  auto sessionState = LinkSession::getInstance().link.captureAppSessionState();
-  sessionState.setTempo(bpm, LinkSession::getInstance().link.clock().micros());
-  LinkSession::getInstance().link.commitAppSessionState(sessionState);
+    auto sessionState = LinkSession::getInstance().link.captureAppSessionState();
+    sessionState.setTempo(bpm, LinkSession::getInstance().link.clock().micros());
+    LinkSession::getInstance().link.commitAppSessionState(sessionState);
 }
 
-const char* defstring_SetTempo = "void\0double\0bpm\0"
-                                 "Set timeline tempo to given bpm value.";
+const char* defstring_SetTempo =
+    "void\0double\0bpm\0"
+    "Set timeline tempo to given bpm value.";
 
 /*! @brief: Set the timeline tempo to the given
  * bpm value, taking effect at the given time.
  */
 void SetTempoAtTime(double bpm, double time)
 {
-  auto sessionState = LinkSession::getInstance().link.captureAppSessionState();
-  sessionState.setTempo(bpm, doubleToMicros(time));
-  LinkSession::getInstance().link.commitAppSessionState(sessionState);
+    auto sessionState = LinkSession::getInstance().link.captureAppSessionState();
+    sessionState.setTempo(bpm, doubleToMicros(time));
+    LinkSession::getInstance().link.commitAppSessionState(sessionState);
 }
 
 const char* defstring_SetTempoAtTime =
-  "void\0double,double\0bpm,time\0"
-  "Set tempo to given bpm value, taking effect (heard from speakers)"
-  "at given wall clock time.";
+    "void\0double,double\0bpm,time\0"
+    "Set tempo to given bpm value, taking effect (heard from speakers)"
+    "at given wall clock time.";
 
 /*! @brief: Get the beat value corresponding to
  * the given time for the given quantum.
@@ -296,14 +298,13 @@ const char* defstring_SetTempoAtTime =
  */
 double GetBeatAtTime(double time, double quantum)
 {
-  return LinkSession::getInstance().link.captureAppSessionState().beatAtTime(
-    doubleToMicros(time), quantum);
+    return LinkSession::getInstance().link.captureAppSessionState().beatAtTime(doubleToMicros(time), quantum);
 }
 
 const char* defstring_GetBeatAtTime =
-  "double\0double,double\0time,quantum\0"
-  "Get session beat value corresponding to given "
-  "time for given quantum.";
+    "double\0double,double\0time,quantum\0"
+    "Get session beat value corresponding to given "
+    "time for given quantum.";
 
 /*! @brief: Get the session phase at the given
  * time for the given quantum.
@@ -318,14 +319,13 @@ const char* defstring_GetBeatAtTime =
  */
 double GetPhaseAtTime(double time, double quantum)
 {
-  return LinkSession::getInstance().link.captureAppSessionState().phaseAtTime(
-    doubleToMicros(time), quantum);
+    return LinkSession::getInstance().link.captureAppSessionState().phaseAtTime(doubleToMicros(time), quantum);
 }
 
 const char* defstring_GetPhaseAtTime =
-  "double\0double,double\0time,quantum\0"
-  "Get session phase at given time for given "
-  "quantum.";
+    "double\0double,double\0time,quantum\0"
+    "Get session phase at given time for given "
+    "quantum.";
 
 /*! @brief: Get the time at which the given beat
  * occurs for the given quantum.
@@ -336,15 +336,13 @@ const char* defstring_GetPhaseAtTime =
  */
 double GetTimeAtBeat(double beat, double quantum)
 {
-  return microsToDouble(
-    LinkSession::getInstance().link.captureAppSessionState().timeAtBeat(
-      beat, quantum));
+    return microsToDouble(LinkSession::getInstance().link.captureAppSessionState().timeAtBeat(beat, quantum));
 }
 
 const char* defstring_GetTimeAtBeat =
-  "double\0double,double\0beat,quantum\0"
-  "Get time at which given beat occurs for given "
-  "quantum.";
+    "double\0double,double\0beat,quantum\0"
+    "Get time at which given beat occurs for given "
+    "quantum.";
 
 /*! @brief: Attempt to map the given beat to the
  * given time in the context of the given quantum.
@@ -382,15 +380,15 @@ const char* defstring_GetTimeAtBeat =
  */
 void SetBeatAtTimeRequest(double beat, double time, double quantum)
 {
-  auto sessionState = LinkSession::getInstance().link.captureAppSessionState();
-  sessionState.requestBeatAtTime(beat, doubleToMicros(time), quantum);
-  LinkSession::getInstance().link.commitAppSessionState(sessionState);
+    auto sessionState = LinkSession::getInstance().link.captureAppSessionState();
+    sessionState.requestBeatAtTime(beat, doubleToMicros(time), quantum);
+    LinkSession::getInstance().link.commitAppSessionState(sessionState);
 }
 
 const char* defstring_SetBeatAtTimeRequest =
-  "void\0double,double,double\0bpm,time,quantum\0"
-  "Attempt to map given beat to given time in "
-  "context of given quantum.";
+    "void\0double,double,double\0bpm,time,quantum\0"
+    "Attempt to map given beat to given time in "
+    "context of given quantum.";
 
 /*! @brief: Rudely re-map the beat/time
  * relationship for all peers in a session.
@@ -419,52 +417,52 @@ const char* defstring_SetBeatAtTimeRequest =
  */
 void SetBeatAtTimeForce(double beat, double time, double quantum)
 {
-  auto sessionState = LinkSession::getInstance().link.captureAppSessionState();
-  sessionState.forceBeatAtTime(beat, doubleToMicros(time), quantum);
-  LinkSession::getInstance().link.commitAppSessionState(sessionState);
+    auto sessionState = LinkSession::getInstance().link.captureAppSessionState();
+    sessionState.forceBeatAtTime(beat, doubleToMicros(time), quantum);
+    LinkSession::getInstance().link.commitAppSessionState(sessionState);
 }
 
 const char* defstring_SetBeatAtTimeForce =
-  "void\0double,double,double\0bpm,time,quantum\0"
-  "Rudely re-map beat/time relationship for all "
-  "peers in Link session.";
+    "void\0double,double,double\0bpm,time,quantum\0"
+    "Rudely re-map beat/time relationship for all "
+    "peers in Link session.";
 
 /*! @brief: Set if transport should be playing or
  * stopped, taking effect at the given time.
  */
 void SetPlaying(bool playing, double time)
 {
-  auto sessionState = LinkSession::getInstance().link.captureAppSessionState();
-  sessionState.setIsPlaying(playing, doubleToMicros(time));
-  LinkSession::getInstance().link.commitAppSessionState(sessionState);
+    auto sessionState = LinkSession::getInstance().link.captureAppSessionState();
+    sessionState.setIsPlaying(playing, doubleToMicros(time));
+    LinkSession::getInstance().link.commitAppSessionState(sessionState);
 }
 
-const char* defstring_SetPlaying = "void\0bool,double\0playing,time\0"
-                                   "Set if transport should be playing or "
-                                   "stopped, taking effect at given time.";
+const char* defstring_SetPlaying =
+    "void\0bool,double\0playing,time\0"
+    "Set if transport should be playing or "
+    "stopped, taking effect at given time.";
 
 /*! @brief: Is transport playing? */
 bool GetPlaying()
 {
-  return LinkSession::getInstance().link.captureAppSessionState().isPlaying();
+    return LinkSession::getInstance().link.captureAppSessionState().isPlaying();
 }
 
-const char* defstring_GetPlaying = "bool\0\0\0"
-                                   "Is transport playing?";
+const char* defstring_GetPlaying =
+    "bool\0\0\0"
+    "Is transport playing?";
 
 /*! @brief: Get the time at which a transport
  * start/stop occurs */
 double GetTimeForPlaying()
 {
-  return microsToDouble(LinkSession::getInstance()
-                          .link.captureAppSessionState()
-                          .timeForIsPlaying());
+    return microsToDouble(LinkSession::getInstance().link.captureAppSessionState().timeForIsPlaying());
 }
 
 const char* defstring_GetTimeForPlaying =
-  "double\0\0\0"
-  "Get time at which transport start/stop "
-  "occurs.";
+    "double\0\0\0"
+    "Get time at which transport start/stop "
+    "occurs.";
 
 /*! @brief: Convenience function to attempt to map
  * the given beat to the time when transport is
@@ -474,491 +472,453 @@ const char* defstring_GetTimeForPlaying =
  */
 void SetBeatAtStartPlayingTimeRequest(double beat, double quantum)
 {
-  auto sessionState = LinkSession::getInstance().link.captureAppSessionState();
-  sessionState.requestBeatAtStartPlayingTime(beat, quantum);
-  LinkSession::getInstance().link.commitAppSessionState(sessionState);
+    auto sessionState = LinkSession::getInstance().link.captureAppSessionState();
+    sessionState.requestBeatAtStartPlayingTime(beat, quantum);
+    LinkSession::getInstance().link.commitAppSessionState(sessionState);
 }
 
 const char* defstring_SetBeatAtStartPlayingTimeRequest =
-  "void\0double,double\0beat,quantum\0"
-  "Convenience function to attempt to map "
-  "given beat to time when transport is "
-  "starting to play in context of given "
-  "quantum. This function evaluates to a "
-  "no-op if GetPlaying() equals false.";
+    "void\0double,double\0beat,quantum\0"
+    "Convenience function to attempt to map "
+    "given beat to time when transport is "
+    "starting to play in context of given "
+    "quantum. This function evaluates to a "
+    "no-op if GetPlaying() equals false.";
 
 /*! @brief: Convenience function to start or stop
  * transport at a given time and attempt to map
  * the given beat to this time in context of the
  * given quantum.
  */
-void SetPlayingAndBeatAtTimeRequest(bool playing, double time, double beat,
-                                    double quantum)
+void SetPlayingAndBeatAtTimeRequest(bool playing, double time, double beat, double quantum)
 {
-  auto sessionState = LinkSession::getInstance().link.captureAppSessionState();
-  sessionState.setIsPlayingAndRequestBeatAtTime(playing, doubleToMicros(time),
-                                                beat, quantum);
-  LinkSession::getInstance().link.commitAppSessionState(sessionState);
+    auto sessionState = LinkSession::getInstance().link.captureAppSessionState();
+    sessionState.setIsPlayingAndRequestBeatAtTime(playing, doubleToMicros(time), beat, quantum);
+    LinkSession::getInstance().link.commitAppSessionState(sessionState);
 }
 
 const char* defstring_SetPlayingAndBeatAtTimeRequest =
-  "void\0bool,double,double,double\0playing,"
-  "time,beat,"
-  "quantum\0"
-  "Convenience function to start or stop "
-  "transport at given time and attempt "
-  "to map given beat to this time in context "
-  "of given quantum.";
+    "void\0bool,double,double,double\0playing,"
+    "time,beat,"
+    "quantum\0"
+    "Convenience function to start or stop "
+    "transport at given time and attempt "
+    "to map given beat to this time in context "
+    "of given quantum.";
 
 void startStop()
 {
-  auto sessionState = LinkSession::getInstance().link.captureAppSessionState();
-  if (sessionState.isPlaying())
-  {
-    LinkSession::getInstance().audioPlatform.mEngine.stopPlaying();
-  }
-  else
-  {
-    LinkSession::getInstance().audioPlatform.mEngine.startPlaying();
-  }
+    auto sessionState = LinkSession::getInstance().link.captureAppSessionState();
+    if (sessionState.isPlaying())
+        LinkSession::getInstance().audioPlatform.mEngine.stopPlaying();
+    else
+        LinkSession::getInstance().audioPlatform.mEngine.startPlaying();
 }
 
-const char* defstring_startStop = "void\0\0\0"
-                                  "Transport start/stop.";
+const char* defstring_startStop =
+    "void\0\0\0"
+    "Transport start/stop.";
 
 void SetQuantum(double quantum)
 {
-  LinkSession::getInstance().audioPlatform.mEngine.setQuantum(quantum);
+    LinkSession::getInstance().audioPlatform.mEngine.setQuantum(quantum);
 }
 
-const char* defstring_SetQuantum = "void\0double\0quantum\0"
-                                   "Set quantum. Usually this is set to length "
-                                   "of one measure/bar in quarter notes.";
+const char* defstring_SetQuantum =
+    "void\0double\0quantum\0"
+    "Set quantum. Usually this is set to length "
+    "of one measure/bar in quarter notes.";
 
 double GetQuantum()
 {
-  return LinkSession::getInstance().audioPlatform.mEngine.quantum();
+    return LinkSession::getInstance().audioPlatform.mEngine.quantum();
 }
 
-const char* defstring_GetQuantum = "double\0\0\0"
-                                   "Get quantum.";
+const char* defstring_GetQuantum =
+    "double\0\0\0"
+    "Get quantum.";
 
 void SetLaunchOffset(double offset)
 {
-  g_launch_offset_reablink = offset;
+    g_launch_offset_reablink = offset;
 }
 
 const char* defstring_SetLaunchOffset =
-  "void\0double\0offset\0"
-  "Set launch offset. This is used to compensate for possible constant REAPER "
-  "transport launch delay, if such exists.";
+    "void\0double\0offset\0"
+    "Set launch offset. This is used to compensate for possible constant REAPER "
+    "transport launch delay, if such exists.";
 
 void SetMaster(bool enable)
 {
-  LinkSession::getInstance().audioPlatform.mEngine.setMaster(enable);
+    LinkSession::getInstance().audioPlatform.mEngine.setMaster(enable);
 }
 
 const char* defstring_SetMaster =
-  "void\0bool\0enable\0"
-  "Set Blink as Master. Puppet needs to be "
-  "enabled first. Same as Puppet, but "
-  "possible beat offset is broadcast to Link "
-  "session, effectively forcing "
-  "local REAPER timeline on peers. Only one, if "
-  "any, Blink should be Master in "
-  "Link session.";
+    "void\0bool\0enable\0"
+    "Set Blink as Master. Puppet needs to be "
+    "enabled first. Same as Puppet, but "
+    "possible beat offset is broadcast to Link "
+    "session, effectively forcing "
+    "local REAPER timeline on peers. Only one, if "
+    "any, Blink should be Master in "
+    "Link session.";
 
 bool GetMaster()
 {
-  return LinkSession::getInstance().audioPlatform.mEngine.getMaster();
+    return LinkSession::getInstance().audioPlatform.mEngine.getMaster();
 }
 
-const char* defstring_GetMaster = "bool\0\0\0"
-                                  "Is Blink Master?";
+const char* defstring_GetMaster =
+    "bool\0\0\0"
+    "Is Blink Master?";
 
 void SetPuppet(bool enable)
 {
-  LinkSession::getInstance().audioPlatform.mEngine.setPuppet(enable);
+    LinkSession::getInstance().audioPlatform.mEngine.setPuppet(enable);
 }
 
 const char* defstring_SetPuppet =
-  "void\0bool\0enable\0"
-  "Set Blink as Puppet. When enabled, Blink "
-  "attempts to synchronize local "
-  "REAPER tempo to Link session tempo by "
-  "adjusting current active tempo/time "
-  "signature marker, or broadcasts local REAPER "
-  "tempo changes into Link "
-  "session, and attempts to correct possible "
-  "offset by adjusting REAPER "
-  "playrate. Based on cumulative single beat "
-  "phase since Link session "
-  "transport start, regardless of quantum.";
+    "void\0bool\0enable\0"
+    "Set Blink as Puppet. When enabled, Blink "
+    "attempts to synchronize local "
+    "REAPER tempo to Link session tempo by "
+    "adjusting current active tempo/time "
+    "signature marker, or broadcasts local REAPER "
+    "tempo changes into Link "
+    "session, and attempts to correct possible "
+    "offset by adjusting REAPER "
+    "playrate. Based on cumulative single beat "
+    "phase since Link session "
+    "transport start, regardless of quantum.";
 
 bool GetPuppet()
 {
-  return LinkSession::getInstance().audioPlatform.mEngine.getPuppet();
+    return LinkSession::getInstance().audioPlatform.mEngine.getPuppet();
 }
 
-const char* defstring_GetPuppet = "bool\0\0\0"
-                                  "Is Blink Puppet?";
+const char* defstring_GetPuppet =
+    "bool\0\0\0"
+    "Is Blink Puppet?";
 
 bool runCommand(int command, int flag)
 {
-  (void)flag;
-  auto res = false;
-  if (GetEnabled())
-  {
-    if (command == 40044)
+    (void)flag;
+    auto res = false;
+    if (GetEnabled())
     {
-      res = true;
-      startStop();
+        if (command == 40044)
+        {
+            res = true;
+            startStop();
+        }
+        if (command == 40073)
+        {
+            res = true;
+            startStop();
+        }
+        if (command == 1007)
+        {
+            res = true;
+            startStop();
+        }
+        if (command == 1008)
+        {
+            res = true;
+            startStop();
+        }
+        if (command == 1016)
+        {
+            res = true;
+            LinkSession::getInstance().audioPlatform.mEngine.stopPlaying();
+        }
+        if (command == 41130)
+        {
+            res = true;
+            auto tempo = GetTempo();
+            LinkSession::getInstance().audioPlatform.mEngine.setTempo(tempo - 1);
+        }
+        if (command == 41129)
+        {
+            res = true;
+            auto tempo = GetTempo();
+            LinkSession::getInstance().audioPlatform.mEngine.setTempo(tempo + 1);
+        }
+        if (command == 41135)
+        {
+            res = true;
+            auto tempo = GetTempo();
+            LinkSession::getInstance().audioPlatform.mEngine.setTempo(tempo + 10);
+        }
+        if (command == 41136)
+        {
+            res = true;
+            auto tempo = GetTempo();
+            LinkSession::getInstance().audioPlatform.mEngine.setTempo(tempo - 10);
+        }
+        if (command == 41134)
+        {
+            res = true;
+            auto tempo = GetTempo();
+            LinkSession::getInstance().audioPlatform.mEngine.setTempo(tempo / 2);
+        }
+        if (command == 41133)
+        {
+            res = true;
+            auto tempo = GetTempo();
+            LinkSession::getInstance().audioPlatform.mEngine.setTempo(tempo * 2);
+        }
+        if (command == 41131)
+        {
+            res = true;
+            auto tempo = GetTempo();
+            LinkSession::getInstance().audioPlatform.mEngine.setTempo(tempo * 1.1);
+        }
+        if (command == 41132)
+        {
+            res = true;
+            auto tempo = GetTempo();
+            LinkSession::getInstance().audioPlatform.mEngine.setTempo(tempo * 0.9);
+        }
+        if (command == 41137)
+        {
+            res = true;
+            auto tempo = GetTempo();
+            LinkSession::getInstance().audioPlatform.mEngine.setTempo(tempo + 0.1);
+        }
+        if (command == 41138)
+        {
+            res = true;
+            auto tempo = GetTempo();
+            LinkSession::getInstance().audioPlatform.mEngine.setTempo(tempo - 0.1);
+        }
     }
-    if (command == 40073)
-    {
-      res = true;
-      startStop();
-    }
-    if (command == 1007)
-    {
-      res = true;
-      startStop();
-    }
-    if (command == 1008)
-    {
-      res = true;
-      startStop();
-    }
-    if (command == 1016)
-    {
-      res = true;
-      LinkSession::getInstance().audioPlatform.mEngine.stopPlaying();
-    }
-    if (command == 41130)
-    {
-      res = true;
-      auto tempo = GetTempo();
-      LinkSession::getInstance().audioPlatform.mEngine.setTempo(tempo - 1);
-    }
-    if (command == 41129)
-    {
-      res = true;
-      auto tempo = GetTempo();
-      LinkSession::getInstance().audioPlatform.mEngine.setTempo(tempo + 1);
-    }
-    if (command == 41135)
-    {
-      res = true;
-      auto tempo = GetTempo();
-      LinkSession::getInstance().audioPlatform.mEngine.setTempo(tempo + 10);
-    }
-    if (command == 41136)
-    {
-      res = true;
-      auto tempo = GetTempo();
-      LinkSession::getInstance().audioPlatform.mEngine.setTempo(tempo - 10);
-    }
-    if (command == 41134)
-    {
-      res = true;
-      auto tempo = GetTempo();
-      LinkSession::getInstance().audioPlatform.mEngine.setTempo(tempo / 2);
-    }
-    if (command == 41133)
-    {
-      res = true;
-      auto tempo = GetTempo();
-      LinkSession::getInstance().audioPlatform.mEngine.setTempo(tempo * 2);
-    }
-    if (command == 41131)
-    {
-      res = true;
-      auto tempo = GetTempo();
-      LinkSession::getInstance().audioPlatform.mEngine.setTempo(tempo * 1.1);
-    }
-    if (command == 41132)
-    {
-      res = true;
-      auto tempo = GetTempo();
-      LinkSession::getInstance().audioPlatform.mEngine.setTempo(tempo * 0.9);
-    }
-    if (command == 41137)
-    {
-      res = true;
-      auto tempo = GetTempo();
-      LinkSession::getInstance().audioPlatform.mEngine.setTempo(tempo + 0.1);
-    }
-    if (command == 41138)
-    {
-      res = true;
-      auto tempo = GetTempo();
-      LinkSession::getInstance().audioPlatform.mEngine.setTempo(tempo - 0.1);
-    }
-  }
-  return res;
+    return res;
 }
 
 void SetCaptureTransportCommands(bool enable)
 {
-  if (enable)
-  {
-    plugin_register("hookcommand", (void*)runCommand);
-  }
-  else
-  {
-    plugin_register("-hookcommand", (void*)runCommand);
-  }
+    if (enable)
+        plugin_register("hookcommand", (void*)runCommand);
+    else
+        plugin_register("-hookcommand", (void*)runCommand);
 }
 
 const char* defstring_SetCaptureTransportCommands =
-  "void\0bool\0enable\0"
-  "Captures REAPER Transport commands and "
-  "'Tempo: Increase/Decrease current "
-  "project tempo by' commands and "
-  "broadcasts them into Link session. "
-  "When used with Master or Puppet mode "
-  "enabled, provides better integration "
-  "between REAPER and Link session transport "
-  "and tempos.";
+    "void\0bool\0enable\0"
+    "Captures REAPER Transport commands and "
+    "'Tempo: Increase/Decrease current "
+    "project tempo by' commands and "
+    "broadcasts them into Link session. "
+    "When used with Master or Puppet mode "
+    "enabled, provides better integration "
+    "between REAPER and Link session transport "
+    "and tempos.";
 
 double Blink_GetVersion()
 {
-  auto major = PROJECT_VERSION_MAJOR;
-  auto minor = PROJECT_VERSION_MINOR;
-  return std::stod(
-    std::string(std::to_string(major) + "." + std::to_string(minor)));
+    auto major = PROJECT_VERSION_MAJOR;
+    auto minor = PROJECT_VERSION_MINOR;
+    return std::stod(std::string(std::to_string(major) + "." + std::to_string(minor)));
 }
 
-const char* defstring_Blink_GetVersion = "double\0\0\0"
-                                         "Get Blink version.";
+const char* defstring_Blink_GetVersion =
+    "double\0\0\0"
+    "Get Blink version.";
 
 void Init(void* ptr)
 {
-  auto rec = (reaper_plugin_info_t*)ptr;
+    auto rec = (reaper_plugin_info_t*)ptr;
 
-  plugin_register("API_Blink_GetTimelineOffset", (void*)GetTimelineOffset);
-  plugin_register("APIdef_Blink_GetTimelineOffset",
-                  (void*)defstring_GetTimelineOffset);
-  plugin_register(
-    "APIvararg_Blink_GetTimelineOffset",
-    reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetTimelineOffset>));
+    plugin_register("API_Blink_GetTimelineOffset", (void*)GetTimelineOffset);
+    plugin_register("APIdef_Blink_GetTimelineOffset", (void*)defstring_GetTimelineOffset);
+    plugin_register(
+        "APIvararg_Blink_GetTimelineOffset",
+        reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetTimelineOffset>)
+    );
 
-  plugin_register("API_Blink_SetLaunchOffset", (void*)SetLaunchOffset);
-  plugin_register("APIdef_Blink_SetLaunchOffset",
-                  (void*)defstring_SetLaunchOffset);
-  plugin_register(
-    "APIvararg_Blink_SetLaunchOffset",
-    reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetLaunchOffset>));
+    plugin_register("API_Blink_SetLaunchOffset", (void*)SetLaunchOffset);
+    plugin_register("APIdef_Blink_SetLaunchOffset", (void*)defstring_SetLaunchOffset);
+    plugin_register("APIvararg_Blink_SetLaunchOffset", reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetLaunchOffset>));
 
-  plugin_register("API_Blink_GetAudioBufferTimingInfo",
-                  (void*)GetAudioBufferTimingInfo);
-  plugin_register("APIdef_Blink_GetAudioBufferTimingInfo",
-                  (void*)defstring_GetAudioBufferTimingInfo);
-  plugin_register(
-    "APIvararg_Blink_GetAudioBufferTimingInfo",
-    reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetAudioBufferTimingInfo>));
+    plugin_register("API_Blink_GetAudioBufferTimingInfo", (void*)GetAudioBufferTimingInfo);
+    plugin_register("APIdef_Blink_GetAudioBufferTimingInfo", (void*)defstring_GetAudioBufferTimingInfo);
+    plugin_register(
+        "APIvararg_Blink_GetAudioBufferTimingInfo",
+        reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetAudioBufferTimingInfo>)
+    );
 
-  plugin_register("API_Blink_GetVersion", (void*)Blink_GetVersion);
-  plugin_register("APIdef_Blink_GetVersion", (void*)defstring_Blink_GetVersion);
-  plugin_register(
-    "APIvararg_Blink_GetVersion",
-    reinterpret_cast<void*>(&InvokeReaScriptAPI<&Blink_GetVersion>));
+    plugin_register("API_Blink_GetVersion", (void*)Blink_GetVersion);
+    plugin_register("APIdef_Blink_GetVersion", (void*)defstring_Blink_GetVersion);
+    plugin_register("APIvararg_Blink_GetVersion", reinterpret_cast<void*>(&InvokeReaScriptAPI<&Blink_GetVersion>));
 
-  plugin_register("API_Blink_SetEnabled", (void*)SetEnabled);
-  plugin_register("APIdef_Blink_SetEnabled", (void*)defstring_SetEnabled);
-  plugin_register("APIvararg_Blink_SetEnabled",
-                  reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetEnabled>));
+    plugin_register("API_Blink_SetEnabled", (void*)SetEnabled);
+    plugin_register("APIdef_Blink_SetEnabled", (void*)defstring_SetEnabled);
+    plugin_register("APIvararg_Blink_SetEnabled", reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetEnabled>));
 
-  plugin_register("API_Blink_GetEnabled", (void*)GetEnabled);
-  plugin_register("APIdef_Blink_GetEnabled", (void*)defstring_GetEnabled);
-  plugin_register("APIvararg_Blink_GetEnabled",
-                  reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetEnabled>));
+    plugin_register("API_Blink_GetEnabled", (void*)GetEnabled);
+    plugin_register("APIdef_Blink_GetEnabled", (void*)defstring_GetEnabled);
+    plugin_register("APIvararg_Blink_GetEnabled", reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetEnabled>));
 
-  plugin_register("API_Blink_GetMaster", (void*)GetMaster);
-  plugin_register("APIdef_Blink_GetMaster", (void*)defstring_GetMaster);
-  plugin_register("APIvararg_Blink_GetMaster",
-                  reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetMaster>));
+    plugin_register("API_Blink_GetMaster", (void*)GetMaster);
+    plugin_register("APIdef_Blink_GetMaster", (void*)defstring_GetMaster);
+    plugin_register("APIvararg_Blink_GetMaster", reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetMaster>));
 
-  plugin_register("API_Blink_SetMaster", (void*)SetMaster);
-  plugin_register("APIdef_Blink_SetMaster", (void*)defstring_SetMaster);
-  plugin_register("APIvararg_Blink_SetMaster",
-                  reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetMaster>));
+    plugin_register("API_Blink_SetMaster", (void*)SetMaster);
+    plugin_register("APIdef_Blink_SetMaster", (void*)defstring_SetMaster);
+    plugin_register("APIvararg_Blink_SetMaster", reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetMaster>));
 
-  plugin_register("API_Blink_GetPuppet", (void*)GetPuppet);
-  plugin_register("APIdef_Blink_GetPuppet", (void*)defstring_GetPuppet);
-  plugin_register("APIvararg_Blink_GetPuppet",
-                  reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetPuppet>));
+    plugin_register("API_Blink_GetPuppet", (void*)GetPuppet);
+    plugin_register("APIdef_Blink_GetPuppet", (void*)defstring_GetPuppet);
+    plugin_register("APIvararg_Blink_GetPuppet", reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetPuppet>));
 
-  plugin_register("API_Blink_SetPuppet", (void*)SetPuppet);
-  plugin_register("APIdef_Blink_SetPuppet", (void*)defstring_SetPuppet);
-  plugin_register("APIvararg_Blink_SetPuppet",
-                  reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetPuppet>));
+    plugin_register("API_Blink_SetPuppet", (void*)SetPuppet);
+    plugin_register("APIdef_Blink_SetPuppet", (void*)defstring_SetPuppet);
+    plugin_register("APIvararg_Blink_SetPuppet", reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetPuppet>));
 
-  plugin_register("API_Blink_GetStartStopSyncEnabled",
-                  (void*)GetStartStopSyncEnabled);
-  plugin_register("APIdef_Blink_GetStartStopSyncEnabled",
-                  (void*)defstring_GetStartStopSyncEnabled);
-  plugin_register(
-    "APIvararg_Blink_GetStartStopSyncEnabled",
-    reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetStartStopSyncEnabled>));
+    plugin_register("API_Blink_GetStartStopSyncEnabled", (void*)GetStartStopSyncEnabled);
+    plugin_register("APIdef_Blink_GetStartStopSyncEnabled", (void*)defstring_GetStartStopSyncEnabled);
+    plugin_register(
+        "APIvararg_Blink_GetStartStopSyncEnabled",
+        reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetStartStopSyncEnabled>)
+    );
 
-  plugin_register("API_Blink_SetStartStopSyncEnabled",
-                  (void*)SetStartStopSyncEnabled);
-  plugin_register("APIdef_Blink_SetStartStopSyncEnabled",
-                  (void*)defstring_SetStartStopSyncEnabled);
-  plugin_register(
-    "APIvararg_Blink_SetStartStopSyncEnabled",
-    reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetStartStopSyncEnabled>));
+    plugin_register("API_Blink_SetStartStopSyncEnabled", (void*)SetStartStopSyncEnabled);
+    plugin_register("APIdef_Blink_SetStartStopSyncEnabled", (void*)defstring_SetStartStopSyncEnabled);
+    plugin_register(
+        "APIvararg_Blink_SetStartStopSyncEnabled",
+        reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetStartStopSyncEnabled>)
+    );
 
-  plugin_register("API_Blink_GetNumPeers", (void*)GetNumPeers);
-  plugin_register("APIdef_Blink_GetNumPeers", (void*)defstring_GetNumPeers);
-  plugin_register("APIvararg_Blink_GetNumPeers",
-                  reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetNumPeers>));
+    plugin_register("API_Blink_GetNumPeers", (void*)GetNumPeers);
+    plugin_register("APIdef_Blink_GetNumPeers", (void*)defstring_GetNumPeers);
+    plugin_register("APIvararg_Blink_GetNumPeers", reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetNumPeers>));
 
-  plugin_register("API_Blink_GetClockNow", (void*)GetClockNow);
-  plugin_register("APIdef_Blink_GetClockNow", (void*)defstring_GetClockNow);
-  plugin_register("APIvararg_Blink_GetClockNow",
-                  reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetClockNow>));
+    plugin_register("API_Blink_GetClockNow", (void*)GetClockNow);
+    plugin_register("APIdef_Blink_GetClockNow", (void*)defstring_GetClockNow);
+    plugin_register("APIvararg_Blink_GetClockNow", reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetClockNow>));
 
-  plugin_register("API_Blink_GetTempo", (void*)GetTempo);
-  plugin_register("APIdef_Blink_GetTempo", (void*)defstring_GetTempo);
-  plugin_register("APIvararg_Blink_GetTempo",
-                  reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetTempo>));
+    plugin_register("API_Blink_GetTempo", (void*)GetTempo);
+    plugin_register("APIdef_Blink_GetTempo", (void*)defstring_GetTempo);
+    plugin_register("APIvararg_Blink_GetTempo", reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetTempo>));
 
-  plugin_register("API_Blink_GetBeatAtTime", (void*)GetBeatAtTime);
-  plugin_register("APIdef_Blink_GetBeatAtTime", (void*)defstring_GetBeatAtTime);
-  plugin_register("APIvararg_Blink_GetBeatAtTime",
-                  reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetBeatAtTime>));
+    plugin_register("API_Blink_GetBeatAtTime", (void*)GetBeatAtTime);
+    plugin_register("APIdef_Blink_GetBeatAtTime", (void*)defstring_GetBeatAtTime);
+    plugin_register("APIvararg_Blink_GetBeatAtTime", reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetBeatAtTime>));
 
-  plugin_register("API_Blink_GetPhaseAtTime", (void*)GetPhaseAtTime);
-  plugin_register("APIdef_Blink_GetPhaseAtTime",
-                  (void*)defstring_GetPhaseAtTime);
-  plugin_register(
-    "APIvararg_Blink_GetPhaseAtTime",
-    reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetPhaseAtTime>));
+    plugin_register("API_Blink_GetPhaseAtTime", (void*)GetPhaseAtTime);
+    plugin_register("APIdef_Blink_GetPhaseAtTime", (void*)defstring_GetPhaseAtTime);
+    plugin_register("APIvararg_Blink_GetPhaseAtTime", reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetPhaseAtTime>));
 
-  plugin_register("API_Blink_GetTimeAtBeat", (void*)GetTimeAtBeat);
-  plugin_register("APIdef_Blink_GetTimeAtBeat", (void*)defstring_GetTimeAtBeat);
-  plugin_register("APIvararg_Blink_GetTimeAtBeat",
-                  reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetTimeAtBeat>));
+    plugin_register("API_Blink_GetTimeAtBeat", (void*)GetTimeAtBeat);
+    plugin_register("APIdef_Blink_GetTimeAtBeat", (void*)defstring_GetTimeAtBeat);
+    plugin_register("APIvararg_Blink_GetTimeAtBeat", reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetTimeAtBeat>));
 
-  plugin_register("API_Blink_GetTimeForPlaying", (void*)GetTimeForPlaying);
-  plugin_register("APIdef_Blink_GetTimeForPlaying",
-                  (void*)defstring_GetTimeForPlaying);
-  plugin_register(
-    "APIvararg_Blink_GetTimeForPlaying",
-    reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetTimeForPlaying>));
+    plugin_register("API_Blink_GetTimeForPlaying", (void*)GetTimeForPlaying);
+    plugin_register("APIdef_Blink_GetTimeForPlaying", (void*)defstring_GetTimeForPlaying);
+    plugin_register(
+        "APIvararg_Blink_GetTimeForPlaying",
+        reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetTimeForPlaying>)
+    );
 
-  plugin_register("API_Blink_GetPlaying", (void*)GetPlaying);
-  plugin_register("APIdef_Blink_GetPlaying", (void*)defstring_GetPlaying);
-  plugin_register("APIvararg_Blink_GetPlaying",
-                  reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetPlaying>));
+    plugin_register("API_Blink_GetPlaying", (void*)GetPlaying);
+    plugin_register("APIdef_Blink_GetPlaying", (void*)defstring_GetPlaying);
+    plugin_register("APIvararg_Blink_GetPlaying", reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetPlaying>));
 
-  plugin_register("API_Blink_SetPlaying", (void*)SetPlaying);
-  plugin_register("APIdef_Blink_SetPlaying", (void*)defstring_SetPlaying);
-  plugin_register("APIvararg_Blink_SetPlaying",
-                  reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetPlaying>));
+    plugin_register("API_Blink_SetPlaying", (void*)SetPlaying);
+    plugin_register("APIdef_Blink_SetPlaying", (void*)defstring_SetPlaying);
+    plugin_register("APIvararg_Blink_SetPlaying", reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetPlaying>));
 
-  plugin_register("API_Blink_StartStop", (void*)startStop);
-  plugin_register("APIdef_Blink_StartStop", (void*)defstring_startStop);
-  plugin_register("APIvararg_Blink_StartStop",
-                  reinterpret_cast<void*>(&InvokeReaScriptAPI<&startStop>));
+    plugin_register("API_Blink_StartStop", (void*)startStop);
+    plugin_register("APIdef_Blink_StartStop", (void*)defstring_startStop);
+    plugin_register("APIvararg_Blink_StartStop", reinterpret_cast<void*>(&InvokeReaScriptAPI<&startStop>));
 
-  plugin_register("API_Blink_SetTempo", (void*)SetTempo);
-  plugin_register("APIdef_Blink_SetTempo", (void*)defstring_SetTempo);
-  plugin_register("APIvararg_Blink_SetTempo",
-                  reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetTempo>));
+    plugin_register("API_Blink_SetTempo", (void*)SetTempo);
+    plugin_register("APIdef_Blink_SetTempo", (void*)defstring_SetTempo);
+    plugin_register("APIvararg_Blink_SetTempo", reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetTempo>));
 
-  plugin_register("API_Blink_SetTempoAtTime", (void*)SetTempoAtTime);
-  plugin_register("APIdef_Blink_SetTempoAtTime",
-                  (void*)defstring_SetTempoAtTime);
-  plugin_register(
-    "APIvararg_Blink_SetTempoAtTime",
-    reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetTempoAtTime>));
+    plugin_register("API_Blink_SetTempoAtTime", (void*)SetTempoAtTime);
+    plugin_register("APIdef_Blink_SetTempoAtTime", (void*)defstring_SetTempoAtTime);
+    plugin_register("APIvararg_Blink_SetTempoAtTime", reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetTempoAtTime>));
 
-  plugin_register("API_Blink_SetBeatAtTimeRequest",
-                  (void*)SetBeatAtTimeRequest);
-  plugin_register("APIdef_Blink_SetBeatAtTimeRequest",
-                  (void*)defstring_SetBeatAtTimeRequest);
-  plugin_register(
-    "APIvararg_Blink_SetBeatAtTimeRequest",
-    reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetBeatAtTimeRequest>));
+    plugin_register("API_Blink_SetBeatAtTimeRequest", (void*)SetBeatAtTimeRequest);
+    plugin_register("APIdef_Blink_SetBeatAtTimeRequest", (void*)defstring_SetBeatAtTimeRequest);
+    plugin_register(
+        "APIvararg_Blink_SetBeatAtTimeRequest",
+        reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetBeatAtTimeRequest>)
+    );
 
-  plugin_register("API_Blink_SetQuantum", (void*)SetQuantum);
-  plugin_register("APIdef_Blink_SetQuantum", (void*)defstring_SetQuantum);
-  plugin_register("APIvararg_Blink_SetQuantum",
-                  reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetQuantum>));
+    plugin_register("API_Blink_SetQuantum", (void*)SetQuantum);
+    plugin_register("APIdef_Blink_SetQuantum", (void*)defstring_SetQuantum);
+    plugin_register("APIvararg_Blink_SetQuantum", reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetQuantum>));
 
-  plugin_register("API_Blink_GetQuantum", (void*)GetQuantum);
-  plugin_register("APIdef_Blink_GetQuantum", (void*)defstring_GetQuantum);
-  plugin_register("APIvararg_Blink_GetQuantum",
-                  reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetQuantum>));
+    plugin_register("API_Blink_GetQuantum", (void*)GetQuantum);
+    plugin_register("APIdef_Blink_GetQuantum", (void*)defstring_GetQuantum);
+    plugin_register("APIvararg_Blink_GetQuantum", reinterpret_cast<void*>(&InvokeReaScriptAPI<&GetQuantum>));
 
-  plugin_register("API_Blink_SetBeatAtTimeForce", (void*)SetBeatAtTimeForce);
-  plugin_register("APIdef_Blink_SetBeatAtTimeForce",
-                  (void*)defstring_SetBeatAtTimeForce);
-  plugin_register(
-    "APIvararg_Blink_SetBeatAtTimeForce",
-    reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetBeatAtTimeForce>));
+    plugin_register("API_Blink_SetBeatAtTimeForce", (void*)SetBeatAtTimeForce);
+    plugin_register("APIdef_Blink_SetBeatAtTimeForce", (void*)defstring_SetBeatAtTimeForce);
+    plugin_register(
+        "APIvararg_Blink_SetBeatAtTimeForce",
+        reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetBeatAtTimeForce>)
+    );
 
-  plugin_register("API_Blink_SetPlayingAndBeatAtTimeRequest",
-                  (void*)SetPlayingAndBeatAtTimeRequest);
-  plugin_register("APIdef_Blink_SetPlayingAndBeatAtTimeRequest",
-                  (void*)defstring_SetPlayingAndBeatAtTimeRequest);
-  plugin_register("APIvararg_Blink_"
-                  "SetPlayingAndBeatAtTimeRequest",
-                  reinterpret_cast<void*>(
-                    &InvokeReaScriptAPI<&SetPlayingAndBeatAtTimeRequest>));
+    plugin_register("API_Blink_SetPlayingAndBeatAtTimeRequest", (void*)SetPlayingAndBeatAtTimeRequest);
+    plugin_register("APIdef_Blink_SetPlayingAndBeatAtTimeRequest", (void*)defstring_SetPlayingAndBeatAtTimeRequest);
+    plugin_register(
+        "APIvararg_Blink_"
+        "SetPlayingAndBeatAtTimeRequest",
+        reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetPlayingAndBeatAtTimeRequest>)
+    );
 
-  plugin_register("API_Blink_SetBeatAtStartPlayingTimeRequest",
-                  (void*)SetBeatAtStartPlayingTimeRequest);
-  plugin_register("APIdef_Blink_"
-                  "SetBeatAtStartPlayingTimeRequest",
-                  (void*)defstring_SetBeatAtStartPlayingTimeRequest);
-  plugin_register("APIvararg_Blink_"
-                  "SetBeatAtStartPlayingTimeRequest",
-                  reinterpret_cast<void*>(
-                    &InvokeReaScriptAPI<&SetBeatAtStartPlayingTimeRequest>));
+    plugin_register("API_Blink_SetBeatAtStartPlayingTimeRequest", (void*)SetBeatAtStartPlayingTimeRequest);
+    plugin_register(
+        "APIdef_Blink_"
+        "SetBeatAtStartPlayingTimeRequest",
+        (void*)defstring_SetBeatAtStartPlayingTimeRequest
+    );
+    plugin_register(
+        "APIvararg_Blink_"
+        "SetBeatAtStartPlayingTimeRequest",
+        reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetBeatAtStartPlayingTimeRequest>)
+    );
 
-  plugin_register("API_Blink_SetCaptureTransportCommands",
-                  (void*)SetCaptureTransportCommands);
-  plugin_register("APIdef_Blink_SetCaptureTransportCommands",
-                  (void*)defstring_SetCaptureTransportCommands);
-  plugin_register(
-    "APIvararg_Blink_SetCaptureTransportCommands",
-    reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetCaptureTransportCommands>));
+    plugin_register("API_Blink_SetCaptureTransportCommands", (void*)SetCaptureTransportCommands);
+    plugin_register("APIdef_Blink_SetCaptureTransportCommands", (void*)defstring_SetCaptureTransportCommands);
+    plugin_register(
+        "APIvararg_Blink_SetCaptureTransportCommands",
+        reinterpret_cast<void*>(&InvokeReaScriptAPI<&SetCaptureTransportCommands>)
+    );
 
-  std::string init = GetExtState("ak5k", "reablink_init");
-  if (init.empty())
-  {
-    SetExtState("ak5k", "reablink_init", "1", true);
-    std::string version = GetAppVersion();
-    std::transform(version.begin(), version.end(), version.begin(),
-                   [](unsigned char c) { return std::tolower(c); });
-
-    std::string path = GetResourcePath();
-    if (version.find("osx") != std::string::npos ||
-        version.find("macos") != std::string::npos)
+    std::string init = GetExtState("ak5k", "reablink_init");
+    if (init.empty())
     {
-      path = "/Library/Application Support/REAPER";
-    }
-    std::string delim = "/";
-    if (version.find("windows") != std::string::npos)
-    {
-      delim = "\\";
-    }
-    path += delim;
-    path += "UserPlugins";
-    path += delim;
-    path += "ReaBlink_Monitor_init.lua";
-    FILE* file = fopen(path.c_str(), "r");
-    if (file != NULL)
-    {
-      fclose(file);
-      AddRemoveReaScript(false, 0, path.c_str(), false);
-    }
-  }
+        SetExtState("ak5k", "reablink_init", "1", true);
+        std::string version = GetAppVersion();
+        std::transform(
+            version.begin(),
+            version.end(),
+            version.begin(),
+            [](unsigned char c) { return std::tolower(c); }
+        );
 
-  (void)rec;
+        std::string path = GetResourcePath();
+        if (version.find("osx") != std::string::npos || version.find("macos") != std::string::npos)
+            path = "/Library/Application Support/REAPER";
+        std::string delim = "/";
+        if (version.find("windows") != std::string::npos)
+            delim = "\\";
+        path += delim;
+        path += "UserPlugins";
+        path += delim;
+        path += "ReaBlink_Monitor_init.lua";
+        FILE* file = fopen(path.c_str(), "r");
+        if (file != NULL)
+        {
+            fclose(file);
+            AddRemoveReaScript(false, 0, path.c_str(), false);
+        }
+    }
+
+    (void)rec;
 }
 } // namespace reablink
