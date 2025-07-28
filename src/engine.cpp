@@ -1,4 +1,5 @@
 // Make sure to define this before <cmath> is included for Windows
+
 #ifdef LINK_PLATFORM_WINDOWS
 #define _USE_MATH_DEFINES // NOLINT
 #endif
@@ -37,6 +38,11 @@ void AudioEngine::setMaster(bool isMaster)
 void AudioEngine::setPuppet(bool isPuppet)
 {
     this->isPuppet = isPuppet;
+}
+
+void AudioEngine::setLocalTempoPushEnabled(bool enabled)
+{
+    this->isLocalTempoPushEnabled = enabled;
 }
 
 bool AudioEngine::getMaster()
@@ -219,7 +225,8 @@ int SetLaunchPrerollRegion()
     double projectLength = GetProjectLength(0); // Get the length of the project
     int measures3 = 0;
     int beats3 = 0;
-    double num_measures = TimeMap2_timeToBeats(
+
+    TimeMap2_timeToBeats(
         0,
         projectLength,
         &measures3,
@@ -228,9 +235,8 @@ int SetLaunchPrerollRegion()
         NULL
     ); // Convert the project length to measures/beats
     auto region_start = TimeMap2_beatsToTime(0, beats3, &measures3);
-    auto pos = GetNextFullMeasureTimePosition();
 
-    num_measures = TimeMap2_timeToBeats(
+    TimeMap2_timeToBeats(
         0,
         region_start,
         &measures3,
@@ -238,10 +244,9 @@ int SetLaunchPrerollRegion()
         NULL,
         NULL
     ); // Convert the project length to measures/beats
+
     auto region_end = TimeMap2_beatsToTime(0, beats3, &measures3);
 
-    (void)pos;
-    (void)num_measures;
     // Add the region to the project
     int isRegion = true; // We want to create a region, not a marker
     int color = 0;       // The color of the region (0 = default color)
@@ -431,10 +436,12 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime, const 
 
         // set tempo if host /
         //   timeline has changed it
-        if (sessionState.beatAtTime(hostTime, engineData.quantum) > 0. && hostBpm != sessionState.tempo() &&
+        if (sessionState.beatAtTime(hostTime, engineData.quantum) > 0. && //
+            hostBpm != sessionState.tempo() &&                            //
             !(engineData.requestedTempo > 0.))
         {
-            sessionState.setTempo(hostBpm, hostTime);
+            if (isLocalTempoPushEnabled)
+                sessionState.setTempo(hostBpm, hostTime);
         }
 
         // get current qn/beat position
@@ -469,7 +476,7 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime, const 
         auto reaper_phase_current = fmod(beat - land_offset + jump_offset, 1.0);
 
         // sync
-        auto link_phase_current = sessionState.phaseAtTime(hostTime, 4. / timesig_denom) * (timesig_denom / 4);
+        auto link_phase_current = sessionState.phaseAtTime(hostTime, 4. / timesig_denom) * (timesig_denom / 4.0);
         auto reaper_phase_time = reaper_phase_current * 60. / sessionState.tempo();
         auto link_phase_time = fmod(link_phase_current, 1.0) * 60. / sessionState.tempo();
 
@@ -486,11 +493,11 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime, const 
         static auto limit = std::max(frame_time / limit_denom,
                                      buf_len_time / limit_denom); // seconds
 
-        if (!isMaster && isPuppet && mLink.numPeers() > 0 && !quantized_launch &&
-            (sessionState.beatAtTime(hostTime, engineData.quantum) < 0 ||
-             sessionState.beatAtTime(hostTime, engineData.quantum) > 1.666) &&
-            abs(diff) > limit && abs(reaper_phase_current - link_phase_current) < 0.5 &&
-            GetToggleCommandState(40620) == 0)
+        if (!isMaster && isPuppet && mLink.numPeers() > 0 && !quantized_launch
+            && (sessionState.beatAtTime(hostTime, engineData.quantum) < 0
+                || sessionState.beatAtTime(hostTime, engineData.quantum) > 1.666)
+            && abs(diff) > limit && abs(reaper_phase_current - link_phase_current) < 0.5
+            && GetToggleCommandState(40620) == 0)
         {
             limit = std::max(frame_time / limit_denom / 2,
                              buf_len_time / limit_denom / 2); // seconds
@@ -540,7 +547,17 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime, const 
                 new_tempo = hostBpm;
             (void)measures;
         }
-        if (!SetTempoTimeSigMarker(0, ptidx, timepos, measurepos, beatpos, new_tempo, timesig_num, timesig_denom, 0))
+        if (!SetTempoTimeSigMarker(
+                0,
+                ptidx,
+                timepos,
+                measurepos,
+                beatpos,
+                new_tempo,
+                timesig_num,
+                timesig_denom,
+                false
+            ))
             sessionState.setTempo(new_tempo, hostTime);
     }
 
@@ -552,5 +569,4 @@ void AudioEngine::audioCallback(const std::chrono::microseconds hostTime, const 
     mLink.commitAudioSessionState(sessionState);
 }
 
-// NOLINTEND(*complexity)
 } // namespace reablink

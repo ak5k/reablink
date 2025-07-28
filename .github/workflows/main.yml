@@ -6,7 +6,6 @@ on:
   #   tags:
   #     - "v[0-9]+.*"
   workflow_dispatch:
-    name: build
 
 env:
   BUILD_TYPE: Release
