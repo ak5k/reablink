@@ -1,6 +1,7 @@
+#include <WDL/wdltypes.h>
+//
 #include "api.hpp"
 
-#include <WDL/wdltypes.h>
 #include <stdio.h>
 
 #define REAPERAPI_IMPLEMENT
