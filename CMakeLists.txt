@@ -140,20 +140,25 @@ if(WIN32)
     $<$<NOT:$<CONFIG:Debug>>:/Zc:inline>
   )
 
-if(NOT CMAKE_PROJECT_VERSION_TWEAK EQUAL "1")
-  add_link_options(
-    # Remove unreferenced code
-    $<$<NOT:$<CONFIG:Debug>>:/OPT:REF>
+  if(NOT CMAKE_PROJECT_VERSION_TWEAK EQUAL "1")
+    add_link_options(
+      # Remove unreferenced code
+      $<$<NOT:$<CONFIG:Debug>>:/OPT:REF>
 
-    # Remove duplicate sections
-    $<$<NOT:$<CONFIG:Debug>>:/OPT:ICF>
+      # Remove duplicate sections
+      $<$<NOT:$<CONFIG:Debug>>:/OPT:ICF>
 
-    # Use relative path to the PDB file to avoid exposing the full path
-    /PDBALTPATH:%_PDB%
-  )
+      # Use relative path to the PDB file to avoid exposing the full path
+      /PDBALTPATH:%_PDB%
+    )
+  endif()
 endif()
-else()
-  add_compile_options(-fsigned-char -fstack-protector-strong -fdiagnostics-color)
+if(UNIX AND NOT APPLE)
+  target_compile_options(
+    ${PROJECT_NAME} 
+      PRIVATE 
+      -fno-unsigned-char
+  )
 endif()
 
 
